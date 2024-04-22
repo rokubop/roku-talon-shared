@@ -7,7 +7,7 @@ builder = None
 
 @mod.action_class
 class Actions:
-    def ui_builder(justify_content: str = "start", align_items: str = "start"):
+    def ui_builder(justify_content: str = "start", align_items: str = "start", background_color: str = None):
         """
         Create a new UIBuilder instance with specific layout settings.
 
@@ -20,6 +20,7 @@ class Actions:
             align_items=align_items,
             width=1920,
             height=1080,
+            background_color=background_color
         )
 
     def ui_builder_test():
@@ -28,6 +29,7 @@ class Actions:
         builder = actions.user.ui_builder(
             justify_content="flex_end",
             align_items="center",
+            background_color="111111"
         )
         window = builder.add_container(
             padding=16,

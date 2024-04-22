@@ -20,20 +20,40 @@ class BoxModelLayout:
     margin_rect: Rect
     padding_rect: Rect
     content_rect: Rect
+    content_children_rect: Rect
 
-    def __init__(self, x: int, y: int, margin_spacing: BoxModelSpacing, padding_spacing: BoxModelSpacing):
+    def __init__(self, x: int, y: int, margin_spacing: BoxModelSpacing, padding_spacing: BoxModelSpacing, width: int = None, height: int = None):
         self.margin_spacing = margin_spacing
         self.padding_spacing = padding_spacing
         self.margin_rect = Rect(x, y, 0, 0)
-        self.padding_rect = Rect(x + margin_spacing.left, y + margin_spacing.top, 0, 0)
-        self.content_rect = Rect(x + margin_spacing.left + padding_spacing.left, y + margin_spacing.top + padding_spacing.top, 0, 0)
+        self.padding_rect = Rect(x + margin_spacing.left, y + margin_spacing.top, width or 0, height or 0)
+        content_x = x + margin_spacing.left + padding_spacing.left
+        content_y = y + margin_spacing.top + padding_spacing.top
+        content_width = width - padding_spacing.left - padding_spacing.right if width else 0
+        content_height = height - padding_spacing.top - padding_spacing.bottom if height else 0
+        self.content_rect = Rect(content_x, content_y, content_width, content_height)
+        self.content_children_rect = Rect(self.content_rect.x, self.content_rect.y, 0, 0)
 
-    def grow_content_rect(self, rect: Rect):
+    def update_children_rect(self, rect: Rect):
+        grow_rect(self.content_children_rect, rect)
         grow_rect(self.content_rect, rect)
         self.padding_rect.width = self.content_rect.width + self.padding_spacing.left + self.padding_spacing.right
         self.padding_rect.height = self.content_rect.height + self.padding_spacing.top + self.padding_spacing.bottom
         self.margin_rect.width = self.padding_rect.width + self.margin_spacing.left + self.margin_spacing.right
         self.margin_rect.height = self.padding_rect.height + self.margin_spacing.top + self.margin_spacing.bottom
+
+    # def align_right_center(self, pos: Point2d):
+    #     print("content_children_rect", self.content_children_rect)
+    #     self.margin_rect.x = pos.x - self.margin_rect.width
+    #     self.margin_rect.y = pos.y - self.margin_rect.height // 2
+    #     self.padding_rect.x = pos.x - self.padding_rect.width
+    #     self.padding_rect.y = pos.y - self.padding_rect.height // 2
+    #     self.content_rect.x = pos.x - self.content_rect.width
+    #     self.content_rect.y = pos.y - self.content_rect.height // 2
+    #     self.content_children_rect.x = pos.x - self.content_children_rect.width
+    #     self.content_children_rect.y = pos.y - self.content_children_rect.height // 2
+    #     print("content_children_rect", self.content_children_rect)
+
 
 
 @dataclass
@@ -171,31 +191,50 @@ class UIContainer(UIWithChildren):
         self.box_model: BoxModelLayout = None
 
     def virtual_render(self, c: SkiaCanvas, cursor: Cursor):
-        self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding)
-        cursor.virtual_move_to(self.box_model.content_rect.x, self.box_model.content_rect.y)
+        self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.width, self.options.height)
+
+        cursor.virtual_move_to(cursor.virtual_x + self.box_model.content_children_rect.x, cursor.virtual_y + self.box_model.content_children_rect.y)
         for child in self.children:
             rect = child.virtual_render(c, cursor)
             if self.options.flex_direction == "column":
                 cursor.virtual_move_to(cursor.virtual_x, cursor.virtual_y + rect.height + self.options.gap)
             elif self.options.flex_direction == "row":
                 cursor.virtual_move_to(cursor.virtual_x + rect.width + self.options.gap, cursor.virtual_y)
-            self.box_model.grow_content_rect(rect)
+            self.box_model.update_children_rect(rect)
 
         return self.box_model.margin_rect
 
     def render(self, c: SkiaCanvas, cursor: Cursor):
-        # if self.options.align_items == "center" and self.options.justify_content == "flex_end":
-        #     cursor.move_to(self.box_model.content_rect.width - self.box_model.margin_rect.width - self.box_model.content_rect.width, cursor.y)
-        # else:
-        cursor.move_to(self.box_model.padding_rect.x, self.box_model.padding_rect.y)
+        cursor.move_to(cursor.x + self.box_model.padding_rect.x, cursor.y + self.box_model.padding_rect.y)
         if self.options.background_color:
             c.paint.color = self.options.background_color
             if self.options.border_radius:
                 c.draw_rrect(RoundRect.from_rect(self.box_model.padding_rect, x=self.options.border_radius, y=self.options.border_radius))
             else:
                 c.draw_rect(self.box_model.padding_rect)
-        cursor.move_to(self.box_model.content_rect.x, self.box_model.content_rect.y)
 
+
+        if self.options.justify_content == "flex_end":
+            self.box_model.content_children_rect.x = self.box_model.content_rect.x + self.box_model.content_rect.width - self.box_model.content_children_rect.width
+        if self.options.align_items == "center":
+            self.box_model.content_children_rect.y = self.box_model.content_rect.y + self.box_model.content_rect.height // 2 - self.box_model.content_children_rect.height // 2
+
+        c.paint.color = "ff0000"
+        c.draw_rect(self.box_model.content_children_rect)
+
+        # print("I was here")
+        # print(self.options.justify_content, self.options.align_items)
+        # x = 0
+        # if self.options.justify_content == "flex_end":
+        #     self.box_model.content_children_rect.x = self.box_model.content_rect.x + self.box_model.content_rect.width - self.box_model.content_children_rect.width
+        # if self.options.align_items == "center":
+        #     self.box_model.content_children_rect.y = self.box_model.content_rect.y + self.box_model.content_rect.height // 2 - self.box_model.content_children_rect.height // 2
+            # center_right = Point2d(self.box_model.padding_rect.x + self.box_model.padding_rect.width, self.box_model.padding_rect.y + self.box_model.padding_rect.height // 2)
+            # print(center_right)
+            # self.box_model.align_right_center(center_right)
+
+        cursor.move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
+        print("cursor", cursor)
         for child in self.children:
             rect = child.render(c, cursor)
             if self.options.flex_direction == "column":
@@ -213,12 +252,12 @@ class UIText:
         self.box_model = None
 
     def virtual_render(self, c: SkiaCanvas, cursor: Cursor):
-        self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding)
+        self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.width, self.options.height)
         cursor.virtual_move_to(self.box_model.content_rect.x, self.box_model.content_rect.y)
         c.paint.textsize = self.options.size
         self.text_width = c.paint.measure_text(self.text)[1].width
         self.text_height = c.paint.measure_text("E")[1].height
-        self.box_model.grow_content_rect(Rect(cursor.virtual_x, cursor.virtual_y, self.text_width, self.text_height))
+        self.box_model.update_children_rect(Rect(cursor.virtual_x, cursor.virtual_y, self.text_width, self.text_height))
         return self.box_model.margin_rect
 
     def render(self, c: SkiaCanvas, cursor: Cursor):

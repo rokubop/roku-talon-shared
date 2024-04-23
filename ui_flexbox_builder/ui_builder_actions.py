@@ -1,5 +1,5 @@
 from talon import Module, actions
-from .ui_builder import UIBuilder
+from .src.ui_builder import UIBuilder
 
 mod = Module()
 

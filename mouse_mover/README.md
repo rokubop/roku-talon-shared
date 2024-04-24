@@ -11,7 +11,7 @@ Easing Types:
 
 | **Action** | **Description** |
 |------------|-----------------|
-| `user.mouse_move_adv` | Moves the mouse using a delta (dx, dy) starting from the current position, over a duration of time. |
-| `user.mouse_move_adv_to` | Moves the mouse to a screen position (x, y) over a duration of time. |
-| `user.mouse_move_adv_from` | Moves the mouse from a position (x, y) back to the current position over a duration of time. |
-| `user.mouse_move_adv_from_to` | Moves the mouse from one point (x1, y1) to another (x2, y2) over a duration of time. |
+| `user.mouse_move_delta` | Moves the mouse using a delta (dx, dy) starting from the current position, over a duration of time. |
+| `user.mouse_move_delta_to` | Moves the mouse to a screen position (x, y) over a duration of time. |
+| `user.mouse_move_delta_from` | Moves the mouse from a position (x, y) back to the current position over a duration of time. |
+| `user.mouse_move_delta_from_to` | Moves the mouse from one point (x1, y1) to another (x2, y2) over a duration of time. |

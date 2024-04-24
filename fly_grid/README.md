@@ -1,6 +1,6 @@
-# Cursorless Grid (WIP)
+# Fly Grid (WIP)
 
-A cursorless inspired grid that allows you to easily perform actions to a target or multiple targets, including dragging from one point to another.
+Allows you to easily perform actions to a target or multiple targets, including dragging from one point to another.
 
 | Command | Description | Example |
 | --- | --- | --- |

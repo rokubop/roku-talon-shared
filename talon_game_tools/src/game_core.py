@@ -171,8 +171,8 @@ class Actions:
 
 def mouse_reset_center_y():
     """Reset the mouse to the center of the screen."""
-    actions.user.mouse_move_adv_degrees(0, 180, 100)
-    actions.user.mouse_move_adv_queue(lambda: actions.user.mouse_move_adv_degrees(0, -90, 100))
+    actions.user.mouse_move_delta_degrees(0, 180, 100)
+    actions.user.mouse_move_delta_queue(lambda: actions.user.mouse_move_delta_degrees(0, -90, 100))
 
 def on_calibrate_x_360_tick(value):
     global _last_calibrate_value_x
@@ -190,22 +190,22 @@ def mouse_calibrate_x_360(dx360: int):
     """Calibrate a 360 spin"""
     global _last_calibrate_value_x
     _last_calibrate_value_x = 0
-    actions.user.mouse_move_adv(dx360, 0, 1000, on_calibrate_x_360_tick)
+    actions.user.mouse_move_delta(dx360, 0, 1000, on_calibrate_x_360_tick)
 
 def game_calibrate_x_360_adjust_last(dx: int):
     """Add or subtract to the last x calibration."""
-    actions.user.mouse_move_adv(dx, 0, 500, on_calibrate_x_360_tick)
+    actions.user.mouse_move_delta(dx, 0, 500, on_calibrate_x_360_tick)
 
 def game_calibrate_y_90_adjust_last(dy: int):
     """Add or subtract to the last x calibration."""
-    actions.user.mouse_move_adv(0, dy, 500, on_calibrate_y_90_tick)
+    actions.user.mouse_move_delta(0, dy, 500, on_calibrate_y_90_tick)
 
 def mouse_calibrate_90_y(dy_90: int):
     """Calibrate looking down to the ground and looking up to center."""
     global _last_calibrate_value_y
     _last_calibrate_value_y = 0
-    actions.user.mouse_move_adv(0, dy_90 * 2, 100)
-    actions.user.mouse_move_adv_queue(lambda: actions.user.mouse_move_adv(0, -dy_90, 100, on_calibrate_y_90_tick))
+    actions.user.mouse_move_delta(0, dy_90 * 2, 100)
+    actions.user.mouse_move_delta_queue(lambda: actions.user.mouse_move_delta(0, -dy_90, 100, on_calibrate_y_90_tick))
 
 @mod.action_class
 class Actions:

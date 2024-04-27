@@ -1,1 +1,1 @@
-flyer:                      user.fly_grid_show()
+show flights:               user.fly_grid_show()

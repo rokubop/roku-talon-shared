@@ -124,6 +124,8 @@ class Actions:
     def fly_grid_hide():
         """Hide the grid"""
         fly_grid_hide()
+        actions.user.mouse_move_continuous_stop()
+        actions.user.mouse_move_stop()
         actions.mode.disable("user.fly_grid")
 
     def fly_grid_move_mouse(target: str):
@@ -135,6 +137,11 @@ class Actions:
         """Move the mouse to the grid position"""
         pos = grid_pos_map[target]
         actions.user.mouse_move_to(pos.x, pos.y)
+
+    def fly_grid_fly_towards(target: str):
+        """Move the mouse to the grid position"""
+        pos = grid_pos_map[target]
+        actions.user.mouse_move_continuous_towards(pos.x, pos.y)
 
     def fly_grid_more_squares():
         """Increase the number of squares"""
@@ -229,8 +236,15 @@ class Actions:
         box_size = default_box_size
         grid_exclude_regions = []
         grid_include_regions = []
+        actions.user.mouse_move_continuous_stop()
+        actions.user.mouse_move_stop()
         if canvas_grid:
             canvas_grid.freeze()
+
+    def fly_grid_stop():
+        """Reset the grid"""
+        actions.user.mouse_move_continuous_stop()
+        actions.user.mouse_move_stop()
 
 ctx = Context()
 ctx.matches = r"""

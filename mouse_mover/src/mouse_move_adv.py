@@ -6,7 +6,7 @@ user.mouse_move_from_to(x1: int, y1: int, x2: int, y2: int, duration_ms: int = 2
 user.mouse_move_to(x: int, y: int, duration_ms: int = 200, callback_tick: Callable[[MouseMoveCallbackEvent], None] = None, easing_type: CurveTypes = "ease_in_out", mouse_api_type: Literal["talon", "windows"] = "talon")
 """
 from talon import Module, actions, ctrl, cron, settings
-from typing import Callable, Literal
+from typing import Callable, Literal, Union
 from dataclasses import dataclass
 import platform
 import math
@@ -50,8 +50,8 @@ if platform.system() == "Windows":
     import win32api, win32con
     def mouse_move_windows(dx: int, dy: int):
         win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, dx, dy)
-    def mouse_move(dx: int, dy: int):
-        mouse_move_windows(dx, dy)
+    # def mouse_move(dx: int, dy: int):
+    #     mouse_move_windows(dx, dy)
 
 def mouse_move_queue(fn: callable):
     """Add to movement _mouse_movement_queue, executed after next mouse_stop."""
@@ -59,6 +59,34 @@ def mouse_move_queue(fn: callable):
     _mouse_movement_queue.append(fn)
 
 CurveTypes = Literal["linear", "ease_in_out", "ease_in", "ease_out"]
+
+class RealDeltaPath:
+    """
+    Some apis require ints, but that will throw off our calculations
+    over time. This class helps us keep track of the fractional part
+    of the delta so we can keep track of the accumulated error and
+    adjust the int part accordingly.
+    """
+    def __init__(self):
+        self.dx_frac = 0.0
+        self.dy_frac = 0.0
+
+    def update_pos(self, dx: Union[int, float], dy: Union[int, float]):
+        dx_int = int(dx)
+        dy_int = int(dy)
+
+        self.dx_frac += dx - dx_int
+        self.dy_frac += dy - dy_int
+
+        if abs(self.dx_frac) >= 0.5:
+            dx_int += int(math.copysign(1, self.dx_frac))
+            self.dx_frac -= int(math.copysign(1, self.dx_frac))
+
+        if abs(self.dy_frac) >= 0.5:
+            dy_int += int(math.copysign(1, self.dy_frac))
+            self.dy_frac -= int(math.copysign(1, self.dy_frac))
+
+        return dx_int, dy_int
 
 def mouse_move_delta(
     dx: int,
@@ -90,8 +118,8 @@ def mouse_move_delta(
     steps = max(1, duration_ms // update_interval_ms)
     step_count = 0
     last_x, last_y = 0, 0
-    frac_accumulated_dx, frac_accumulated_dy = 0.0, 0.0
     convert_linear_to_curve = easing_types[easing_type]
+    delta_path = RealDeltaPath()
 
     mouse_move_fn = mouse_move
 
@@ -101,7 +129,7 @@ def mouse_move_delta(
         mouse_move_fn = mouse_move_talon
 
     def update_position():
-        nonlocal step_count, last_x, last_y, frac_accumulated_dx, frac_accumulated_dy, mouse_move_fn
+        nonlocal step_count, last_x, last_y, mouse_move_fn
 
         step_count += 1
         if step_count > steps:
@@ -118,19 +146,7 @@ def mouse_move_delta(
         dx_step = current_x - last_x
         dy_step = current_y - last_y
 
-        int_dx_step = int(dx_step)
-        int_dy_step = int(dy_step)
-
-        frac_accumulated_dx += dx_step - int_dx_step
-        frac_accumulated_dy += dy_step - int_dy_step
-
-        if abs(frac_accumulated_dx) >= 0.5:
-            int_dx_step  += int(math.copysign(1, frac_accumulated_dx))
-            frac_accumulated_dx -= int(math.copysign(1, frac_accumulated_dx))
-
-        if abs(frac_accumulated_dy) >= 0.5:
-            int_dy_step  += int(math.copysign(1, frac_accumulated_dy))
-            frac_accumulated_dy -= int(math.copysign(1, frac_accumulated_dy))
+        (int_dx_step, int_dy_step) = delta_path.update_pos(dx_step, dy_step)
 
         mouse_move_fn(int_dx_step, int_dy_step)
 
@@ -206,6 +222,56 @@ def mouse_move_continuous(x: Literal[1, 0, -1], y: Literal[1, 0, -1], speed: int
 
         (x, y) = _mouse_continuous_dir
         mouse_move(x * _mouse_continuous_speed, y * _mouse_continuous_speed)
+
+    update_position()
+    _mouse_job = cron.interval("16ms", update_position)
+
+def get_normalized_delta(pos_1_x, pos_1_y, pos_2_x, pos_2_y):
+    dx = pos_2_x - pos_1_x
+    dy = pos_2_y - pos_1_y
+    distance = math.sqrt(dx ** 2 + dy ** 2)
+    return dx / distance, dy / distance
+
+def mouse_move_continuous_towards(target_x: int, target_y: int, speed: int = 1):
+    """
+    Move the mouse continuously towards xy coordinate.
+    Examples:
+    ```
+    mouse_move_continuous_towards(ctrl.mouse_pos()[0] + 100, ctrl.mouse_pos()[1] + 100) # move mouse towards 100,100
+    ```
+    """
+    global _mouse_job, _mouse_continuous_dir, _mouse_continuous_start_ts, _mouse_continuous_stop_ts, _last_mouse_job_type, _mouse_continuous_speed
+    _mouse_continuous_stop_ts = None
+    _mouse_continuous_speed = speed
+    last_mouse_job_type = _last_mouse_job_type
+    _last_mouse_job_type = "continuous"
+    current_pos = ctrl.mouse_pos()
+    dx, dy = get_normalized_delta(current_pos[0], current_pos[1], target_x, target_y)
+
+    if _mouse_job:
+        if last_mouse_job_type == 'natural':
+            mouse_stop()
+        if _mouse_continuous_dir != (dx, dy):
+            _mouse_continuous_dir = (dx, dy)
+            _mouse_continuous_start_ts = time.perf_counter()
+        # already going in this direction
+        return
+
+    _mouse_continuous_dir = (dx, dy)
+    _mouse_continuous_start_ts = time.perf_counter()
+    delta_path = RealDeltaPath()
+
+    def update_position():
+        global _mouse_continuous_stop_ts, _mouse_continuous_speed, _mouse_continuous_dir
+        ts = time.perf_counter()
+
+        if _mouse_continuous_stop_ts and ts - _mouse_continuous_stop_ts > 0:
+            mouse_stop()
+            return
+
+        (dx, dy) = _mouse_continuous_dir
+        dx_int, dy_int = delta_path.update_pos(dx * _mouse_continuous_speed, dy * _mouse_continuous_speed)
+        mouse_move(dx_int, dy_int)
 
     update_position()
     _mouse_job = cron.interval("16ms", update_position)
@@ -319,3 +385,15 @@ class Actions:
     def mouse_move_delta_queue(fn: callable):
         """Add to movement queue, executed after next mouse_stop."""
         mouse_move_queue(fn)
+
+    def mouse_move_continuous(x: int, y: int, speed: int = 1):
+        """Move the mouse continuously."""
+        mouse_move_continuous(x, y, speed)
+
+    def mouse_move_continuous_towards(x: int, y: int, speed: int = 1):
+        """Move the mouse continuously."""
+        mouse_move_continuous_towards(x, y, speed)
+
+    def mouse_move_continuous_stop(debounce_ms: int = 0):
+        """Stop continuous mouse movement with optional debounce."""
+        mouse_move_continuous_stop(debounce_ms)

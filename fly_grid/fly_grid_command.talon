@@ -1,1 +1,1 @@
-show flights:               user.fly_grid_show()
+mouse grid:                 user.fly_grid_show()

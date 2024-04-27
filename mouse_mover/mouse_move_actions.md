@@ -13,3 +13,6 @@
 - [x] I should keep track of the last direction
 - [ ] I should be able to say \<target\> \<direction\>
 - [ ] I should be able to say simply \<direction\>
+- [ ] I should have a UI with settings/state/toggles
+- [ ] I should be able to stop on pop
+- [ ] I should be able to toggle on hiss

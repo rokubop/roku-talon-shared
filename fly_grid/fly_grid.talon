@@ -47,3 +47,16 @@ tick right:                 user.mouse_tick_direction(1, 0)
 tick back:                  user.mouse_tick_reverse_last_direction()
 speedup:                    user.mouse_speed_increase()
 slowdown:                   user.mouse_speed_decrease()
+
+<user.fly_grid_target> up:
+    user.fly_grid_move_mouse(fly_grid_target)
+    user.mouse_move_continuous(0, -1)
+<user.fly_grid_target> down:
+    user.fly_grid_move_mouse(fly_grid_target)
+    user.mouse_move_continuous(0, 1)
+<user.fly_grid_target> left:
+    user.fly_grid_move_mouse(fly_grid_target)
+    user.mouse_move_continuous(-1, 0)
+<user.fly_grid_target> right:
+    user.fly_grid_move_mouse(fly_grid_target)
+    user.mouse_move_continuous(1, 0)

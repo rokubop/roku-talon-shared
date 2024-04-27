@@ -132,6 +132,7 @@ class Actions:
         """Move the mouse to the grid position"""
         pos = grid_pos_map[target]
         actions.mouse_move(pos.x, pos.y)
+        actions.user.mouse_move_continuous_stop()
 
     def cursorless_move_mouse_to_target(target: str):
         """Move the mouse to the grid position"""

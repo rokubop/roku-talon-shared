@@ -20,6 +20,7 @@ _mouse_movement_queue = []
 _mouse_continuous_start_ts = None
 _mouse_continuous_stop_ts = None
 _mouse_continuous_dir = None
+_mouse_continuous_speed_default = 2
 _mouse_continuous_speed = 2
 
 @dataclass
@@ -101,8 +102,8 @@ def convert_to_unit_vector(dx: int, dy: int):
     return UnitVector(dx / magnitude, dy / magnitude)
 
 def mouse_move_delta(
-    dx: int,
-    dy: int,
+    dx_total: Union[int, float],
+    dy_total: Union[int, float],
     duration_ms: int = 200,
     callback_tick: Callable[[MouseMoveCallbackEvent], None] = None,
     easing_type: Literal["linear", "ease_in_out", "ease_in", "ease_out"] = "ease_in_out",
@@ -116,8 +117,8 @@ def mouse_move_delta(
 
     Callback example:
     def callback_tick(ev):
-        # ev.dx
-        # ev.dy
+        # ev.dx_total
+        # ev.dy_total
         # ev.type # "start", "tick", "stop"
     mouse_move_delta(100, 0, 100, callback_tick)
     ```
@@ -130,7 +131,7 @@ def mouse_move_delta(
     steps = max(1, duration_ms // update_interval_ms)
     step_count = 0
     last_x, last_y = 0, 0
-    _last_unit_vector = convert_to_unit_vector(dx, dy)
+    _last_unit_vector = convert_to_unit_vector(dx_total, dy_total)
     convert_linear_to_curve = easing_types[easing_type]
     subpixel_adjuster = SubpixelAdjuster()
 
@@ -148,13 +149,13 @@ def mouse_move_delta(
         if step_count > steps:
             mouse_stop()
             if callback_tick:
-                callback_tick(MouseMoveCallbackEvent(dx, dy, "stop"))
+                callback_tick(MouseMoveCallbackEvent(dx_total, dy_total, "stop"))
             return
         progress = step_count / steps
         curve_progress = convert_linear_to_curve(progress)
 
-        current_x = dx * curve_progress
-        current_y = dy * curve_progress
+        current_x = dx_total * curve_progress
+        current_y = dy_total * curve_progress
 
         dx_step = current_x - last_x
         dy_step = current_y - last_y
@@ -197,7 +198,7 @@ def mouse_move_3D_to_deg(dx_degrees: int, dy_degrees: int, duration_ms: int = 20
     dy_total = dy_90 / 90 * dy_degrees
     mouse_move_delta(dx_total, dy_total, duration_ms, callback_tick)
 
-def mouse_move_continuous(dx: Union[int, float], dy: Union[int, float], speed_initial: int = 1):
+def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float], speed_initial: int = 1):
     """
     Move the mouse continuously.
     Examples:
@@ -211,23 +212,26 @@ def mouse_move_continuous(dx: Union[int, float], dy: Union[int, float], speed_in
     global _mouse_job, _last_unit_vector, _mouse_continuous_start_ts, _mouse_continuous_stop_ts, _last_mouse_job_type, _mouse_continuous_speed
     _mouse_continuous_stop_ts = None
     subpixel_adjuster = None
-    _mouse_continuous_speed = speed_initial
-    unit_vector = convert_to_unit_vector(dx, dy)
+    unit_vector = convert_to_unit_vector(dx_unit, dy_unit)
     last_mouse_job_type = _last_mouse_job_type
     _last_mouse_job_type = "continuous"
+
+    def init():
+        nonlocal subpixel_adjuster
+        global _mouse_continuous_speed, _last_unit_vector, _mouse_continuous_start_ts
+        _mouse_continuous_speed = speed_initial
+        _last_unit_vector = unit_vector
+        _mouse_continuous_start_ts = time.perf_counter()
+        subpixel_adjuster = SubpixelAdjuster()
+
     if _mouse_job:
         if last_mouse_job_type == 'natural':
             mouse_stop()
         if _last_unit_vector != unit_vector:
-            _last_unit_vector = unit_vector
-            _mouse_continuous_start_ts = time.perf_counter()
-            subpixel_adjuster = SubpixelAdjuster()
-        # already going in this direction
+            init()
         return
 
-    _last_unit_vector = unit_vector
-    _mouse_continuous_start_ts = time.perf_counter()
-    subpixel_adjuster = SubpixelAdjuster()
+    init()
 
     def update_position():
         global _mouse_continuous_stop_ts, _mouse_continuous_speed, _last_unit_vector
@@ -245,7 +249,7 @@ def mouse_move_continuous(dx: Union[int, float], dy: Union[int, float], speed_in
     update_position()
     _mouse_job = cron.interval("16ms", update_position)
 
-def mouse_move_continuous_towards(target_x: int, target_y: int, speed: int = 1):
+def mouse_move_continuous_towards(target_x: int, target_y: int, speed_initial: int = 1):
     """
     Move the mouse continuously towards xy coordinate.
     Examples:
@@ -255,7 +259,7 @@ def mouse_move_continuous_towards(target_x: int, target_y: int, speed: int = 1):
     """
     current_pos = ctrl.mouse_pos()
     dx, dy = target_x - current_pos[0], target_y - current_pos[1]
-    mouse_move_continuous(dx, dy, speed)
+    mouse_move_continuous(dx, dy, speed_initial)
     return
 
 def mouse_move_continuous_stop(debounce_ms: int = 150):
@@ -366,39 +370,37 @@ class Actions:
         """Add to movement queue, executed after next mouse_stop."""
         mouse_move_queue(fn)
 
-    def mouse_move_continuous(dx: Union[int, float], dy: Union[int, float], speed: int = 2):
+    def mouse_move_continuous(dx: Union[int, float], dy: Union[int, float], speed_initial: int = 2):
         """Move the mouse continuously."""
-        mouse_move_continuous(dx, dy, speed)
+        mouse_move_continuous(dx, dy, speed_initial)
 
-    def mouse_move_continuous_towards(x: Union[int, float], y: Union[int, float], speed: int = 2):
+    def mouse_move_continuous_towards(x: Union[int, float], y: Union[int, float], speed_initial: int = 2):
         """Move the mouse continuously."""
-        mouse_move_continuous_towards(x, y, speed)
+        mouse_move_continuous_towards(x, y, speed_initial)
 
     def mouse_move_continuous_stop(debounce_ms: int = 0):
         """Stop continuous mouse movement with optional debounce."""
         mouse_move_continuous_stop(debounce_ms)
 
-    def mouse_tick_last_direction():
+    def mouse_tick_last_direction(distance: int = 50, duration_ms: int = 0):
         """Get the last direction of the continuous movement."""
         global _last_unit_vector
-        print(_last_unit_vector)
 
         if not _last_unit_vector.x and not _last_unit_vector.y:
             return None
-        tick_distance = 50
-        return mouse_move_delta(_last_unit_vector.x * tick_distance, _last_unit_vector.y * tick_distance, 100)
+        return mouse_move_delta(_last_unit_vector.x * distance, _last_unit_vector.y * distance, duration_ms)
 
-    def mouse_tick_reverse_last_direction():
+    def mouse_tick_reverse_last_direction(distance: int = 50, duration_ms: int = 0):
         """Get the last direction of the continuous movement."""
         global _last_unit_vector
-        print(_last_unit_vector)
 
         if not _last_unit_vector.x and not _last_unit_vector.y:
             return None
-        tick_distance = 50
-        return mouse_move_delta(-_last_unit_vector.x * tick_distance, -_last_unit_vector.y * tick_distance, 100)
+        return mouse_move_delta(-_last_unit_vector.x * distance, -_last_unit_vector.y * distance, duration_ms)
 
-    def mouse_tick_direction(dx: int, dy: int):
+    def mouse_tick_direction(dx: int, dy: int, distance: int = 50, duration_ms: int = 0):
         """Get the last direction of the continuous movement."""
-        tick_distance = 50
-        return mouse_move_delta(dx * tick_distance, dy * tick_distance, 0)
+        return mouse_move_delta(dx * distance, dy * distance, duration_ms)
+
+    def mouse_speed_increase(multipler: Union[int, float] = 2):
+        """Get the last direction of the continuous movement."""

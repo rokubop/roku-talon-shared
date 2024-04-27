@@ -21,7 +21,7 @@ _mouse_continuous_start_ts = None
 _mouse_continuous_stop_ts = None
 _mouse_continuous_dir = None
 _mouse_continuous_speed_default = 2
-_mouse_continuous_speed = 2
+_mouse_continuous_speed = _mouse_continuous_speed_default
 
 @dataclass
 class UnitVector:
@@ -216,10 +216,10 @@ def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float]
     last_mouse_job_type = _last_mouse_job_type
     _last_mouse_job_type = "continuous"
 
-    def init():
+    def init(reset_speed=True):
         nonlocal subpixel_adjuster
         global _mouse_continuous_speed, _last_unit_vector, _mouse_continuous_start_ts
-        _mouse_continuous_speed = speed_initial
+        _mouse_continuous_speed = speed_initial if reset_speed else _mouse_continuous_speed
         _last_unit_vector = unit_vector
         _mouse_continuous_start_ts = time.perf_counter()
         subpixel_adjuster = SubpixelAdjuster()
@@ -228,7 +228,7 @@ def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float]
         if last_mouse_job_type == 'natural':
             mouse_stop()
         if _last_unit_vector != unit_vector:
-            init()
+            init(reset_speed=False)
         return
 
     init()
@@ -404,3 +404,10 @@ class Actions:
 
     def mouse_speed_increase(multipler: Union[int, float] = 2):
         """Get the last direction of the continuous movement."""
+        global _mouse_continuous_speed
+        _mouse_continuous_speed *= multipler
+
+    def mouse_speed_decrease(multipler: Union[int, float] = 2):
+        """Get the last direction of the continuous movement."""
+        global _mouse_continuous_speed
+        _mouse_continuous_speed /= multipler

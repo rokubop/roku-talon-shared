@@ -4,8 +4,8 @@
 - [ ] I should be able to click a series of points
 - [ ] I should be able to drag a box, then drag another box
 - [ ] I should be able to click then drag then click
-- [ ] I should be able to increase speed
-- [ ] I should be able to decrease speed
+- [x] I should be able to increase speed
+- [x] I should be able to decrease speed
 - [x] I should be able to tick in any direction
 - [x] I should be able to tick in the last direction
 - [ ] I should be able to hiss in the last direction

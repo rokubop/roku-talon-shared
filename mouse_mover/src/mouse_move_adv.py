@@ -27,7 +27,7 @@ class UnitVector:
     x: float
     y: float
 
-_unit_vector = UnitVector(0, 0)
+_last_unit_vector = UnitVector(0, 0)
 
 @dataclass
 class MouseMoveCallbackEvent:
@@ -122,7 +122,7 @@ def mouse_move_delta(
     mouse_move_delta(100, 0, 100, callback_tick)
     ```
     """
-    global _mouse_job, _last_mouse_job_type, _unit_vector
+    global _mouse_job, _last_mouse_job_type, _last_unit_vector
     mouse_stop()
 
     _last_mouse_job_type = "natural"
@@ -130,7 +130,7 @@ def mouse_move_delta(
     steps = max(1, duration_ms // update_interval_ms)
     step_count = 0
     last_x, last_y = 0, 0
-    _unit_vector = convert_to_unit_vector(dx, dy)
+    _last_unit_vector = convert_to_unit_vector(dx, dy)
     convert_linear_to_curve = easing_types[easing_type]
     subpixel_adjuster = SubpixelAdjuster()
 
@@ -197,48 +197,49 @@ def mouse_move_3D_to_deg(dx_degrees: int, dy_degrees: int, duration_ms: int = 20
     dy_total = dy_90 / 90 * dy_degrees
     mouse_move_delta(dx_total, dy_total, duration_ms, callback_tick)
 
-def mouse_move_continuous(x: Union[int, float], y: Union[int, float], speed: int = 1):
+def mouse_move_continuous(dx: Union[int, float], dy: Union[int, float], speed_initial: int = 1):
     """
     Move the mouse continuously.
     Examples:
     ```
-    mouse_move_continuous(1, 0) # right at default speed
-    mouse_move_continuous(-1, 0) # left at default speed
-    mouse_move_continuous(0, 1, 5) # down at speed 5
-    mouse_move_continuous(1, -1, 10) # right and up at speed 10
+    mouse_move_continuous(1, 0) # right at default speed_initial
+    mouse_move_continuous(-1, 0) # left at default speed_initial
+    mouse_move_continuous(0, 1, 5) # down at speed_initial 5
+    mouse_move_continuous(1, -1, 10) # right and up at speed_initial 10
     ```
     """
-    global _mouse_job, _mouse_continuous_dir, _mouse_continuous_start_ts, _mouse_continuous_stop_ts, _last_mouse_job_type, _mouse_continuous_speed
+    global _mouse_job, _last_unit_vector, _mouse_continuous_start_ts, _mouse_continuous_stop_ts, _last_mouse_job_type, _mouse_continuous_speed
     _mouse_continuous_stop_ts = None
     subpixel_adjuster = None
-    _mouse_continuous_speed = speed
-    _unit_vector = convert_to_unit_vector(x, y)
+    _mouse_continuous_speed = speed_initial
+    unit_vector = convert_to_unit_vector(dx, dy)
     last_mouse_job_type = _last_mouse_job_type
     _last_mouse_job_type = "continuous"
     if _mouse_job:
         if last_mouse_job_type == 'natural':
             mouse_stop()
-        if _mouse_continuous_dir != (_unit_vector.x, _unit_vector.y):
-            _mouse_continuous_dir = (_unit_vector.x, _unit_vector.y)
+        if _last_unit_vector != unit_vector:
+            _last_unit_vector = unit_vector
             _mouse_continuous_start_ts = time.perf_counter()
             subpixel_adjuster = SubpixelAdjuster()
         # already going in this direction
         return
 
-    _mouse_continuous_dir = (_unit_vector.x, _unit_vector.y)
+    _last_unit_vector = unit_vector
     _mouse_continuous_start_ts = time.perf_counter()
     subpixel_adjuster = SubpixelAdjuster()
 
     def update_position():
-        global _mouse_continuous_stop_ts, _mouse_continuous_speed, _mouse_continuous_dir
+        global _mouse_continuous_stop_ts, _mouse_continuous_speed, _last_unit_vector
         ts = time.perf_counter()
 
         if _mouse_continuous_stop_ts and ts - _mouse_continuous_stop_ts > 0:
             mouse_stop()
             return
 
-        (dx, dy) = _mouse_continuous_dir
-        dx_int, dy_int = subpixel_adjuster.update_pos(dx * _mouse_continuous_speed, dy * _mouse_continuous_speed)
+        dx_int, dy_int = subpixel_adjuster.update_pos(
+            _last_unit_vector.x * _mouse_continuous_speed,
+            _last_unit_vector.y * _mouse_continuous_speed)
         mouse_move(dx_int, dy_int)
 
     update_position()
@@ -379,14 +380,25 @@ class Actions:
 
     def mouse_tick_last_direction():
         """Get the last direction of the continuous movement."""
-        if not _mouse_continuous_dir:
+        global _last_unit_vector
+        print(_last_unit_vector)
+
+        if not _last_unit_vector.x and not _last_unit_vector.y:
             return None
-        tick_distance = 5
-        # use triangle math to get the direction
-        (dx, dy) = _mouse_continuous_dir
-        # (x, y) = ctrl.mouse_pos()
-        c = math.sqrt(dx ** 2 + dy ** 2) * tick_distance
-        a = dx * c
-        b = dy * c
-        print(a, b)
-        return mouse_move_delta(a, b, 0)
+        tick_distance = 50
+        return mouse_move_delta(_last_unit_vector.x * tick_distance, _last_unit_vector.y * tick_distance, 100)
+
+    def mouse_tick_reverse_last_direction():
+        """Get the last direction of the continuous movement."""
+        global _last_unit_vector
+        print(_last_unit_vector)
+
+        if not _last_unit_vector.x and not _last_unit_vector.y:
+            return None
+        tick_distance = 50
+        return mouse_move_delta(-_last_unit_vector.x * tick_distance, -_last_unit_vector.y * tick_distance, 100)
+
+    def mouse_tick_direction(dx: int, dy: int):
+        """Get the last direction of the continuous movement."""
+        tick_distance = 50
+        return mouse_move_delta(dx * tick_distance, dy * tick_distance, 0)

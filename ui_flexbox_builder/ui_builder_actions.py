@@ -32,40 +32,54 @@ class Actions:
         """ui_builder_test"""
         global builder
         builder = actions.user.ui_builder_screen(
-            justify_content="center",
-            align_items="flex_end",
+            justify_content="flex_end",
+            align_items="center",
         )
 
-        # bug - text multiline
-        builder.add_container(
+        box = builder.add_flexbox(
             background_color="222222",
-        ).add_text("""
-            Hello World!
-            what's up?
-        """)
-
-
-
+            margin_bottom=48,
+            padding=16,
+            gap=24,
+            flex_direction="row",
+            border_width=1,
+            border_color="666666",
+            border_radius=4,
+        )
+        box.add_text("Mode:")
+        box.add_text("Mouse Grid", color="00DD00")
+        box.add_text("|", color="666666")
+        box.add_text("fly <dir>")
+        box.add_text("|", color="666666")
+        box.add_text("fly stop")
+        box.add_text("|", color="666666")
+        box.add_text("tick [<dir>]")
+        box.add_text("|", color="666666")
+        box.add_text("<target> to <target>")
+        box.add_text("|", color="666666")
+        box.add_text("<target> <dir>")
+        box.add_text("|", color="666666")
+        box.add_text("grid hide")
 
         # bug - alignment off
-        # box = builder.add_container(
+        # box = builder.add_flexbox(
         #     background_color="222222",
         #     border_radius=4,
         #     padding=16,
         # )
         # box.add_text("Hello World!", size=32, color="dd6666")
-        # box_2 = builder.add_container(
+        # box_2 = builder.add_flexbox(
         #     background_color="222222",
         #     border_radius=4,
         #     padding=16)
         # box_2.add_text("Hello World!", size=32, color="dd6666")
 
-        # window = builder.add_container(
+        # window = builder.add_flexbox(
         #     padding=16,
         #     background_color="222222",
         #     border_radius=4,
         # )
-        # box = window.add_container(
+        # box = window.add_flexbox(
         #     background_color="444444",
         #     height=400,
         #     border_radius=4,

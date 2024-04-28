@@ -201,7 +201,7 @@ class UIWithChildren:
         self.options = options
         self.children = []
 
-    def add_container(self, **kwargs: UIOptionsDict):
+    def add_flexbox(self, **kwargs: UIOptionsDict):
         container_options = UIOptions(**kwargs)
         container = UIContainer(container_options)
         container.cursor = Point2d(self.cursor.x, self.cursor.y)
@@ -235,6 +235,18 @@ class UIContainer(UIWithChildren):
     def render(self, c: SkiaCanvas, cursor: Cursor):
         self.box_model.prepare_render(cursor, self.options.flex_direction, self.options.align_items, self.options.justify_content)
         cursor.move_to(self.box_model.padding_rect.x, self.box_model.padding_rect.y)
+
+        if self.options.border_width:
+            c.paint.color = self.options.border_color
+            bordered_rect = Rect(
+                self.box_model.padding_rect.x - self.options.border_width,
+                self.box_model.padding_rect.y - self.options.border_width,
+                self.box_model.padding_rect.width + self.options.border_width * 2,
+                self.box_model.padding_rect.height + self.options.border_width * 2)
+            if self.options.border_radius:
+                c.draw_rrect(RoundRect.from_rect(bordered_rect, x=self.options.border_radius, y=self.options.border_radius))
+            else:
+                c.draw_rect(bordered_rect)
 
         if self.options.background_color:
             c.paint.color = self.options.background_color
@@ -299,6 +311,7 @@ class UIText:
         self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.width, self.options.height)
         cursor.virtual_move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
         c.paint.textsize = self.options.size
+        c.paint.font.embolden = True if self.options.bold else False
         self.text_width = c.paint.measure_text(self.text)[1].width
         self.text_height = c.paint.measure_text("E")[1].height
         self.box_model.accumulate_dimensions(Rect(cursor.virtual_x, cursor.virtual_y, self.text_width, self.text_height))
@@ -318,6 +331,7 @@ class UIText:
         cursor.move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
         c.paint.color = self.options.color
         c.paint.textsize = self.options.size
+        c.paint.font.embolden = True if self.options.bold else False
         c.draw_text(self.text, cursor.x, cursor.y + self.text_height)
         return self.box_model.margin_rect
 

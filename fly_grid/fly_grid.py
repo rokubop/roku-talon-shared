@@ -114,11 +114,14 @@ def get_pos_for_target(target: str) -> Point2d:
 def fly_grid_target(m) -> list[str]:
     return "".join(m.letter_list)
 
+builder = None
+
 @mod.action_class
 class Actions:
     def fly_grid_show():
         """Show the grid"""
         fly_grid_show()
+        actions.user.fly_grid_show_commands()
         actions.mode.enable("user.fly_grid")
 
     def fly_grid_hide():
@@ -126,6 +129,7 @@ class Actions:
         fly_grid_hide()
         actions.user.mouse_move_continuous_stop()
         actions.user.mouse_move_stop()
+        actions.user.fly_grid_hide_commands()
         actions.mode.disable("user.fly_grid")
 
     def fly_grid_move_mouse(target: str):
@@ -246,6 +250,67 @@ class Actions:
         """Reset the grid"""
         actions.user.mouse_move_continuous_stop()
         actions.user.mouse_move_stop()
+
+    def fly_grid_show_commands():
+        """Show the grid commands"""
+        global builder
+
+        builder = actions.user.ui_builder_screen(
+            justify_content="flex_end",
+            align_items="center",
+        )
+
+        box = builder.add_flexbox(
+            background_color="222222",
+            margin_bottom=48,
+            padding=16,
+            # gap=24,
+            flex_direction="column",
+            justify_content="center",
+            align_items="center",
+            border_width=1,
+            border_color="666666",
+            border_radius=4,
+        )
+        top = box.add_flexbox(
+            flex_direction="row",
+            gap=12,
+            align_items="center",
+        )
+        bottom = box.add_flexbox(
+            flex_direction="row",
+            gap=12,
+            align_items="center",
+        )
+        top.add_text("Mode:")
+        top.add_text("Mouse Grid", color="22DD22", bold=True)
+        top.add_text("|", color="666666")
+        top.add_text("<T> = Target")
+        top.add_text("|", color="666666")
+        top.add_text("fly <dir>")
+        top.add_text("|", color="666666")
+        top.add_text("fly to <T>")
+        top.add_text("|", color="666666")
+        top.add_text("fly stop")
+        top.add_text("|", color="666666")
+        top.add_text("tick [<dir>]")
+        top.add_text("|", color="666666")
+        top.add_text("<T> to <T>")
+        top.add_text("|", color="666666")
+        top.add_text("<T> <dir>")
+        bottom.add_text("|", color="666666")
+        bottom.add_text("(more | less) squares")
+        bottom.add_text("|", color="666666")
+        bottom.add_text("grid hide", color="DD2222", bold=True)
+
+        builder.show()
+
+    def fly_grid_hide_commands():
+        """Hide the grid commands"""
+        global builder
+        if builder:
+            builder.hide()
+            builder = None
 
 ctx = Context()
 ctx.matches = r"""

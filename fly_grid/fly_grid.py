@@ -38,12 +38,13 @@ color_map = {
     "p": "ff00ff",
     "y": "ffff00",
 }
+background_color = "00000099"
 
 default_box_size = 60
 box_size = default_box_size
 
 def on_grid_update(c: SkiaCanvas):
-    global box_size
+    global box_size, grid_pos_map, background_color
     screen: Screen = ui.main_screen()
     rect = screen.rect
     box_size_half = box_size // 2
@@ -66,7 +67,7 @@ def on_grid_update(c: SkiaCanvas):
             if skip:
                 continue
             text = next(char_combo_generator)
-            c.paint.color = "00000099"
+            c.paint.color = background_color
             c.draw_circle(x_pos, y_pos, 10)
             text, color = text[:2], text[2:]
             color = color_map.get(color, "ffffff")
@@ -113,6 +114,17 @@ def get_pos_for_target(target: str) -> Point2d:
 @mod.capture(rule="<user.letter> <user.letter>")
 def fly_grid_target(m) -> list[str]:
     return "".join(m.letter_list)
+
+@mod.capture(rule="<user.fly_grid_target> (to <user.fly_grid_target>)*")
+def fly_grid_target_loop(m) -> list[str]:
+    return m.fly_grid_target_list
+
+def next_pos(target: str):
+    pos = grid_pos_map[target]
+    return actions.user.mouse_move_to(pos.x, pos.y)
+
+def next_target(target: str):
+    return lambda: next_pos(target)
 
 builder = None
 
@@ -161,6 +173,16 @@ class Actions:
         box_size -= 20
         if canvas_grid:
             canvas_grid.freeze()
+
+
+    def fly_grid_move_to_target_loop(targets: list[list[str]]):
+        """Move the mouse to the grid position"""
+        print("targets", targets)
+        actual_targets = targets[0]
+        pos = grid_pos_map[actual_targets[0]]
+        actions.user.mouse_move_to(pos.x, pos.y)
+        for target in islice(actual_targets, 1, None):
+            actions.user.mouse_move_queue(next_target(target))
 
     def fly_grid_drag_and_drop(target_one: str, target_two: str):
         """Drag and drop from target one to target two"""
@@ -264,7 +286,6 @@ class Actions:
             background_color="222222",
             margin_bottom=48,
             padding=16,
-            # gap=24,
             flex_direction="column",
             justify_content="center",
             align_items="center",
@@ -277,13 +298,8 @@ class Actions:
             gap=12,
             align_items="center",
         )
-        bottom = box.add_flexbox(
-            flex_direction="row",
-            gap=12,
-            align_items="center",
-        )
         top.add_text("Mode:")
-        top.add_text("Mouse Grid", color="22DD22", bold=True)
+        top.add_text("Fly Grid", color="87CEEB", bold=True)
         top.add_text("|", color="666666")
         top.add_text("<T> = Target")
         top.add_text("|", color="666666")
@@ -298,10 +314,10 @@ class Actions:
         top.add_text("<T> to <T>")
         top.add_text("|", color="666666")
         top.add_text("<T> <dir>")
-        bottom.add_text("|", color="666666")
-        bottom.add_text("(more | less) squares")
-        bottom.add_text("|", color="666666")
-        bottom.add_text("grid hide", color="DD2222", bold=True)
+        top.add_text("|", color="666666")
+        top.add_text("(more | less) squares")
+        top.add_text("|", color="666666")
+        top.add_text("grid hide", color="DD2222", bold=True)
 
         builder.show()
 

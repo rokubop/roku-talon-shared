@@ -124,7 +124,7 @@ def mouse_move_delta(
     ```
     """
     global _mouse_job, _last_mouse_job_type, _last_unit_vector
-    mouse_stop()
+    mouse_stop(start_next_queue=False)
 
     _last_mouse_job_type = "natural"
     update_interval_ms = 16
@@ -173,7 +173,7 @@ def mouse_move_delta(
     if callback_tick:
         callback_tick(MouseMoveCallbackEvent(0, 0, "start"))
 
-def mouse_stop():
+def mouse_stop(start_next_queue: bool = True):
     """Stop current mouse movement, and start next in the _mouse_movement_queue if it exists."""
     global _mouse_job, _mouse_movement_queue, _last_mouse_job_type, _mouse_continuous_dir, _mouse_continuous_start_ts, _mouse_continuous_stop_ts
     if _mouse_job:
@@ -183,7 +183,9 @@ def mouse_stop():
         _mouse_continuous_dir = None
         _mouse_continuous_start_ts = None
         _mouse_continuous_stop_ts = None
-    if len(_mouse_movement_queue) > 0:
+    if start_next_queue and len(_mouse_movement_queue) > 0:
+        ts = time.perf_counter()
+        print(f"mouse_stop at: {ts}")
         fn = _mouse_movement_queue.pop(0)
         fn()
 
@@ -226,7 +228,7 @@ def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float]
 
     if _mouse_job:
         if last_mouse_job_type == 'natural':
-            mouse_stop()
+            mouse_stop(start_next_queue=False)
         if _last_unit_vector != unit_vector:
             init(reset_speed=False)
         return
@@ -342,6 +344,8 @@ class Actions:
         (cur_x, cur_y) = ctrl.mouse_pos()
         dx = x - cur_x
         dy = y - cur_y
+        ts = time.perf_counter()
+        print(f"mouse_move_to: {ts}")
         mouse_move_delta(dx, dy, duration_ms, callback_tick, easing_type, mouse_api_type)
 
     def mouse_move_from(
@@ -366,7 +370,7 @@ class Actions:
         """Move the mouse by a number of degrees over a duration."""
         mouse_move_3D_to_deg(dx_degrees, dy_degrees, duration_ms, callback_tick)
 
-    def mouse_move_delta_queue(fn: callable):
+    def mouse_move_queue(fn: callable):
         """Add to movement queue, executed after next mouse_stop."""
         mouse_move_queue(fn)
 

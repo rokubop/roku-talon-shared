@@ -1,1 +1,1 @@
-mouse grid:                 user.fly_grid_show()
+fly grid:                   user.fly_grid_show()

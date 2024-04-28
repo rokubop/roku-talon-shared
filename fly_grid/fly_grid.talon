@@ -8,6 +8,8 @@ then <user.fly_grid_target> | <user.fly_grid_target> then:
     mouse_click()
 [move | drag | bring] <user.fly_grid_target> (to | past) <user.fly_grid_target>:
     user.fly_grid_drag_and_drop(fly_grid_target_1, fly_grid_target_2)
+<user.fly_grid_target_loop>:
+    user.fly_grid_move_to_target_loop(fly_grid_target_loop_list)
 ^grid (hide | close | off)$: user.fly_grid_hide()
 ^(hide | close) grid$:      user.fly_grid_hide()
 clear <user.fly_grid_target> (to | past) <user.fly_grid_target>:

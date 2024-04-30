@@ -119,12 +119,22 @@ def fly_grid_target(m) -> list[str]:
 def fly_grid_target_loop(m) -> list[str]:
     return m.fly_grid_target_list
 
-def next_pos(target: str):
+def next_pos(target: str, drag: bool=False):
+    print("grid_pos_map", grid_pos_map)
+    print("target", target)
     pos = grid_pos_map[target]
-    return actions.user.mouse_move_to(pos.x, pos.y)
+    print('pos', pos)
 
-def next_target(target: str):
-    return lambda: next_pos(target)
+    def callback(ev):
+        if drag and ev.type == "stop":
+            actions.mouse_click(button=0, up=True)
+
+    return actions.user.mouse_move_to(pos.x, pos.y, callback_tick=callback)
+
+def next_target(target: str, drag: bool=False):
+    pos = grid_pos_map[target]
+    print('pos', pos)
+    return lambda: next_pos(target, drag)
 
 builder = None
 
@@ -183,6 +193,18 @@ class Actions:
         actions.user.mouse_move_to(pos.x, pos.y)
         for target in islice(actual_targets, 1, None):
             actions.user.mouse_move_queue(next_target(target))
+
+    def fly_grid_drag_to_target_loop(targets: list[list[str]]):
+        """Move the mouse to the grid position"""
+        print("targets", targets)
+        actual_targets = targets[0]
+        pos = grid_pos_map[actual_targets[0]]
+        actions.user.mouse_move_to(pos.x, pos.y, callback_tick=lambda ev: ctrl.mouse_click(button=0, down=True) if ev.type == "stop" else None)
+        for i, target in enumerate(islice(actual_targets, 1, None)):
+            if i == len(actual_targets) - 1:
+                actions.user.mouse_move_queue(next_target(target, True))
+            else:
+                actions.user.mouse_move_queue(next_target(target))
 
     def fly_grid_drag_and_drop(target_one: str, target_two: str):
         """Drag and drop from target one to target two"""

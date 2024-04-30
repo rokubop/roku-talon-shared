@@ -1,10 +1,9 @@
 from talon import Module, actions, cron, ctrl, clip
-from ...mouse_mover.src.mouse_move_adv import mouse_stop
 
 mod = Module()
-mod.mode("game_menu", "game menu mode")
-mod.mode("game_play", "game play mode")
-mod.mode("game_nav", "game nav mode")
+# mod.mode("game_menu", "game menu mode")
+mod.mode("game", "game play mode")
+# mod.mode("game_nav", "game nav mode")
 mod.mode("game_calibrating_x", "calibrating x")
 mod.mode("game_calibrating_y", "calibrating y")
 
@@ -88,7 +87,12 @@ def step_dir(key: str, duration: str):
 def stopper():
     """Perform stop based on a priority"""
     global _move_dir, _step_job
-    mouse_stop()
+    print(actions.user.mouse_move_info())
+    if actions.user.mouse_move_info()["continuous_active"]:
+        actions.user.mouse_move_continuous_stop()
+        return
+
+    actions.user.mouse_move_stop()
     if _move_dir:
         move_dir_stop()
     if _step_job:
@@ -111,63 +115,63 @@ class Actions:
 
     def game_menu_mode_enable():
         """Enable menu mode"""
-        actions.mode.disable("user.game_play")
-        actions.mode.disable("user.game_nav")
-        actions.mode.enable("user.game_menu")
-        actions.user.game_show_commands("Game Menu", [
-            "play",
-            "scan",
-            "up",
-            "down",
-            "left",
-            "right",
-            "exit"
-        ])
+        actions.mode.disable("user.game")
+        # actions.mode.disable("user.game_nav")
+        # actions.mode.enable("user.game_menu")
+        # actions.user.game_show_commands("Game Menu", [
+        #     "play",
+        #     "scan",
+        #     "up",
+        #     "down",
+        #     "left",
+        #     "right",
+        #     "exit"
+        # ])
 
-    def game_play_mode_enable():
+    def game_mode_enable():
         """Enable play mode"""
-        actions.mode.disable("user.game_menu")
-        actions.mode.disable("user.game_nav")
-        actions.mode.enable("user.game_play")
-        actions.user.game_show_commands("Game Menu", [
-            "menu",
-            "scan",
-            "exit",
-            "go",
-            "go [dir]",
-            "back",
-            "step [dir]",
-            "jump",
-            "stop",
-            "stop all",
-            "crouch",
-            "run",
-            "hop [num]",
-            "round",
-            "left",
-            "right",
-            "left [num]",
-            "right [num]",
-            "look up",
-            "look down",
-            "look up [num]",
-            "look down [num]",
-            "set | reset"
-        ], "666222")
+        actions.mode.enable("user.game")
+        # actions.mode.disable("user.game_menu")
+        # actions.mode.disable("user.game_nav")
+        # actions.user.game_show_commands("Game Menu", [
+        #     "menu",
+        #     "scan",
+        #     "exit",
+        #     "go",
+        #     "go [dir]",
+        #     "back",
+        #     "step [dir]",
+        #     "jump",
+        #     "stop",
+        #     "stop all",
+        #     "crouch",
+        #     "run",
+        #     "hop [num]",
+        #     "round",
+        #     "left",
+        #     "right",
+        #     "left [num]",
+        #     "right [num]",
+        #     "look up",
+        #     "look down",
+        #     "look up [num]",
+        #     "look down [num]",
+        #     "set | reset"
+        # ], "666222")
 
     def game_nav_mode_enable():
         """Enable nav mode"""
-        actions.mode.disable("user.game_menu")
-        actions.mode.disable("user.game_play")
-        actions.mode.enable("user.game_nav")
+        # actions.mode.disable("user.game_menu")
+        actions.mode.disable("user.game")
+        # actions.mode.enable("user.game_nav")
 
     def game_mode_disable():
         """Disable game mode"""
-        actions.mode.disable("user.game_menu")
-        actions.mode.disable("user.game_play")
-        actions.mode.disable("user.game_nav")
+        # actions.mode.disable("user.game_menu")
+        actions.mode.disable("user.game")
+        # actions.mode.disable("user.game_nav")
         stopper()
-        actions.user.game_hide_commands()
+        # actions.user.game_hide_commands()
 
 def mouse_reset_center_y():
     """Reset the mouse to the center of the screen."""
@@ -190,22 +194,22 @@ def mouse_calibrate_x_360(dx360: int):
     """Calibrate a 360 spin"""
     global _last_calibrate_value_x
     _last_calibrate_value_x = 0
-    actions.user.mouse_move_delta(dx360, 0, 1000, on_calibrate_x_360_tick)
+    actions.user.rt_mouse_move_delta(dx360, 0, 1000, on_calibrate_x_360_tick, mouse_api_type="windows")
 
 def game_calibrate_x_360_adjust_last(dx: int):
     """Add or subtract to the last x calibration."""
-    actions.user.mouse_move_delta(dx, 0, 500, on_calibrate_x_360_tick)
+    actions.user.rt_mouse_move_delta(dx, 0, 500, on_calibrate_x_360_tick, mouse_api_type="windows")
 
 def game_calibrate_y_90_adjust_last(dy: int):
     """Add or subtract to the last x calibration."""
-    actions.user.mouse_move_delta(0, dy, 500, on_calibrate_y_90_tick)
+    actions.user.rt_mouse_move_delta(0, dy, 500, on_calibrate_y_90_tick, mouse_api_type="windows")
 
 def mouse_calibrate_90_y(dy_90: int):
     """Calibrate looking down to the ground and looking up to center."""
     global _last_calibrate_value_y
     _last_calibrate_value_y = 0
-    actions.user.mouse_move_delta(0, dy_90 * 2, 100)
-    actions.user.mouse_move_queue(lambda: actions.user.mouse_move_delta(0, -dy_90, 100, on_calibrate_y_90_tick))
+    actions.user.rt_mouse_move_delta(0, dy_90 * 2, 100, mouse_api_type="windows")
+    actions.user.mouse_move_queue(lambda: actions.user.rt_mouse_move_delta(0, -dy_90, 100, on_calibrate_y_90_tick, mouse_api_type="windows"))
 
 @mod.action_class
 class Actions:

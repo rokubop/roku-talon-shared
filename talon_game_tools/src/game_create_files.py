@@ -2,7 +2,7 @@ import os
 import re
 from itertools import islice
 from pathlib import Path
-from ..user_game_templates import game_talon, game_menu_talon, game_play_talon, game_py
+from ..templates.fp.template_roku_14_parrot import game_talon, game_mode_talon, game_py
 from ..user_game_settings import USER_GAMES_DIR
 from talon import Module, actions, app, ui
 
@@ -25,22 +25,21 @@ class Actions:
         app_name = get_app_name(active_app.name)
         app_dir = USER_GAMES_DIR / app_name
 
-        game_template = game_talon.format(app_name=app_name)
-        play_template = game_play_talon.format(app_name=app_name)
-        menu_template = game_menu_talon.format(app_name=app_name)
-        python_template = get_python_template(active_app, app_name)
+        game_talon_template = game_talon.format(app_name=app_name)
+        game_mode_talon_template = game_mode_talon.format(app_name=app_name)
+        game_py_template = get_python_template(active_app, app_name)
 
         if not app_dir.is_dir():
             os.mkdir(app_dir)
 
         file = app_dir / f"{app_name}.talon"
-        create_file(file, game_template)
-        file = app_dir / f"{app_name}_play.talon"
-        create_file(file, play_template)
-        file = app_dir / f"{app_name}_menu.talon"
-        create_file(file, menu_template)
+        create_file(file, game_talon_template)
+        file = app_dir / f"{app_name}_mode.talon"
+        create_file(file, game_mode_talon_template)
+        # file = app_dir / f"{app_name}_menu.talon"
+        # create_file(file, menu_template)
         file = app_dir / f"{get_platform_filename(app_name, platform_suffix)}.py"
-        create_file(file, python_template)
+        create_file(file, game_py_template)
         active_app = None
 
         # if talon_file_created or python_file_created:

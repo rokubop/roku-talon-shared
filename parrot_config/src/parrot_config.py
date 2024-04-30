@@ -32,6 +32,10 @@ def get_modified_action(noise, action):
         match = re.search(r':th_(\d+)', noise)
         throttle_amount = int(match.group(1)) if match else 100
         return (action[0], lambda: parrot_throttle(throttle_amount, noise, action[1]))
+    if "db" in noise:
+        match = re.search(r':db_(\d+)', noise)
+        debounce_amount = int(match.group(1)) if match else 100
+        return (action[0], lambda: parrot_debounce(debounce_amount, noise, action[1]))
     return action
 
 def categorize_commands(commands):
@@ -136,6 +140,7 @@ class ParrotConfig():
 parrot_config_saved = ParrotConfig()
 
 parrot_throttle_busy = {}
+parrot_debounce_busy = {}
 
 def parrot_throttle_disable(id):
     global parrot_throttle_busy
@@ -149,6 +154,17 @@ def parrot_throttle(time_ms: int, id: str, command: callable):
     parrot_throttle_busy[id] = True
     command()
     cron.after(f"{time_ms}ms", lambda: parrot_throttle_disable(id))
+
+def parrot_debounce_disable(id):
+    global parrot_debounce_busy
+    parrot_debounce_busy[id] = False
+
+def parrot_debounce(time_ms: int, id: str, command: callable):
+    """Debounce"""
+    global parrot_debounce_busy
+    if parrot_debounce_busy.get(id):
+        cron.cancel(parrot_debounce_busy[id])
+    parrot_debounce_busy[id] = cron.after(f"{time_ms}ms", lambda: (command(), parrot_debounce_disable(id)))
 
 def use_parrot_config(sound: str):
     config = actions.user.parrot_config()

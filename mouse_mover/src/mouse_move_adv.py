@@ -13,6 +13,7 @@ import math
 import time
 
 mod = Module()
+mod.setting("mouse_move_api", type=str, default="talon", desc="Mouse API to use for mouse movement - talon or windows")
 
 _mouse_job = None
 _last_mouse_job_type = None
@@ -52,7 +53,10 @@ def mouse_move_windows(dx: int, dy: int):
     pass
 
 def mouse_move(dx: int, dy: int):
-    mouse_move_talon(dx, dy)
+    if settings.get("user.mouse_move_api") == "windows":
+        mouse_move_windows(dx, dy)
+    else:
+        mouse_move_talon(dx, dy)
 
 if platform.system() == "Windows":
     import win32api, win32con
@@ -189,7 +193,7 @@ def mouse_stop(start_next_queue: bool = True):
         fn = _mouse_movement_queue.pop(0)
         fn()
 
-def mouse_move_3D_to_deg(dx_degrees: int, dy_degrees: int, duration_ms: int = 200, callback_tick: Callable[[MouseMoveCallbackEvent], None] = None):
+def mouse_move_3D_to_deg(dx_degrees: int, dy_degrees: int, duration_ms: int = 200, callback_tick: Callable[[MouseMoveCallbackEvent], None] = None, mouse_api_type: Literal["talon", "windows"] = "talon"):
     """
     Move the mouse by a number of degrees over a duration.
     Based on the calibration settings.
@@ -198,7 +202,7 @@ def mouse_move_3D_to_deg(dx_degrees: int, dy_degrees: int, duration_ms: int = 20
     dy_90 = settings.get("user.game_calibrate_y_90")
     dx_total = dx_360 / 360 * dx_degrees
     dy_total = dy_90 / 90 * dy_degrees
-    mouse_move_delta(dx_total, dy_total, duration_ms, callback_tick)
+    mouse_move_delta(dx_total, dy_total, duration_ms, callback_tick, mouse_api_type=mouse_api_type)
 
 def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float], speed_initial: int = 1):
     """
@@ -217,6 +221,7 @@ def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float]
     unit_vector = convert_to_unit_vector(dx_unit, dy_unit)
     last_mouse_job_type = _last_mouse_job_type
     _last_mouse_job_type = "continuous"
+    print("hello")
 
     def init(reset_speed=True):
         nonlocal subpixel_adjuster
@@ -278,7 +283,7 @@ def mouse_move_continuous_stop(debounce_ms: int = 150):
     debounce = debounce_ms / 1000 if debounce_ms else 0
     _mouse_continuous_stop_ts = time.perf_counter() + debounce
 
-def mouse_move_from_to(x1: int, y1: int, x2: int, y2: int, duration_ms: int = 200, callback_tick: Callable[[MouseMoveCallbackEvent], None] = None):
+def mouse_move_from_to(x1: int, y1: int, x2: int, y2: int, duration_ms: int = 200, callback_tick: Callable[[MouseMoveCallbackEvent], None] = None, mouse_api_type: Literal["talon", "windows"] = "talon"):
     """
     Move the mouse from one point to another over a duration.
     Examples:
@@ -289,7 +294,7 @@ def mouse_move_from_to(x1: int, y1: int, x2: int, y2: int, duration_ms: int = 20
     dx = x2 - x1
     dy = y2 - y1
     actions.mouse_move(x1, y1)
-    mouse_move_delta(dx, dy, duration_ms, callback_tick, mouse_api_type="talon")
+    mouse_move_delta(dx, dy, duration_ms, callback_tick, mouse_api_type=mouse_api_type)
 
 # def mouse_move_to(x: int, y: int, duration_ms: int = 200, callback_tick: Callable[[MouseMoveCallbackEvent], None] = None):
 #     """
@@ -307,7 +312,7 @@ def mouse_move_from_to(x1: int, y1: int, x2: int, y2: int, duration_ms: int = 20
 
 @mod.action_class
 class Actions:
-    def mouse_move_delta(
+    def rt_mouse_move_delta(
         dx: int,
         dy: int,
         duration_ms: int = 200,
@@ -315,7 +320,7 @@ class Actions:
         easing_type: Literal["linear", "ease_in_out", "ease_in", "ease_out"] = "ease_in_out",
         mouse_api_type: Literal["talon", "windows"] = "talon"):
         """Move the mouse over a delta with control over the curve type, duration, mouse api type, and callback."""
-        mouse_move_delta(dx, dy, duration_ms, callback_tick, easing_type, mouse_api_type)
+        mouse_move_delta(dx, dy, duration_ms, callback_tick, easing_type, mouse_api_type=mouse_api_type)
 
     def mouse_move_from_to(
         x1: int,
@@ -331,7 +336,7 @@ class Actions:
         dy = y2 - y1
         # probably queue a move_to
         actions.mouse_move(x1, y1)
-        mouse_move_delta(dx, dy, duration_ms, callback_tick, easing_type, mouse_api_type)
+        mouse_move_delta(dx, dy, duration_ms, callback_tick, easing_type, mouse_api_type=mouse_api_type)
 
     def mouse_move_to(
         x: int,
@@ -346,7 +351,7 @@ class Actions:
         dy = y - cur_y
         ts = time.perf_counter()
         print(f"mouse_move_to: {ts}")
-        mouse_move_delta(dx, dy, duration_ms, callback_tick, easing_type, mouse_api_type)
+        mouse_move_delta(dx, dy, duration_ms, callback_tick, easing_type, mouse_api_type=mouse_api_type)
 
     def mouse_move_from(
         x: int,
@@ -366,17 +371,28 @@ class Actions:
         dy_degrees: int,
         duration_ms: int = 200,
         callback_tick: Callable[[MouseMoveCallbackEvent], None] = None,
-        easing_type: CurveTypes = "ease_in_out"):
+        easing_type: CurveTypes = "ease_in_out",
+        mouse_api_type: Literal["talon", "windows"] = "talon"):
         """Move the mouse by a number of degrees over a duration."""
-        mouse_move_3D_to_deg(dx_degrees, dy_degrees, duration_ms, callback_tick)
+        mouse_move_3D_to_deg(dx_degrees, dy_degrees, duration_ms, callback_tick, mouse_api_type)
 
     def mouse_move_queue(fn: callable):
         """Add to movement queue, executed after next mouse_stop."""
         mouse_move_queue(fn)
 
-    def mouse_move_continuous(dx: Union[int, float], dy: Union[int, float], speed_initial: int = 2):
-        """Move the mouse continuously."""
-        mouse_move_continuous(dx, dy, speed_initial)
+    def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float], speed_initial: int = 2):
+        """
+        Move the mouse continuously.
+        Examples:
+        ```
+        mouse_move_continuous(1, 0) # right at default speed_initial
+        mouse_move_continuous(-1, 0) # left at default speed_initial
+        mouse_move_continuous(0, 1, 5) # down at speed_initial 5
+        mouse_move_continuous(1, -1, 10) # right and up at speed_initial 10
+        ```
+        """
+        print("yo")
+        mouse_move_continuous(dx_unit, dy_unit, speed_initial)
 
     def mouse_move_continuous_towards(x: Union[int, float], y: Union[int, float], speed_initial: int = 2):
         """Move the mouse continuously."""
@@ -415,3 +431,10 @@ class Actions:
         """Get the last direction of the continuous movement."""
         global _mouse_continuous_speed
         _mouse_continuous_speed /= multipler
+
+    def mouse_move_info():
+        """Get mouse info"""
+        return {
+            "last_unit_vector": _last_unit_vector,
+            "continuous_active": _mouse_continuous_start_ts,
+        }

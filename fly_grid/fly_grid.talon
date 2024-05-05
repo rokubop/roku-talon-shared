@@ -12,6 +12,9 @@ then <user.fly_grid_target> | <user.fly_grid_target> then:
     user.fly_grid_move_to_target_loop(fly_grid_target_loop_list)
 drag <user.fly_grid_target_loop>:
     user.fly_grid_drag_to_target_loop(fly_grid_target_loop_list)
+swipe <user.fly_grid_target> left:
+    user.fly_grid_move_mouse(fly_grid_target)
+    user.rt_mouse_move_delta(-200, 0)
 ^grid (hide | close | off)$: user.fly_grid_hide()
 ^(hide | close) grid$:      user.fly_grid_hide()
 clear <user.fly_grid_target> (to | past) <user.fly_grid_target>:

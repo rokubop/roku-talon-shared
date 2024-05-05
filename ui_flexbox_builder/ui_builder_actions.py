@@ -1,5 +1,6 @@
 from talon import Module, actions
 from .src.ui_builder import UIBuilder
+from typing import Literal
 
 mod = Module()
 
@@ -7,9 +8,15 @@ builder = None
 
 @mod.action_class
 class Actions:
+    def ui_builder(id: str, align: Literal["left", "center", "right", "top", "bottom"] = "center"):
+        """Create a new UIBuilder instance with specific layout settings."""
+        return actions.user.ui_builder_screen(id, align)
+
     def ui_builder_screen(
-        justify_content: str = "start",
-        align_items: str = "start",
+        id: str,
+        align: Literal["left", "center", "right", "top", "bottom"] = "center",
+        justify_content: str = "center",
+        align_items: str = "center",
         background_color: str = None,
         flex_direction: str = "column") -> UIBuilder:
         """
@@ -19,6 +26,15 @@ class Actions:
             justify_content (str): How to justify content within the UI.
             align_items (str): How items should be aligned within the UI.
         """
+        if align == "left":
+            align_items = "flex_start"
+        elif align == "right":
+            align_items = "flex_end"
+        elif align == "top":
+            justify_content = "flex_start"
+        elif align == "bottom":
+            justify_content = "flex_end"
+
         return UIBuilder(
             justify_content=justify_content,
             align_items=align_items,
@@ -31,35 +47,63 @@ class Actions:
     def ui_builder_test():
         """ui_builder_test"""
         global builder
-        builder = actions.user.ui_builder_screen(
-            justify_content="flex_end",
-            align_items="center",
+        builder = actions.user.ui_builder(
+            id="parrot_commands",
+            align="right",
         )
-
-        box = builder.add_flexbox(
+        box = builder.add_div(
             background_color="222222",
-            margin_bottom=48,
-            padding=16,
-            gap=24,
-            flex_direction="row",
+            flex_direction="column",
+            border_color="444444",
             border_width=1,
-            border_color="666666",
-            border_radius=4,
         )
-        box.add_text("Mode:")
-        box.add_text("Mouse Grid", color="00DD00")
-        box.add_text("|", color="666666")
-        box.add_text("fly <dir>")
-        box.add_text("|", color="666666")
-        box.add_text("fly stop")
-        box.add_text("|", color="666666")
-        box.add_text("tick [<dir>]")
-        box.add_text("|", color="666666")
-        box.add_text("<target> to <target>")
-        box.add_text("|", color="666666")
-        box.add_text("<target> <dir>")
-        box.add_text("|", color="666666")
-        box.add_text("grid hide")
+        title = box.add_div(flex_direction="row", background_color="444444", padding=16, justify_content="center")
+        title.add_text("Mode: ")
+        title.add_text("Parrot", color="00FF00")
+
+        for command, label in [
+            ("ah", "left"),
+            ("oh", "right"),
+            ("ee", "stop"),
+            ("nn", "jump"),
+            ("palate", "ctrl"),
+            ("t", "shift"),
+            ("er", "exit mode yes indeed")
+        ]:
+            if label:
+                box.add_text(f"{command}: {label}")
+        builder.show()
+
+        # global builder
+        # builder = actions.user.ui_builder_screen(
+        #     justify_content="flex_end",
+        #     align_items="center",
+        # )
+
+        # box = builder.add_flexbox(
+        #     background_color="222222",
+        #     margin_bottom=48,
+        #     padding=16,
+        #     gap=24,
+        #     flex_direction="row",
+        #     border_width=1,
+        #     border_color="666666",
+        #     border_radius=4,
+        # )
+        # box.add_text("Mode:")
+        # box.add_text("Mouse Grid", color="00DD00")
+        # box.add_text("|", color="666666")
+        # box.add_text("fly <dir>")
+        # box.add_text("|", color="666666")
+        # box.add_text("fly stop")
+        # box.add_text("|", color="666666")
+        # box.add_text("tick [<dir>]")
+        # box.add_text("|", color="666666")
+        # box.add_text("<target> to <target>")
+        # box.add_text("|", color="666666")
+        # box.add_text("<target> <dir>")
+        # box.add_text("|", color="666666")
+        # box.add_text("grid hide")
 
         # bug - alignment off
         # box = builder.add_flexbox(
@@ -98,7 +142,7 @@ class Actions:
         #     padding_x=32,
         #     size=24,
         #     color="blue")
-        builder.show()
+        # builder.show()
 
     def ui_builder_test_hide():
         """ui_builder_test"""

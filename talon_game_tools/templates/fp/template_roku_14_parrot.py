@@ -23,9 +23,9 @@ parrot(ah):                 user.use_parrot_config("ah")
 parrot(oh):                 user.use_parrot_config("oh")
 parrot(ee):                 user.use_parrot_config("ee")
 parrot(hiss):               user.use_parrot_config("hiss")
+parrot(hiss:stop):          user.use_parrot_config("hiss_stop")
 parrot(shush):              user.use_parrot_config("shush")
-parrot(hiss:stop):          user.use_parrot_config("hiss_shush_stop")
-parrot(shush:stop):         user.use_parrot_config("hiss_shush_stop")
+parrot(shush:stop):         user.use_parrot_config("shush_stop")
 parrot(palate_click):       user.use_parrot_config("palate")
 parrot(tut):                user.use_parrot_config("tut")
 parrot(cluck):              user.use_parrot_config("cluck")
@@ -64,13 +64,14 @@ parrot_config = {{
     "ah":         ("left", actions.user.game_move_dir_hold_a),
     "oh":         ("right", actions.user.game_move_dir_hold_d),
     "ee":         ("stop", actions.user.game_stopper),
-    "pop":        ("L click", lambda: actions.mouse_click(0)),
-    "cluck":      ("R click", lambda: actions.mouse_click(1)),
+    "pop":        ("L click", lambda: ctrl.mouse_click(0, hold=16000)),
+    "cluck":      ("R click", lambda: ctrl.mouse_click(1, hold=16000)),
     "nn":         ("E", lambda: actions.key("e")),
     "palate":     ("jump", lambda: actions.key("space")),
     "t":          ("shift", lambda: actions.key("shift")),
     "shush":      ("look up", lambda: actions.user.mouse_move_continuous(0, -1, 5)),
-    "hiss_shush_stop:db_1000": ("", lambda: actions.user.mouse_move_continuous_stop()),
+    "shush_stop:db_1000": ("", lambda: actions.user.mouse_move_continuous_stop()),
+    "hiss_stop:db_1000": ("", lambda: actions.user.mouse_move_continuous_stop()),
     "hiss":       ("look down", lambda: actions.user.mouse_move_continuous(0, 1, 5)),
     "er":         ("exit mode", actions.user.game_mode_disable),
     "tut":        ("reset y", actions.user.game_reset_center_y),

@@ -16,3 +16,5 @@
 - [ ] I should have a UI with settings/state/toggles
 - [ ] I should be able to stop on pop
 - [ ] I should be able to toggle on hiss
+- [ ] I should be able to swipe left or up or right
+- [ ] I should probably provide clicking and dragging built in

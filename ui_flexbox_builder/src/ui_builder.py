@@ -2,6 +2,7 @@ from talon.skia.canvas import Canvas as SkiaCanvas
 from talon.skia import RoundRect
 from talon.types import Rect, Point2d
 from typing import TypedDict, Optional
+from itertools import cycle
 from dataclasses import dataclass
 from .ui_builder_helpers import grow_rect
 from .ui_builder_screen import canvas_from_main_screen
@@ -153,9 +154,9 @@ class UIOptions:
     flex_direction: str = "column"
     gap: int = 16
     height: int = 0
-    justify: str = "start"
-    justify_content: str = "start"
-    align_items: str = "start"
+    justify: str = "flex_start"
+    justify_content: str = "flex_start"
+    align_items: str = "flex_start"
     margin: Margin = Margin(0, 0, 0, 0)
     padding: Padding = Padding(0, 0, 0, 0)
     width: int = 0
@@ -201,9 +202,12 @@ class UIWithChildren:
         self.options = options
         self.children = []
 
+    def add_div(self, **kwargs: UIOptionsDict):
+        return self.add_flexbox(**kwargs)
+
     def add_flexbox(self, **kwargs: UIOptionsDict):
         container_options = UIOptions(**kwargs)
-        container = UIContainer(container_options)
+        container = UIBox(container_options)
         container.cursor = Point2d(self.cursor.x, self.cursor.y)
         self.children.append(container)
         return container
@@ -214,14 +218,18 @@ class UIWithChildren:
         self.children.append(text)
         return text
 
-class UIContainer(UIWithChildren):
+class UIBox(UIWithChildren):
     def __init__(self, options: UIOptions = None):
         super().__init__(options)
         self.box_model: BoxModelLayout = None
+        self.debug_number = 0
+        self.debug_color = "red"
+        self.debug_colors = iter(cycle(["red", "green", "blue", "yellow", "purple", "orange", "cyan", "magenta"]))
 
     def virtual_render(self, c: SkiaCanvas, cursor: Cursor):
         self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.width, self.options.height)
         cursor.virtual_move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
+        last_cursor = Point2d(cursor.virtual_x, cursor.virtual_y)
         for child in self.children:
             rect = child.virtual_render(c, cursor)
             if self.options.flex_direction == "column":
@@ -230,7 +238,18 @@ class UIContainer(UIWithChildren):
                 cursor.virtual_move_to(cursor.virtual_x + rect.width + self.options.gap, cursor.virtual_y)
             self.box_model.accumulate_dimensions(rect)
 
+        cursor.virtual_move_to(last_cursor.x, last_cursor.y)
+
         return self.box_model.margin_rect
+
+    def draw_debug_number(self, c: SkiaCanvas, cursor: Cursor, new_color = False):
+        if new_color:
+            self.debug_color = next(self.debug_colors)
+
+        c.paint.color = self.debug_color
+        self.debug_number += 1
+
+        c.draw_text(str(self.debug_number), cursor.x, cursor.y)
 
     def render(self, c: SkiaCanvas, cursor: Cursor):
         self.box_model.prepare_render(cursor, self.options.flex_direction, self.options.align_items, self.options.justify_content)
@@ -268,7 +287,12 @@ class UIContainer(UIWithChildren):
             elif self.options.align_items == "flex_end":
                 cursor.move_to(cursor.x + self.box_model.content_children_rect.width, cursor.y)
 
-        for child in self.children:
+
+        last_cursor = Point2d(cursor.x, cursor.y)
+        for i, child in enumerate(self.children):
+            # I'm at the top left of the child
+            # normally do nothing here
+            # align my top left
             if self.options.flex_direction == "row":
                 if self.options.align_items == "center":
                     cursor.move_to(cursor.x, cursor.y - child.box_model.margin_rect.height // 2)
@@ -280,8 +304,15 @@ class UIContainer(UIWithChildren):
                 elif self.options.align_items == "flex_end":
                     cursor.move_to(cursor.x - child.box_model.margin_rect.width, cursor.y)
 
+            # self.draw_debug_number(c, cursor, new_color=True)
+            # Child is positioned at the top left of the cursor
+            # render
             rect = child.render(c, cursor)
 
+            # if i == self.children[-1]:
+            #     break
+
+            # We need to go to the next position for the next child
             if self.options.flex_direction == "row":
                 if self.options.align_items == "center":
                     cursor.move_to(cursor.x, cursor.y + child.box_model.margin_rect.height // 2)
@@ -289,6 +320,7 @@ class UIContainer(UIWithChildren):
                     cursor.move_to(cursor.x, cursor.y + child.box_model.margin_rect.height)
                 if self.options.gap:
                     cursor.move_to(cursor.x + rect.width + self.options.gap, cursor.y)
+                # cursor.move_to(cursor.x + rect.width, cursor.y)
             else:
                 if self.options.align_items == "center":
                     cursor.move_to(cursor.x + child.box_model.margin_rect.width // 2, cursor.y)
@@ -296,6 +328,9 @@ class UIContainer(UIWithChildren):
                     cursor.move_to(cursor.x + child.box_model.margin_rect.width, cursor.y)
                 if self.options.gap:
                     cursor.move_to(cursor.x, cursor.y + rect.height + self.options.gap)
+                # cursor.move_to(cursor.x, cursor.y + rect.height)
+
+        cursor.move_to(last_cursor.x, last_cursor.y)
 
         return self.box_model.margin_rect
 
@@ -335,7 +370,7 @@ class UIText:
         c.draw_text(self.text, cursor.x, cursor.y + self.text_height)
         return self.box_model.margin_rect
 
-class UIBuilder(UIContainer):
+class UIBuilder(UIBox):
     def __init__(self, **options: UIOptionsDict):
         self.cursor = Cursor()
         self.canvas = None

@@ -28,11 +28,11 @@ def executeActionOrLocationAction(action):
         action()
 
 def get_modified_action(noise, action):
-    if "th" in noise:
+    if ":th" in noise:
         match = re.search(r':th_(\d+)', noise)
         throttle_amount = int(match.group(1)) if match else 100
         return (action[0], lambda: parrot_throttle(throttle_amount, noise, action[1]))
-    if "db" in noise:
+    if ":db" in noise:
         match = re.search(r':db_(\d+)', noise)
         debounce_amount = int(match.group(1)) if match else 100
         return (action[0], lambda: parrot_debounce(debounce_amount, noise, action[1]))
@@ -46,6 +46,9 @@ def categorize_commands(commands):
     base_noise_map = {}
 
     for noise in commands.keys():
+        if not noise:
+            continue
+
         base_noise = get_base_noise(noise)
 
         base_noise_set.add(base_noise)
@@ -115,11 +118,15 @@ class ParrotConfig():
         self.pending_combo = None
 
     def execute(self, noise: str):
+        if noise not in self.immediate_commands and noise not in self.delayed_commands:
+            return
+
         if self.combo_job:
             cron.cancel(self.combo_job)
             self.combo_job = None
 
         self.combo_chain = self.combo_chain + f" {noise}" if self.combo_chain else noise
+        print("self.combo_chain", self.combo_chain)
 
         if self.combo_chain in self.delayed_commands:
             self.pending_combo = self.combo_chain

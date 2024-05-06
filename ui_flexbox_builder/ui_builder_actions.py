@@ -44,6 +44,11 @@ class Actions:
             flex_direction=flex_direction
         )
 
+    def ui_builder_test_update():
+        """ui_builder_test_update"""
+        global builder
+        builder.show()
+
     def ui_builder_test():
         """ui_builder_test"""
         global builder
@@ -56,10 +61,18 @@ class Actions:
             flex_direction="column",
             border_color="444444",
             border_width=1,
+            # gap=0
         )
-        title = box.add_div(flex_direction="row", background_color="444444", padding=16, justify_content="center")
+        title = box.add_div(
+            flex_direction="row",
+            background_color="444444",
+            padding=16,
+            justify_content="center")
         title.add_text("Mode: ")
         title.add_text("Parrot", color="00FF00")
+        contents = box.add_div(
+            flex_direction="column",
+            padding=16)
 
         for command, label in [
             ("ah", "left"),
@@ -71,7 +84,7 @@ class Actions:
             ("er", "exit mode yes indeed")
         ]:
             if label:
-                box.add_text(f"{command}: {label}")
+                contents.add_text(f"{command}: {label}")
         builder.show()
 
         # global builder

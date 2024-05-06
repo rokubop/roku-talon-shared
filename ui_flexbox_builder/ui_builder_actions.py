@@ -54,14 +54,16 @@ class Actions:
         global builder
         builder = actions.user.ui_builder(
             id="parrot_commands",
-            align="right",
+            align="bottom",
         )
         box = builder.add_div(
+            opacity=0.9,
             background_color="222222",
-            flex_direction="column",
+            flex_direction="row",
+            border_radius=4,
             border_color="444444",
             border_width=1,
-            # gap=0
+            margin_bottom=48,
         )
         title = box.add_div(
             flex_direction="row",
@@ -71,7 +73,7 @@ class Actions:
         title.add_text("Mode: ")
         title.add_text("Parrot", color="00FF00")
         contents = box.add_div(
-            flex_direction="column",
+            flex_direction="row",
             padding=16)
 
         for command, label in [
@@ -85,6 +87,10 @@ class Actions:
         ]:
             if label:
                 contents.add_text(f"{command}: {label}")
+        contents.add_text(
+            "exit mode",
+            color="FF0000",
+            font_weight="bold")
         builder.show()
 
         # global builder

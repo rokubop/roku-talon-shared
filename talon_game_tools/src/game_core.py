@@ -87,7 +87,6 @@ def step_dir(key: str, duration: str):
 def stopper():
     """Perform stop based on a priority"""
     global _move_dir, _step_job
-    print(actions.user.mouse_move_info())
     if actions.user.mouse_move_info()["continuous_active"]:
         actions.user.mouse_move_continuous_stop()
         return
@@ -131,6 +130,7 @@ class Actions:
     def game_mode_enable():
         """Enable play mode"""
         actions.mode.enable("user.game")
+        actions.mode.disable("command")
         # actions.mode.disable("user.game_menu")
         # actions.mode.disable("user.game_nav")
         # actions.user.game_show_commands("Game Menu", [
@@ -169,6 +169,7 @@ class Actions:
         """Disable game mode"""
         # actions.mode.disable("user.game_menu")
         actions.mode.disable("user.game")
+        actions.mode.enable("command")
         # actions.mode.disable("user.game_nav")
         stopper()
         # actions.user.game_hide_commands()

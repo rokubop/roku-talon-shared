@@ -189,7 +189,6 @@ def mouse_stop(start_next_queue: bool = True):
         _mouse_continuous_stop_ts = None
     if start_next_queue and len(_mouse_movement_queue) > 0:
         ts = time.perf_counter()
-        print(f"mouse_stop at: {ts}")
         fn = _mouse_movement_queue.pop(0)
         fn()
 
@@ -221,7 +220,6 @@ def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float]
     unit_vector = convert_to_unit_vector(dx_unit, dy_unit)
     last_mouse_job_type = _last_mouse_job_type
     _last_mouse_job_type = "continuous"
-    print("hello")
 
     def init(reset_speed=True):
         nonlocal subpixel_adjuster
@@ -350,7 +348,6 @@ class Actions:
         dx = x - cur_x
         dy = y - cur_y
         ts = time.perf_counter()
-        print(f"mouse_move_to: {ts}")
         mouse_move_delta(dx, dy, duration_ms, callback_tick, easing_type, mouse_api_type=mouse_api_type)
 
     def mouse_move_from(
@@ -391,7 +388,6 @@ class Actions:
         mouse_move_continuous(1, -1, 10) # right and up at speed_initial 10
         ```
         """
-        print("yo")
         mouse_move_continuous(dx_unit, dy_unit, speed_initial)
 
     def mouse_move_continuous_towards(x: Union[int, float], y: Union[int, float], speed_initial: int = 2):

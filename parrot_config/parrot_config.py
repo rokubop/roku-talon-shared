@@ -5,8 +5,9 @@ mod = Module()
 
 def get_base_noise(noise):
     """The part before colon or @ e.g.'pop' in 'pop:db_170' or 'pop@top'"""
-    base_noise = noise.split(':')[0].split('@')[0]
-    return base_noise.strip()
+    base_combo = noise.split(':')[0].split('@')[0]
+    base_noises = base_combo.split(' ')
+    return base_combo.strip(), base_noises
 
 def get_base_with_location_noise(noise):
     """The part before colon or @ e.g.'pop' in 'pop:db_170' or 'pop@top'"""
@@ -42,6 +43,7 @@ def categorize_commands(commands):
     """Determine immediate vs delayed commands"""
     immediate_commands = {}
     delayed_commands = {}
+    combo_noise_set = set()
     base_noise_set = set()
     base_noise_map = {}
 
@@ -49,16 +51,19 @@ def categorize_commands(commands):
         if not noise:
             continue
 
-        base_noise = get_base_noise(noise)
+        base_combo, base_noises = get_base_noise(noise)
 
-        base_noise_set.add(base_noise)
-        base_noise_map[noise] = base_noise
+        for base_noise in base_noises:
+            base_noise_set.add(base_noise)
+
+        combo_noise_set.add(base_combo)
+        base_noise_map[noise] = base_combo
 
     for noise, action in commands.items():
         (_base_noise, _modifiers, location) = parse_modifiers(noise)
         modified_action = get_modified_action(noise, action)
         base = base_noise_map[noise]
-        if any(other_noise.startswith(f"{base} ") and other_noise != base for other_noise in base_noise_set):
+        if any(other_noise.startswith(f"{base} ") and other_noise != base for other_noise in combo_noise_set):
             if location:
                 if not base in delayed_commands:
                     delayed_commands[base] = (action[0], {})
@@ -73,7 +78,7 @@ def categorize_commands(commands):
             else:
                 immediate_commands[base] = modified_action
 
-    return immediate_commands, delayed_commands
+    return immediate_commands, delayed_commands, base_noise_set
 
 def parse_modifiers(sound: str):
     base_noise, location, modifiers = sound, None, None
@@ -96,6 +101,7 @@ class ParrotConfig():
         self.delayed_commands = {}
         self.combo_chain = ""
         self.combo_job = None
+        self.base_noises = None
         self.pending_combo = None
 
     def setup(self, parrot_config):
@@ -106,7 +112,7 @@ class ParrotConfig():
         self.pending_combo = None
         self.parrot_config_ref = parrot_config
         commands = parrot_config.get("commands", {}) if "commands" in parrot_config else parrot_config
-        self.immediate_commands, self.delayed_commands = categorize_commands(commands)
+        self.immediate_commands, self.delayed_commands, self.base_noises = categorize_commands(commands)
 
     def _delayed_combo_execute(self):
         if self.combo_job:
@@ -117,31 +123,48 @@ class ParrotConfig():
         self.combo_chain = ""
         self.pending_combo = None
 
+    def _delayed_potential_combo(self):
+        if self.combo_job:
+            cron.cancel(self.combo_job)
+            self.combo_job = None
+        self.combo_chain = ""
+        self.pending_combo = None
+
     def execute(self, noise: str):
-        if noise not in self.immediate_commands and noise not in self.delayed_commands:
+        if noise not in self.base_noises:
+            # print(f"return no match for {noise}")
             return
 
         if self.combo_job:
+            # print(f"canceling {self.combo_chain}")
             cron.cancel(self.combo_job)
             self.combo_job = None
 
         self.combo_chain = self.combo_chain + f" {noise}" if self.combo_chain else noise
-        print("self.combo_chain", self.combo_chain)
+        # print(f"combo_chain: {self.combo_chain}")
 
         if self.combo_chain in self.delayed_commands:
+            # print(f"match for {self.combo_chain}")
             self.pending_combo = self.combo_chain
             self.combo_job = cron.after("300ms", self._delayed_combo_execute)
         elif self.combo_chain in self.immediate_commands:
+            # print(f"match for {self.combo_chain}")
             action = self.immediate_commands[self.combo_chain][1]
             executeActionOrLocationAction(action)
             self.combo_chain = ""
             self.pending_combo = None
         elif noise in self.immediate_commands:
+            # print(f"no match for {self.combo_chain}")
             if self.pending_combo:
                 self._delayed_combo_execute()
                 actions.sleep("20ms")
             action = self.immediate_commands[noise][1]
             executeActionOrLocationAction(action)
+            self.combo_chain = ""
+            self.pending_combo = None
+        else:
+            # print(f"no match for {self.combo_chain}")
+            self.combo_job = cron.after("300ms", self._delayed_potential_combo)
 
 # todo: try using the user's direct reference instead
 parrot_config_saved = ParrotConfig()

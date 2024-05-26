@@ -1,5 +1,5 @@
 from talon import Module
-from .src.parrot_config import use_parrot_config
+from .parrot_config import use_parrot_config
 
 mod = Module()
 

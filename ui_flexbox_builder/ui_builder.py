@@ -1,11 +1,12 @@
+from talon import cron, ui
 from talon.skia.canvas import Canvas as SkiaCanvas
+from talon.canvas import Canvas
+from talon.screen import Screen
 from talon.skia import RoundRect
 from talon.types import Rect, Point2d
 from typing import TypedDict, Optional
 from itertools import cycle
 from dataclasses import dataclass
-from .ui_builder_helpers import grow_rect
-from .ui_builder_screen import canvas_from_main_screen
 
 debug_draw_step_by_step = False
 debug_points = False
@@ -13,6 +14,7 @@ debug_numbers = False
 debug_current_step = 0
 debug_start_step = 20
 render_step = 0
+ids = {}
 
 @dataclass
 class BoxModelSpacing:
@@ -79,20 +81,6 @@ class BoxModelLayout:
             elif align_items == "flex_end":
                 self.content_children_rect.x = self.content_rect.x + self.content_rect.width - self.content_children_rect.width
 
-    # def align_right_center(self, pos: Point2d):
-    #     print("content_children_rect", self.content_children_rect)
-    #     self.margin_rect.x = pos.x - self.margin_rect.width
-    #     self.margin_rect.y = pos.y - self.margin_rect.height // 2
-    #     self.padding_rect.x = pos.x - self.padding_rect.width
-    #     self.padding_rect.y = pos.y - self.padding_rect.height // 2
-    #     self.content_rect.x = pos.x - self.content_rect.width
-    #     self.content_rect.y = pos.y - self.content_rect.height // 2
-    #     self.content_children_rect.x = pos.x - self.content_children_rect.width
-    #     self.content_children_rect.y = pos.y - self.content_children_rect.height // 2
-    #     print("content_children_rect", self.content_children_rect)
-
-
-
 @dataclass
 class Margin(BoxModelSpacing):
     pass
@@ -100,6 +88,23 @@ class Margin(BoxModelSpacing):
 @dataclass
 class Padding(BoxModelSpacing):
     pass
+
+def canvas_from_main_screen():
+    """ui_main_screen"""
+    screen: Screen = ui.main_screen()
+    return Canvas.from_screen(screen)
+
+def grow_rect(orig_rect: Rect, new_rect: Rect):
+    if new_rect.x < orig_rect.x:
+        orig_rect.width += orig_rect.x - new_rect.x
+        orig_rect.x = new_rect.x
+    if new_rect.y < orig_rect.y:
+        orig_rect.height += orig_rect.y - new_rect.y
+        orig_rect.y = new_rect.y
+    if new_rect.x + new_rect.width > orig_rect.x + orig_rect.width:
+        orig_rect.width = new_rect.x + new_rect.width - orig_rect.x
+    if new_rect.y + new_rect.height > orig_rect.y + orig_rect.height:
+        orig_rect.height = new_rect.y + new_rect.height - orig_rect.y
 
 def parse_box_model(model_type: BoxModelSpacing, **kwargs) -> BoxModelSpacing:
     model = model_type()
@@ -124,6 +129,7 @@ def parse_box_model(model_type: BoxModelSpacing, **kwargs) -> BoxModelSpacing:
     return model
 
 class UIOptionsDict(TypedDict):
+    id: str
     align: str
     background_color: str
     border_color: str
@@ -145,11 +151,13 @@ class UIOptionsDict(TypedDict):
     width: int
 
 class UITextOptionsDict(UIOptionsDict):
+    id: str
     size: int
     bold: bool
     font_weight: str
 
 class UIOptions:
+    id: str = None
     align: str = "start"
     background_color: str = None
     border_color: str = "red"
@@ -181,6 +189,7 @@ class UIOptions:
 
 @dataclass
 class UITextOptions(UIOptions):
+    id: str = None
     size: int = 16
     bold: bool = False
     font_weight: str = "normal"
@@ -234,6 +243,7 @@ class UIBox(UIWithChildren):
         super().__init__(options)
         self.box_model: BoxModelLayout = None
         self.type = "box"
+        self.id = self.options.id
         self.debug_number = 0
         self.debug_color = "red"
         self.debug_colors = iter(cycle(["red", "green", "blue", "yellow", "purple", "orange", "cyan", "magenta"]))
@@ -270,12 +280,17 @@ class UIBox(UIWithChildren):
         c.draw_text(str(self.debug_number), cursor.x, cursor.y)
 
     def render(self, c: SkiaCanvas, cursor: Cursor):
-        global debug_current_step, render_step, debug_numbers, debug_points, debug_draw_step_by_step
+        global ids, debug_current_step, render_step, debug_numbers, debug_points, debug_draw_step_by_step
         render_step += 1
         if debug_current_step and render_step >= debug_current_step:
             return self.box_model.margin_rect
 
         self.box_model.prepare_render(cursor, self.options.flex_direction, self.options.align_items, self.options.justify_content)
+        if self.id:
+            ids[self.id] = {
+                "box_model": self.box_model,
+                "options": self.options
+            }
         cursor.move_to(self.box_model.padding_rect.x, self.box_model.padding_rect.y)
 
         if debug_points:
@@ -286,15 +301,18 @@ class UIBox(UIWithChildren):
 
         if self.options.border_width:
             c.paint.color = self.options.border_color
+            c.paint.style = c.paint.Style.STROKE
             bordered_rect = Rect(
                 self.box_model.padding_rect.x - self.options.border_width,
                 self.box_model.padding_rect.y - self.options.border_width,
                 self.box_model.padding_rect.width + self.options.border_width * 2,
                 self.box_model.padding_rect.height + self.options.border_width * 2)
+
             if self.options.border_radius:
                 c.draw_rrect(RoundRect.from_rect(bordered_rect, x=self.options.border_radius, y=self.options.border_radius))
             else:
                 c.draw_rect(bordered_rect)
+        c.paint.style = c.paint.Style.FILL
 
         if self.options.background_color:
             c.paint.color = self.options.background_color
@@ -410,6 +428,7 @@ class UIBox(UIWithChildren):
 class UIText:
     def __init__(self, text: str, options: UITextOptions = None):
         self.options = options
+        self.id = self.options.id
         self.text = text
         self.type = "text"
         self.text_width = None
@@ -418,6 +437,7 @@ class UIText:
         self.debug_number = 0
         self.debug_color = "red"
         self.debug_colors = iter(cycle(["red", "green", "blue", "yellow", "purple", "orange", "cyan", "magenta"]))
+
         if self.options.gap is None:
             self.options.gap = 16
 
@@ -441,7 +461,7 @@ class UIText:
         return self.box_model.margin_rect
 
     def render(self, c: SkiaCanvas, cursor: Cursor):
-        global debug_current_step, render_step, debug_points, debug_numbers, debug_draw_step_by_step
+        global ids, debug_current_step, render_step, debug_points, debug_numbers, debug_draw_step_by_step
 
         if debug_draw_step_by_step:
             render_step += 1
@@ -449,6 +469,11 @@ class UIText:
                 return self.box_model.margin_rect
 
         self.box_model.prepare_render(cursor, self.options.flex_direction, self.options.align_items, self.options.justify_content)
+        if self.id:
+            ids[self.id] = {
+                "box_model": self.box_model,
+                "options": self.options
+            }
         cursor.move_to(self.box_model.padding_rect.x, self.box_model.padding_rect.y)
 
         if debug_points:
@@ -463,8 +488,10 @@ class UIText:
 
         if self.options.background_color:
             c.paint.color = self.options.background_color
+
             if self.options.border_radius:
-                c.draw_rrect(RoundRect.from_rect(self.box_model.padding_rect, x=self.options.border_radius, y=self.options.border_radius))
+                options = RoundRect.from_rect(self.box_model.padding_rect, x=self.options.border_radius, y=self.options.border_radius)
+                c.draw_rrect(options)
             else:
                 c.draw_rect(self.box_model.padding_rect)
 
@@ -489,36 +516,92 @@ class UIText:
 class UIBuilder(UIBox):
     def __init__(self, **options: UIOptionsDict):
         self.cursor = Cursor()
-        self.canvas = None
+        self.static_canvas = None
+        self.highlight_canvas = None
+        self.unhighlight_job = None
+        self.highlight_color = options.get("highlight_color")
+        self.state = {
+            "highlighted": {}
+        }
         opts = UIOptions(**options or {})
         super().__init__(opts)
 
-    def on_draw(self, c: SkiaCanvas):
+    def on_draw_static(self, c: SkiaCanvas):
         self.virtual_render(c, self.cursor)
         self.render(c, self.cursor)
+        self.highlight_canvas.freeze()
+
+    def on_draw_highlight(self, c: SkiaCanvas):
+        if self.state["highlighted"]:
+            for id in self.state["highlighted"]:
+                if id in ids:
+                    box_model = ids[id]["box_model"]
+                    c.paint.color = self.state["highlighted"][id]
+                    c.paint.style = c.paint.Style.FILL
+                    c.draw_rect(box_model.padding_rect)
+                else:
+                    print(f"Could not highlight ID {id}. ID not found.")
 
     def show(self):
         global debug_current_step, render_step, debug_start_step, debug_draw_step_by_step
 
         if debug_draw_step_by_step:
-            if self.canvas:
+            if self.static_canvas:
                 render_step = 0
                 debug_current_step += 1
+
             else:
                 render_step = 0
                 debug_current_step = debug_start_step
 
-        if self.canvas:
+        if self.static_canvas:
             self.cursor = Cursor()
-            self.canvas.freeze()
+            self.static_canvas.freeze()
+            self.highlight_canvas.freeze()
         else:
-            self.canvas = canvas_from_main_screen()
-            self.canvas.register("draw", self.on_draw)
-            self.canvas.freeze()
+            self.static_canvas = canvas_from_main_screen()
+            self.static_canvas.register("draw", self.on_draw_static)
+            self.static_canvas.freeze()
+
+            self.highlight_canvas = canvas_from_main_screen()
+            self.highlight_canvas.register("draw", self.on_draw_highlight)
+            self.highlight_canvas.freeze()
+
+    def get_ids(self):
+        return ids
+
+    def highlight(self, id: str, color_alpha: str = None):
+        self.state["highlighted"][id] = color_alpha or self.highlight_color or "FFFFFF88"
+        self.highlight_canvas.freeze()
+
+    def unhighlight(self, id: str):
+        if id in self.state["highlighted"]:
+            self.state["highlighted"].pop(id)
+
+            if self.unhighlight_job:
+                cron.cancel(self.unhighlight_job[0])
+                self.unhighlight_job[1]()
+                self.unhighlight_job = None
+
+            self.highlight_canvas.freeze()
+
+    def highlight_briefly(self, id: str, color_alpha: str = None, duration: int = 50):
+        self.highlight(id, color_alpha)
+        pending_unhighlight = lambda: self.unhighlight(id)
+        self.unhighlight_job = (cron.after(f"{duration}ms", pending_unhighlight), pending_unhighlight)
 
     def hide(self):
-        if self.canvas:
-            self.canvas.unregister("draw", self.on_draw)
-            self.canvas.hide()
-            self.canvas.close()
-            self.canvas = None
+        global ids
+
+        if self.static_canvas:
+            self.static_canvas.unregister("draw", self.on_draw_static)
+            self.static_canvas.hide()
+            self.static_canvas.close()
+            self.static_canvas = None
+
+            self.highlight_canvas.unregister("draw", self.on_draw_highlight)
+            self.highlight_canvas.hide()
+            self.highlight_canvas.close()
+            self.highlight_canvas = None
+
+        ids = {}

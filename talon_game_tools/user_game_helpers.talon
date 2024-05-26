@@ -16,4 +16,4 @@ calibrate close:            user.ui_hide_game_modal_large()
 game grid:                  user.fly_grid_show()
 game grid hide:             user.fly_grid_hide()
 
-game test:                  user.ui_game_test()
+# game test:                  user.ui_game_test()

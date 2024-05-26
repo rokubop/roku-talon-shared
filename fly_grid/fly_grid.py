@@ -299,7 +299,7 @@ class Actions:
         """Show the grid commands"""
         global builder
 
-        builder = actions.user.ui_builder_screen(
+        builder = actions.user.ui_html_builder_screen(
             justify_content="flex_end",
             align_items="center",
         )

@@ -8,7 +8,7 @@ builders = {}
 
 @mod.action_class
 class Actions:
-    def ui_builder_screen(
+    def ui_html_builder_screen(
         id: str,
         align: Literal["left", "center", "right", "top", "bottom"] = "center",
         justify_content: str = "center",

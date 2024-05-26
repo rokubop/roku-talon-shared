@@ -1,5 +1,5 @@
 from talon import Module
-from .ui_builder import UIBuilder
+from .ui_html_builder import UIBuilder
 from typing import Literal
 
 mod = Module()

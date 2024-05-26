@@ -144,7 +144,6 @@ class UIOptionsDict(TypedDict):
     justify: str
     left: int
     margin: Margin
-    opacity: float
     padding: Padding
     right: int
     top: int
@@ -171,7 +170,6 @@ class UIOptions:
     flex_direction: str = "column"
     gap: int = None
     height: int = 0
-    opacity: float = 1.0
     justify: str = "flex_start"
     justify_content: str = "flex_start"
     align_items: str = "flex_start"

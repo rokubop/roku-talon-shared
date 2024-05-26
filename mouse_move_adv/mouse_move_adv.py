@@ -1,5 +1,5 @@
 """
-Mouse Mover
+Mouse Move Adv
 user.mouse_move_delta(dx: int, dy: int, duration_ms: int = 200, callback_tick: Callable[[MouseMoveCallbackEvent], None] = None, easing_type: CurveTypes = "ease_in_out", mouse_api_type: Literal["talon", "windows"] = "talon")
 user.mouse_move_from(x: int, y: int, duration_ms: int = 200, callback_tick: Callable[[MouseMoveCallbackEvent], None] = None, easing_type: CurveTypes = "ease_in_out", mouse_api_type: Literal["talon", "windows"] = "talon")
 user.mouse_move_from_to(x1: int, y1: int, x2: int, y2: int, duration_ms: int = 200, callback_tick: Callable[[MouseMoveCallbackEvent], None] = None, easing_type: CurveTypes = "ease_in_out", mouse_api_type: Literal["talon", "windows"] = "talon")

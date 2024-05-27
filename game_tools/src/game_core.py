@@ -37,10 +37,6 @@ def queue_action(action, number):
     #     action, number = queue.pop(0)
     #     queue_action(action, number)
 
-def game_click(button: int = 0, hold: int = 16000):
-    """Left click"""
-    ctrl.mouse_click(button=0, hold=hold)
-
 def move_dir(key: str):
     """Hold a direction key"""
     global _move_dir

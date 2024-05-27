@@ -1,5 +1,5 @@
-from talon import Module, actions
-from .src.game_core import move_dir, step_dir, move_dir_toggle, stopper, game_click, mouse_calibrate_90_y, mouse_calibrate_x_360, mouse_reset_center_y
+from talon import Module, actions, ctrl
+from .src.game_core import move_dir, step_dir, move_dir_toggle, stopper, mouse_calibrate_90_y, mouse_calibrate_x_360, mouse_reset_center_y
 
 mod = Module()
 
@@ -10,7 +10,13 @@ def mouse_move_deg(deg_x: int, deg_y: int):
 
 @mod.action_class
 class Actions:
-    def game_click(button: int = 0, hold: int = 16000): """Left click"""; game_click(button, hold)
+    def game_mouse_click(button: int = 0, hold: int = 16000): """Click"""; ctrl.mouse_click(button=button, hold=hold)
+    def game_mouse_click_left(hold: int = 16000): """Left click"""; ctrl.mouse_click(button=0, hold=hold)
+    def game_mouse_click_right(hold: int = 16000): """Right click"""; ctrl.mouse_click(button=1, hold=hold)
+    def game_mouse_click_middle(hold: int = 16000): """Middle click"""; ctrl.mouse_click(button=2, hold=hold)
+    def game_mouse_hold_left(duration_ms: int = None): """Hold left click"""; ctrl.mouse_click(button=0, hold=duration_ms*1000) if duration_ms else ctrl.mouse_click(button=0, down=True)
+    def game_mouse_hold_right(duration_ms: int = None): """Hold right click"""; ctrl.mouse_click(button=1, hold=duration_ms*1000) if duration_ms else ctrl.mouse_click(button=1, down=True)
+    def game_mouse_hold_middle(duration_ms: int = None): """Hold middle click"""; ctrl.mouse_click(button=2, hold=duration_ms*1000) if duration_ms else ctrl.mouse_click(button=2, down=True)
     def game_move_dir_hold_a(): """Start holding direction 'a'"""; move_dir('a')
     def game_move_dir_hold_d(): """Start holding direction 'd'"""; move_dir('d')
     def game_move_dir_hold_w(): """Start holding direction 'w'"""; move_dir('w')

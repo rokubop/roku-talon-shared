@@ -589,6 +589,7 @@ class UIBuilder(UIBox):
         self.unhighlight_job = (cron.after(f"{duration}ms", pending_unhighlight), pending_unhighlight)
 
     def hide(self):
+        """Hide and destroy the UI builder."""
         global ids
 
         if self.static_canvas:

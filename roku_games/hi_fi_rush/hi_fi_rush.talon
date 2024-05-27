@@ -1,10 +1,11 @@
 app: hi_fi_rush
 -
 settings():
-    user.game_v2_calibrate_x_360 = 2139
-    user.game_v2_calibrate_y_ground_to_center = 542
+    speech.timeout = 0.05
+    user.game_calibrate_x_360 = 3080
+    user.game_calibrate_y_90 = 542
+    key_hold = 64.0
+    key_wait = 16.0
+    user.mouse_move_api = "windows"
 
-tag(): user.game_v2
-
-game:                       user.parrot_v5_mode_enable("user.hi_fi_rush_parrot")
-menu:                       user.parrot_v5_mode_enable("user.parrot_v5_default")
+^game [mode]$:              user.game_mode_enable()

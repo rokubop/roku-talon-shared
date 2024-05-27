@@ -11,9 +11,9 @@ class Actions:
 
         Example:
         ```talon
-        parrot(pop):       user.use_parrot_config("pop")
-        parrot(hiss:down): user.use_parrot_config("hiss:down")
-        parrot(hiss:up):   user.use_parrot_config("hiss:up")
+        parrot(pop):        user.use_parrot_config("pop")
+        parrot(hiss):       user.use_parrot_config("hiss")
+        parrot(hiss:stop):  user.use_parrot_config("hiss_stop")
         ```
         """
         use_parrot_config(sound)
@@ -29,7 +29,7 @@ class Actions:
         parrot_config = {
             "pop":       ("pop", lambda: actions.mouse_click(0)),
             "hiss":      ("hiss", lambda: actions.scroll(1)),
-            "hiss:stop": ("hiss", lambda: actions.scroll(-1)),
+            "hiss_stop": ("hiss", lambda: actions.scroll(-1)),
         }
 
         @ctx.action_class("user")

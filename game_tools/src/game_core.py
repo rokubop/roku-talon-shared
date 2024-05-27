@@ -172,7 +172,6 @@ class Actions:
 
 def mouse_reset_center_y():
     """Reset the mouse to the center of the screen."""
-    print("resetting center")
     actions.user.mouse_move_delta_degrees(0, 180, 100)
     actions.user.mouse_move_queue(lambda: actions.user.mouse_move_delta_degrees(0, -90, 100))
 

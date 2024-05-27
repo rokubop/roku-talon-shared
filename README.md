@@ -1,6 +1,6 @@
-# Roku Tools (WIP)
+# roku-talon-shared
 
-This is a set of tools and scripts to help you play games, build UIs, make complex swappable parrot configs easily. WIP.
+This is shared set of Talon tools and scripts to help you play games, build UIs, make complex swappable parrot configs easily. WIP.
 
 ## Features
 | Feature | Description | README |

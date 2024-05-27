@@ -241,7 +241,7 @@ class UIBox(UIWithChildren):
         super().__init__(options)
         self.box_model: BoxModelLayout = None
         self.type = "box"
-        self.id = self.options.id
+        self.id = self.options.id or None
         self.debug_number = 0
         self.debug_color = "red"
         self.debug_colors = iter(cycle(["red", "green", "blue", "yellow", "purple", "orange", "cyan", "magenta"]))

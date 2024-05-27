@@ -9,10 +9,10 @@ builders = {}
 @mod.action_class
 class Actions:
     def ui_html_builder_screen(
-        id: str,
         align: Literal["left", "center", "right", "top", "bottom"] = "center",
         justify_content: str = "center",
         align_items: str = "center",
+        id: str = None,
         background_color: str = None,
         flex_direction: str = "column",
         highlight_color: str = None) -> UIBuilder:

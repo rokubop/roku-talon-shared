@@ -1,6 +1,6 @@
-# Fly Grid (WIP)
+# Drag Grid
 
-Allows you to easily perform actions to a target or multiple targets, including dragging from one point to another.
+Allows you drag from one point to another.
 
 | Command | Description | Example |
 | --- | --- | --- |

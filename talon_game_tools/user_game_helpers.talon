@@ -13,7 +13,7 @@ game calibrate [ex]:        user.game_mode_calibrate_x_enable()
 game calibrate why:         user.game_mode_calibrate_y_enable()
 calibrate close:            user.ui_hide_game_modal_large()
 
-game grid:                  user.fly_grid_show()
-game grid hide:             user.fly_grid_hide()
+game grid:                  user.drag_grid_show()
+game grid hide:             user.drag_grid_hide()
 
 # game test:                  user.ui_game_test()

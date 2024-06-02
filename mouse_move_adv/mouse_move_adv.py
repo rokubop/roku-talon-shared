@@ -188,6 +188,9 @@ def mouse_stop(start_next_queue: bool = True):
         _mouse_continuous_start_ts = None
         _mouse_continuous_stop_ts = None
     if start_next_queue and len(_mouse_movement_queue) > 0:
+        print('start_next_queue')
+        # log name of the function
+        print(_mouse_movement_queue[0].__name__)
         ts = time.perf_counter()
         fn = _mouse_movement_queue.pop(0)
         fn()

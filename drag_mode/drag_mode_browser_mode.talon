@@ -1,4 +1,4 @@
-mode: user.drag_grid
+mode: user.drag_mode
 and mode: command
 and tag: browser
 and tag: user.rango_direct_clicking

@@ -151,8 +151,7 @@ class UIOptionsDict(TypedDict):
 
 class UITextOptionsDict(UIOptionsDict):
     id: str
-    size: int
-    bold: bool
+    font_size: int
     font_weight: str
 
 class UIOptions:
@@ -188,8 +187,7 @@ class UIOptions:
 @dataclass
 class UITextOptions(UIOptions):
     id: str = None
-    size: int = 16
-    bold: bool = False
+    font_size: int = 16
     font_weight: str = "normal"
 
     def __init__(self, **kwargs):
@@ -451,8 +449,8 @@ class UIText:
     def virtual_render(self, c: SkiaCanvas, cursor: Cursor):
         self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.width, self.options.height)
         cursor.virtual_move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
-        c.paint.textsize = self.options.size
-        c.paint.font.embolden = True if self.options.bold or self.options.font_weight == "bold" else False
+        c.paint.textsize = self.options.font_size
+        c.paint.font.embolden = True if self.options.font_weight == "bold" else False
         self.text_width = c.paint.measure_text(self.text)[1].width
         self.text_height = c.paint.measure_text("E")[1].height
         self.box_model.accumulate_dimensions(Rect(cursor.virtual_x, cursor.virtual_y, self.text_width, self.text_height))
@@ -506,8 +504,8 @@ class UIText:
         #     self.draw_debug_number(c, cursor)
 
         c.paint.color = self.options.color
-        c.paint.textsize = self.options.size
-        c.paint.font.embolden = True if self.options.bold or self.options.font_weight == "bold" else False
+        c.paint.textsize = self.options.font_size
+        c.paint.font.embolden = True if self.options.font_weight == "bold" else False
         c.draw_text(self.text, cursor.x, cursor.y + self.text_height)
         return self.box_model.margin_rect
 

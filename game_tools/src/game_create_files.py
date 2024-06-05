@@ -36,15 +36,9 @@ class Actions:
         create_file(file, game_talon_template)
         file = app_dir / f"{app_name}_mode.talon"
         create_file(file, game_mode_talon_template)
-        # file = app_dir / f"{app_name}_menu.talon"
-        # create_file(file, menu_template)
         file = app_dir / f"{get_platform_filename(app_name, platform_suffix)}.py"
         create_file(file, game_py_template)
         active_app = None
-
-        # if talon_file_created or python_file_created:
-        #     actions.user.file_manager_open_directory(str(app_dir))
-
 
 def get_python_template(active_app: ui.App, app_name: str) -> str:
     return game_py.format(

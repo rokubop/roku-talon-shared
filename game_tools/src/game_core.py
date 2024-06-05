@@ -1,4 +1,6 @@
 from talon import Module, actions, cron, ctrl, clip
+from .game_events import on_game_key, on_game_key_hold, on_game_key_release
+from .game_ui_controls import show_ui, hide_ui
 
 mod = Module()
 # mod.mode("game_menu", "game menu mode")
@@ -111,64 +113,25 @@ class Actions:
     def game_menu_mode_enable():
         """Enable menu mode"""
         actions.mode.disable("user.game")
-        # actions.mode.disable("user.game_nav")
-        # actions.mode.enable("user.game_menu")
-        # actions.user.game_show_commands("Game Menu", [
-        #     "play",
-        #     "scan",
-        #     "up",
-        #     "down",
-        #     "left",
-        #     "right",
-        #     "exit"
-        # ])
 
     def game_mode_enable():
         """Enable play mode"""
         actions.mode.enable("user.game")
         actions.mode.disable("command")
-        # actions.mode.disable("user.game_menu")
-        # actions.mode.disable("user.game_nav")
-        # actions.user.game_show_commands("Game Menu", [
-        #     "menu",
-        #     "scan",
-        #     "exit",
-        #     "go",
-        #     "go [dir]",
-        #     "back",
-        #     "step [dir]",
-        #     "jump",
-        #     "stop",
-        #     "stop all",
-        #     "crouch",
-        #     "run",
-        #     "hop [num]",
-        #     "round",
-        #     "left",
-        #     "right",
-        #     "left [num]",
-        #     "right [num]",
-        #     "look up",
-        #     "look down",
-        #     "look up [num]",
-        #     "look down [num]",
-        #     "set | reset"
-        # ], "666222")
+        game_ui = actions.user.game_ui()
+        if game_ui.get("show"):
+            show_ui(game_ui)
 
     def game_nav_mode_enable():
         """Enable nav mode"""
-        # actions.mode.disable("user.game_menu")
         actions.mode.disable("user.game")
-        # actions.mode.enable("user.game_nav")
 
     def game_mode_disable():
         """Disable game mode"""
-        # actions.mode.disable("user.game_menu")
         actions.mode.disable("user.game")
         actions.mode.enable("command")
-        # actions.mode.disable("user.game_nav")
         stopper()
-        # actions.user.game_hide_commands()
+        hide_ui()
 
 def mouse_reset_center_y():
     """Reset the mouse to the center of the screen."""
@@ -207,6 +170,28 @@ def mouse_calibrate_90_y(dy_90: int):
     _last_calibrate_value_y = 0
     actions.user.rt_mouse_move_delta(0, dy_90 * 2, 100, mouse_api_type="windows")
     actions.user.mouse_move_queue(lambda: actions.user.rt_mouse_move_delta(0, -dy_90, 100, on_calibrate_y_90_tick, mouse_api_type="windows"))
+
+up = None
+
+def key_up(key):
+    global up
+    actions.key(f"{key}:up")
+    on_game_key_release(key)
+    up = None
+
+def game_key(key: str):
+    """Press a game key"""
+    actions.key(key)
+    on_game_key(key)
+
+def game_key_hold(key: str, hold: int = 500):
+    """Hold a game key"""
+    global up
+    if up:
+        cron.cancel(up)
+    actions.key(f"{key}:down")
+    on_game_key_hold(key)
+    up = cron.after(f"{hold}ms", lambda: key_up(key))
 
 @mod.action_class
 class Actions:

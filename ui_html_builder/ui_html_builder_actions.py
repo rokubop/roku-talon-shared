@@ -1,6 +1,7 @@
 from talon import Module
 from .ui_html_builder import UIBuilder
 from typing import Literal
+from .ui_html_builder import ids
 
 mod = Module()
 
@@ -76,3 +77,11 @@ class Actions:
         else:
             print(f"UI builder with ID {id} not found.")
             return None
+
+    def ui_builder_get_id(id: str):
+        """Get by ID"""
+        return ids[id]
+
+    def ui_builder_get_ids():
+        """Get by ID"""
+        return ids

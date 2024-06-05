@@ -36,6 +36,7 @@ Build a UI using a object oriented html style. Supports common css properties su
 | bottom | `int` |
 | color | `str` - 6 digits with 2 optional ending digits for opacity e.g. `'FF0000'` or `FF000088` for opacity of `88` from `00` to `FF` |
 | flex_direction | `'row'`, `'column'` |
+| font_size | `int` - for text |
 | font_weight | `str` |
 | gap | `int` |
 | height | `int` |
@@ -55,7 +56,6 @@ Build a UI using a object oriented html style. Supports common css properties su
 | padding_right | `int` |
 | padding_top | `int` |
 | right | `int` |
-| size | `int` - for text |
 | top | `int` |
 | width | `int` |
 

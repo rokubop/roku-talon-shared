@@ -24,25 +24,7 @@ parrot_config = {
     "tut cluck":  ("hold a", lambda: actions.user.game_key_down("a")),
 }
 
-game_ui = {
-    "show": True,
-    "show_commands": True,
-    "show_dpad": True,
-    "show_last_keypress": True,
-    "align": "top_left",
-    "offset": (16, 40),
-    "font_size": 16,
-    "primary_color": "ffffff",
-    "accent_color": "87ceeb",
-    "background_color": None,
-    "use_parrot_config": True,
-    "commands": [],
-}
-
 @ctx_game.action_class("user")
 class Actions:
-    def game_ui():
-        return game_ui
-
     def parrot_config():
         return parrot_config

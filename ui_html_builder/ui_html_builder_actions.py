@@ -1,14 +1,43 @@
 from talon import Module
-from .ui_html_builder import UIBuilder
-from typing import Literal
+from .ui_html_builder import UIBuilder, div, text, screen, css
+from typing import Literal, Type, Union, List, Dict, Protocol
+from dataclasses import dataclass
 from .ui_html_builder import ids
 
 mod = Module()
 
 builders = {}
 
+@dataclass
+class CSSConfig:
+    flex_direction: str
+    gap: int
+    margin_top: int
+    margin_right: int
+
 @mod.action_class
 class Actions:
+    def ui_elements(elements: List[str]) -> tuple[callable]:
+        """
+        Usage:
+        ```py
+        (css, div, text, screen) = actions.user.ui_elements(["css", "div", "text", "screen"])
+        ui = screen()[
+            div(padding=16, background_color="FF000088")[
+                text("Hello world", color="FFFFFF")
+            ]
+        ]
+        ui.show()
+        ```
+        """
+        element_mapping: Dict[str, callable] = {
+            'css': css,
+            'div': div,
+            'text': text,
+            'screen': screen
+        }
+        return tuple(element_mapping[element] for element in elements)
+
     def ui_html_builder_screen(
         align: Literal["left", "center", "right", "top", "bottom"] = "center",
         justify_content: str = "center",

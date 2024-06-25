@@ -15,6 +15,7 @@ debug_current_step = 0
 debug_start_step = 20
 render_step = 0
 ids = {}
+builders = {}
 
 @dataclass
 class BoxModelSpacing:
@@ -217,6 +218,22 @@ class UIWithChildren:
     def __init__(self, options: UIOptions = None):
         self.options = options
         self.children = []
+
+    def add_child(self, child):
+        if isinstance(child, tuple):
+            for c in child:
+                self.children.append(c)
+        else:
+            self.children.append(child)
+
+    def __getitem__(self, children=None):
+        if children is None:
+            children = []
+        if not isinstance(children, list):
+            children = [children]
+        for child in children:
+            self.add_child(child)
+        return self
 
     def add_div(self, **kwargs: UIOptionsDict):
         return self.add_flexbox(**kwargs)
@@ -601,4 +618,24 @@ class UIBuilder(UIBox):
             self.highlight_canvas.close()
             self.highlight_canvas = None
 
-        ids = {}
+        # ids = {}
+
+# ui_elements
+def screen(**props):
+    builders[id] = UIBuilder(
+        width=1920,
+        height=1080,
+        **props
+    )
+    return builders[id]
+
+def div(**props):
+    box_options = UIOptions(**props)
+    return UIBox(box_options)
+
+def text(content, **props):
+    text_options = UITextOptions(**props)
+    return UIText(content, text_options)
+
+def css(**props):
+    return props

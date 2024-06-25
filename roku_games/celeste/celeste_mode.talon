@@ -1,4 +1,4 @@
-app: sheepy
+app: celeste
 mode: user.game
 -
 <phrase>: skip()

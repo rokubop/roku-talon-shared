@@ -125,8 +125,6 @@ def show_dpad():
     add_key(second_row, "D")
     keys.show()
 
-    print('ok', keys.get_ids())
-
 def hide_keys():
     keys.hide()
 

@@ -40,16 +40,36 @@ class Actions:
 
         Options:
         ```py
+        "noise"         - default
         "noise noise"   - combo results in action
-        "noise@left"    - action at the left side of the screen
-        "noise@right"   - action at the right side of the screen
-        "noise@up"      - action at the top side of the screen
-        "noise@down"    - action at the bottom side of the screen
         "noise:th_100"  - throttle of 100ms (triggered once every 100ms)
         "noise:th"      - default throttle
         "noise:db_100"  - debounce of 100ms (triggered after 100ms of continuous noise)
         "noise:db"      - default debounce
-        "noise:db@left" - action at left side of screen, debounce of 100ms
+        "noise@left"    - action at the left side of the screen
+        "noise@right"   - action at the right side of the screen
+        "noise@up"      - action at the top side of the screen
+        "noise@down"    - action at the bottom side of the screen
         ```
         """
         return {}
+
+    def parrot_config_format_display(parrot_config: dict[str, tuple[str, callable]]) -> list[tuple[str, str]]:
+        """Format a parrot config into a list of command/action tuples"""
+        cmds, acts = [], []
+
+        for command, action_tuple in parrot_config.items():
+            if isinstance(action_tuple, tuple):
+                if len(action_tuple) == 0:
+                    continue
+                action = action_tuple[0]
+            else:
+                action = action_tuple
+
+            if action == "":
+                continue
+            command = command.split(":")[0]
+            cmds.append(command)
+            acts.append(action)
+
+        return (cmds, acts)

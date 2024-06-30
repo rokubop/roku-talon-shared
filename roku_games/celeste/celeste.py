@@ -35,17 +35,29 @@ def dash_demo():
     actions.user.game_move_dir_hold_last_horizontal()
     actions.user.game_key("t")
 
+def dash_backward():
+    actions.user.game_state_switch_horizontal(),
+    dash_forward()
+
+def dash_backward_up():
+    actions.user.game_state_switch_horizontal()
+    dash_forward_down()
+
+def dash_backward_down():
+    actions.user.game_state_switch_horizontal()
+    dash_backward()
+
+def dash_demo_backward():
+    actions.user.game_state_switch_horizontal(),
+    dash_demo()
+
 def jump_secondary():
     actions.user.game_key_hold("p", jump_secondary_ms)
 
 def jump_primary():
     actions.user.game_key_hold("c", jump_primary_ms)
 
-def set_secondary_jump_duration(duration_ms: int):
-    global jump_secondary_ms
-    jump_secondary_ms = duration_ms
-
-def use_feather_parrot_config():
+def use_move_mode():
     global parrot_config
     parrot_config = {
         **default_config,
@@ -53,50 +65,48 @@ def use_feather_parrot_config():
     }
     refresh_ui(parrot_config, { "background_color": "C70039" })
 
-def use_default_parrot_config():
+def use_default_mode():
     global parrot_config
     parrot_config = default_config
     refresh_ui(parrot_config, { "background_color": "000000" })
+
+def skip_scene():
+    actions.user.game_stopper()
+    actions.key("escape down c")
+
+def return_map():
+    actions.user.game_stopper()
+    actions.key("escape up c c")
 
 default_config = {
     "ah":         ("left", actions.user.game_move_dir_hold_left),
     "oh":         ("right", actions.user.game_move_dir_hold_right),
     "ee":         ("stop", actions.user.game_stopper),
     "guh":        ("toggle down", lambda: actions.user.game_key_toggle("down")),
+    "pop":        ("dash f", dash_forward),
+    "mm":         ("dash f-down", dash_forward_down),
+    "t":          ("dash f-up", dash_forward_up),
     "eh":         ("dash up", dash_up),
-    "t":          ("dash FUP", dash_forward_up),
-    "mm":         ("dash FDOWN", dash_forward_down),
-    "er":         ("dash DOWN", dash_down),
-    "pop":        ("dash F", dash_forward),
+    "er":         ("dash down", dash_down),
     "palate":     ("dash demo", dash_demo),
-    "shush:th_100":("jump 1", jump_primary),
-    "shush_stop": ("", lambda: None),
-    "hiss:th_100":("jump 2", jump_secondary),
-    "hiss_stop":  ("", lambda: None),
-    "tut t":      ("map", lambda: actions.user.game_key_down("tab")),
+    "sh:th_100":  ("jump 1", jump_primary),
+    "sh_stop":    ("", lambda: None),
+    "ss:th_100":  ("jump 2", jump_secondary),
+    "ss_stop":    ("", lambda: None),
+    "tut <dash>": ("reverse <dash>"),
     "tut tut":    ("exit mode", actions.user.game_mode_disable),
-    "tut eh":     ("up", actions.user.game_move_dir_hold_up),
-    "tut guh":    ("down", actions.user.game_move_dir_hold_down),
-    "tut pop":    ("", lambda: (
-        actions.user.game_state_switch_horizontal(),
-        dash_forward())),
-    "tut palate":     ("", lambda: (
-        actions.user.game_state_switch_horizontal(),
-        dash_demo())),
-    "tut t":      ("", lambda: (
-        actions.user.game_state_switch_horizontal(),
-        dash_forward_up())),
-    "tut mm":     ("", lambda: (
-        actions.user.game_state_switch_horizontal(),
-        dash_forward_down())),
-    "tut ee":     ("skip scene", lambda: actions.key("escape down c")),
-    "tut cluck":  ("return map", lambda: actions.key("escape up c c")),
+    "tut pop":    ("", dash_backward),
+    "tut palate": ("", dash_demo_backward),
+    "tut t":      ("", dash_backward_up),
+    "tut mm":     ("", dash_backward_down),
+    "tut ee":     ("skip scene", skip_scene),
+    "tut cluck":  ("return map", return_map),
     "cluck":      ("load", lambda: (actions.key("f8"), actions.user.game_stopper())),
     "cluck cluck":("save", lambda: actions.key("f7")),
     "cluck ee":   ("clear", lambda: actions.key("f4")),
     "cluck guh":  ("debug", lambda: actions.key("f6")),
-    "foot_pedal_L": ("grab", lambda: None),
-    "foot_pedal_M": ("move mode", lambda: None),
+    "foot 1":     ("grab"),
+    "foot 2":     ("move mode"),
 }
 parrot_config = default_config
 
@@ -118,13 +128,13 @@ class Actions:
     def on_game_mode_disabled():
         hide_ui()
 
-feather_stop_job = None
+pedal_center_up_job = None
 
-def stop_feather_mode():
-    global feather_stop_job
-    feather_stop_job = None
+def stop_move_mode():
+    global pedal_center_up_job
+    pedal_center_up_job = None
     unhighlight("foot_center")
-    use_default_parrot_config()
+    use_default_mode()
 
 @ctx_game.action_class("user")
 class Actions:
@@ -138,8 +148,9 @@ class Actions:
         return parrot_config
 
     def pedal_left_down():
+        # we manage highlighting here, but not the action
         # command mananged by playability app
-        # hold "z", otherwise key gets untriggered every
+        # it will hold "z", otherwise key gets untriggered every
         # time we issue another key with talon
         highlight("foot_left")
 
@@ -147,27 +158,22 @@ class Actions:
         unhighlight("foot_left")
 
     def pedal_center_down():
-        if feather_stop_job:
-            cron.cancel(feather_stop_job)
+        if pedal_center_up_job:
+            cron.cancel(pedal_center_up_job)
             # do nothing - already running
         else:
-            use_feather_parrot_config()
+            use_move_mode()
             highlight("foot_center")
 
     def pedal_center_up():
-        global feather_stop_job
-        feather_stop_job = cron.after("100ms", stop_feather_mode)
+        global pedal_center_up_job
+        pedal_center_up_job = cron.after("100ms", stop_move_mode)
 
 @mod.action_class
 class Actions:
     def game_celeste_set_jump_2(number: int):
         """set jump 2 ms"""
         global jump_secondary_ms
-        print(f"set jump2 to {number}")
         jump_secondary_ms = number
+        actions.user.ui_elements_set_text("jump2", f"{jump_secondary_ms}ms")
         actions.user.game_mode_enable()
-
-    def game_celeste_set_flex_key(action_name: str):
-        """set flex key"""
-        global flex
-        flex = action_name

@@ -4,21 +4,9 @@ ui_commands = None
 ui_keys = None
 accent_color = "87ceeb"
 
-def get_commands_and_actions(parrot_config):
-    cmds, acts = [], []
-
-    for command, (action, _) in parrot_config.items():
-        if action == "":
-            continue
-        command = command.split(":")[0]
-        cmds.append(command)
-        acts.append(action)
-
-    return (cmds, acts)
-
 def show_commands(parrot_config, options = {}):
     global ui_commands
-    (commands, acts) = get_commands_and_actions(parrot_config)
+    (commands, acts) = actions.user.parrot_config_format_display(parrot_config)
     (css, div, text, screen) = actions.user.ui_elements(["css", "div", "text", "screen"])
     background_color = options.get("background_color") or "000000"
 
@@ -28,25 +16,25 @@ def show_commands(parrot_config, options = {}):
         justify_content="flex_start",
     )
 
-    box_css = css(
-        margin=16,
-        background_color=f"{background_color}66",
-        flex_direction="row",
-        padding=16,
-        gap=16,
-    )
-
     ui_commands = screen(**screen_css)[
-        div(**box_css)[
-            div(gap=8)[
-                text("sound", font_weight="bold"),
-                *(text(command) for command in commands),
+        div(background_color=f"{background_color}66", margin=16, margin_right=48, padding=16)[
+            div(flex_direction="row", gap=16)[
+                div(gap=8)[
+                    text("sound", font_weight="bold"),
+                    *(text(command) for command in commands),
+                    text("<number>")
+                ],
+                div(gap=8)[
+                    text("actions", font_weight="bold", color=accent_color),
+                    *(text(action, color=accent_color) for action in acts),
+                    text("set jump2", color=accent_color)
+                ]
             ],
-            div(gap=8)[
-                text("actions", font_weight="bold", color=accent_color),
-                *(text(action, color=accent_color) for action in acts)
+            div(margin_top=24, flex_direction="row")[
+                text("jump2: "),
+                text("120ms", id="jump2", color="c43dff", font_weight="bold")
             ]
-        ]
+        ],
     ]
     ui_commands.show()
 
@@ -79,7 +67,7 @@ def show_keys(options = {}):
     gamepad_css = css(
         flex_direction="column",
         gap=0,
-        margin_top=500,
+        margin_top=530,
         margin_right=16
     )
 

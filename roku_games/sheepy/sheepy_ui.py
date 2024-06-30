@@ -7,7 +7,7 @@ accent_color = "87ceeb"
 def show_commands(parrot_config):
     global commands
 
-    commands = actions.user.ui_html_builder_screen(
+    commands = actions.user.ui_elements_screen(
         id="parrot_commands",
         align_items="flex_start",
         justify_content="flex_start",
@@ -41,7 +41,7 @@ def hide_commands():
 
 def show_keys():
     global keys
-    keys = actions.user.ui_html_builder_screen(
+    keys = actions.user.ui_elements_screen(
         id="keys",
         justify_content="flex_start",
         align_items="flex_start",

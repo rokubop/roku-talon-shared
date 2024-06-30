@@ -2,7 +2,6 @@ from talon import Module, actions, cron, ui, ctrl
 import re
 mod = Module()
 
-
 def get_base_noise(noise):
     """The part before colon or @ e.g.'pop' in 'pop:db_170' or 'pop@top'"""
     base_combo = noise.split(':')[0].split('@')[0]
@@ -46,9 +45,10 @@ def categorize_commands(commands):
     combo_noise_set = set()
     base_noise_set = set()
     base_noise_map = {}
+    active_commands = []
 
-    for noise in commands.keys():
-        if not noise:
+    for noise, action in commands.items():
+        if not noise or not isinstance(action, tuple) or len(action) < 2 or action[1] is None:
             continue
 
         base_combo, base_noises = get_base_noise(noise)
@@ -58,8 +58,9 @@ def categorize_commands(commands):
 
         combo_noise_set.add(base_combo)
         base_noise_map[noise] = base_combo
+        active_commands.append((noise, action))
 
-    for noise, action in commands.items():
+    for noise, action in active_commands:
         (_base_noise, _modifiers, location) = parse_modifiers(noise)
         modified_action = get_modified_action(noise, action)
         base = base_noise_map[noise]
@@ -199,6 +200,7 @@ def parrot_debounce(time_ms: int, id: str, command: callable):
 def use_parrot_config(sound: str):
     config = actions.user.parrot_config()
     if parrot_config_saved.parrot_config_ref != config:
+        print("setting up parrot")
         parrot_config_saved.setup(config)
 
     parrot_config_saved.execute(sound)

@@ -9,7 +9,7 @@ def show_commands(parrot_config, background_color="22266688"):
     if commands:
         commands.hide()
 
-    commands = actions.user.ui_html_builder_screen(
+    commands = actions.user.ui_elements_screen(
         id="parrot_commands",
         align_items="flex_end",
         justify_content="center",

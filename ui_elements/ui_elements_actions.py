@@ -1,8 +1,7 @@
 from talon import Module
-from .ui_html_builder import UIBuilder, div, text, screen, css
+from .ui_elements import UIBuilder, div, text, screen, css, ids, builders_core
 from typing import Literal, Type, Union, List, Dict, Protocol
 from dataclasses import dataclass
-from .ui_html_builder import ids
 
 mod = Module()
 
@@ -28,6 +27,9 @@ class Actions:
             ]
         ]
         ui.show()
+
+        # later
+        ui.hide()
         ```
         """
         element_mapping: Dict[str, callable] = {
@@ -38,7 +40,7 @@ class Actions:
         }
         return tuple(element_mapping[element] for element in elements)
 
-    def ui_html_builder_screen(
+    def ui_elements_screen(
         align: Literal["left", "center", "right", "top", "bottom"] = "center",
         justify_content: str = "center",
         align_items: str = "center",
@@ -114,3 +116,12 @@ class Actions:
     def ui_builder_get_ids():
         """Get by ID"""
         return ids
+
+    def ui_elements_set_text(id: str, value: str):
+        """set text based on id"""
+        global builders_core
+        # print("ui_elements_set_text")
+        for builder in builders_core.values():
+            # print(f"setting text of {id} to {value}")
+            print("builder")
+            builder.set_text(id, value)

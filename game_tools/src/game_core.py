@@ -249,15 +249,14 @@ def mouse_calibrate_90_y(dy_90: int):
     actions.user.rt_mouse_move_delta(0, dy_90 * 2, 100, mouse_api_type="windows")
     actions.user.mouse_move_queue(lambda: actions.user.rt_mouse_move_delta(0, -dy_90, 100, on_calibrate_y_90_tick, mouse_api_type="windows"))
 
-up_job = None
-
+up_jobs = {}
 held_keys = set()
 
 def key_up(key):
-    global up_job
+    global up_jobs
     actions.key(f"{key}:up")
     actions.user.game_event_trigger_on_key(key, "release")
-    up_job = None
+    up_jobs[key] = None
     if key in held_keys:
         held_keys.remove(key)
 
@@ -270,13 +269,13 @@ def game_key(key: str):
 
 def game_key_hold(key: str, hold: int = 500):
     """Hold a game key"""
-    global up_job
-    if up_job:
-        cron.cancel(up_job)
+    global up_jobs
+    if up_jobs.get(key):
+        cron.cancel(up_jobs[key])
     actions.key(f"{key}:up")
     actions.key(f"{key}:down")
     actions.user.game_event_trigger_on_key(key, "hold")
-    up_job = cron.after(f"{hold}ms", lambda: key_up(key))
+    up_jobs[key] = cron.after(f"{hold}ms", lambda: key_up(key))
 
 def game_key_toggle(key: str):
     """Toggle a game key"""

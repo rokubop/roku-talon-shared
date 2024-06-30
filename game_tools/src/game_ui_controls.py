@@ -38,7 +38,7 @@ def show_commands():
     gap = font_size
     half_gap = gap // 2
 
-    commands = actions.user.ui_html_builder_screen(
+    commands = actions.user.ui_elements_screen(
         id="game_ui",
         align_items=global_options["align_items"],
         justify_content=global_options["justify_content"],
@@ -79,7 +79,7 @@ def show_dpad():
     commands_box_model = actions.user.ui_builder_get_id("commands")["box_model"]
     accent_color = global_options.get("accent_color", "87ceeb")
 
-    keys = actions.user.ui_html_builder_screen(
+    keys = actions.user.ui_elements_screen(
         id="dpad",
         justify_content=global_options["justify_content"],
         align_items=global_options["align_items"],

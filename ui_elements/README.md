@@ -1,8 +1,8 @@
-# ui_html_builder
+# ui_elements
 
 Build a UI using a object oriented html style. Supports common css properties such as:
 
-- [ui\_html\_builder](#ui_html_builder)
+- [ui\_elements](#ui_elements)
   - [Actions](#actions)
   - [CSS Options](#css-options)
   - [Example command list with 2 columns](#example-command-list-with-2-columns)
@@ -12,7 +12,7 @@ Build a UI using a object oriented html style. Supports common css properties su
 
 | Method | Description |
 | -- | -- |
-| `builder = actions.user.ui_html_builder_screen(**options)` | Create a new html builder from the screens dimensions |
+| `builder = actions.user.ui_elements_screen(**options)` | Create a new html builder from the screens dimensions |
 | `div = builder.add_div(**options)` | Add div to the builder |
 | `child_div = div.add_div(**options)` | Add div to a div |
 | `builder.add_text("text", **options)` | Add a text element |
@@ -63,7 +63,7 @@ Build a UI using a object oriented html style. Supports common css properties su
 
 **Example**: Show a "Command | Action" list of commands on the right side of screen in the center
 ```py
-builder = actions.user.ui_html_builder_screen(
+builder = actions.user.ui_elements_screen(
     id="commands",
     justify_content="flex_end",
     align_items="center",

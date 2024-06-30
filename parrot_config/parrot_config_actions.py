@@ -54,8 +54,13 @@ class Actions:
         """
         return {}
 
-    def parrot_config_format_display(parrot_config: dict[str, tuple[str, callable]]) -> list[tuple[str, str]]:
-        """Format a parrot config into a list of command/action tuples"""
+    def parrot_config_format_display(parrot_config: dict[str, tuple[str, callable]]) -> tuple[list[str], list[str]]:
+        """
+        Format/prettify into commands/actions
+        ```
+        (cmds, acts) = parrot_config_format_display(parrot_config)
+        ```
+        """
         cmds, acts = [], []
 
         for command, action_tuple in parrot_config.items():

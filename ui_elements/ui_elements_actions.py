@@ -120,8 +120,5 @@ class Actions:
     def ui_elements_set_text(id: str, value: str):
         """set text based on id"""
         global builders_core
-        # print("ui_elements_set_text")
         for builder in builders_core.values():
-            # print(f"setting text of {id} to {value}")
-            print("builder")
             builder.set_text(id, value)

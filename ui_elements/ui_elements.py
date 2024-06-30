@@ -546,7 +546,7 @@ def draw_text_simple(c, text, options, x, y):
     c.paint.color = options.color
     c.paint.textsize = options.font_size
     c.paint.font.embolden = True if options.font_weight == "bold" else False
-    c.draw_text(text, x, y)
+    c.draw_text(str(text), x, y)
 
 class UIBuilder(UIBox):
     def __init__(self, **options: UIOptionsDict):

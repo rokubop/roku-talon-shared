@@ -21,12 +21,21 @@ class Actions:
         Usage:
         ```py
         (css, div, text, screen) = actions.user.ui_elements(["css", "div", "text", "screen"])
-        ui = screen()[
-            div(padding=16, background_color="FF000088")[
-                text("Hello world", color="FFFFFF")
+        ui = screen(align_items="flex_end", justify_content="center")[
+            div(id="box", padding=16, background_color="FF000088")[
+                text("Hello world", color="FFFFFF"),
+                text("Test", id="test", font_size=24)
             ]
         ]
         ui.show()
+
+        # update values
+        actions.user.ui_elements_set_text("test", "Updated")
+
+        # show trigger
+        actions.user.ui_elements_highlight("box")
+        actions.user.ui_elements_highlight_briefly("box")
+        actions.user.ui_elements_unhighlight("box")
 
         # later
         ui.hide()

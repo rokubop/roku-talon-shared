@@ -41,11 +41,11 @@ def dash_backward():
 
 def dash_backward_up():
     actions.user.game_state_switch_horizontal()
-    dash_forward_down()
+    dash_forward_up()
 
 def dash_backward_down():
     actions.user.game_state_switch_horizontal()
-    dash_backward()
+    dash_backward_down()
 
 def dash_demo_backward():
     actions.user.game_state_switch_horizontal(),
@@ -79,26 +79,26 @@ def return_map():
     actions.key("escape up c c")
 
 default_config = {
+    "sh:th_100":  ("jump 1", jump_primary),
+    "sh_stop":    ("", lambda: None),
+    "ss:th_100":  ("jump 2", jump_secondary),
+    "ss_stop":    ("", lambda: None),
     "ah":         ("left", actions.user.game_move_dir_hold_left),
     "oh":         ("right", actions.user.game_move_dir_hold_right),
     "ee":         ("stop", actions.user.game_stopper),
-    "guh":        ("toggle down", lambda: actions.user.game_key_toggle("down")),
     "pop":        ("dash f", dash_forward),
     "mm":         ("dash f-down", dash_forward_down),
     "t":          ("dash f-up", dash_forward_up),
     "eh":         ("dash up", dash_up),
     "er":         ("dash down", dash_down),
     "palate":     ("dash demo", dash_demo),
-    "sh:th_100":  ("jump 1", jump_primary),
-    "sh_stop":    ("", lambda: None),
-    "ss:th_100":  ("jump 2", jump_secondary),
-    "ss_stop":    ("", lambda: None),
     "tut <dash>": ("reverse <dash>"),
     "tut tut":    ("exit mode", actions.user.game_mode_disable),
     "tut pop":    ("", dash_backward),
     "tut palate": ("", dash_demo_backward),
     "tut t":      ("", dash_backward_up),
     "tut mm":     ("", dash_backward_down),
+    "guh":        ("toggle down", lambda: actions.user.game_key_toggle("down")),
     "tut ee":     ("skip scene", skip_scene),
     "tut cluck":  ("return map", return_map),
     "cluck":      ("load", lambda: (actions.key("f8"), actions.user.game_stopper())),

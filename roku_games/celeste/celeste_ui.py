@@ -17,7 +17,7 @@ def show_commands(parrot_config, options = {}):
     )
 
     ui_commands = screen(**screen_css)[
-        div(background_color=f"{background_color}66", margin=16, margin_right=48, padding=16)[
+        div(background_color=f"{background_color}66", margin=16, margin_right=32, padding=16)[
             div(flex_direction="row", gap=16)[
                 div(gap=8)[
                     text("sound", font_weight="bold"),
@@ -30,9 +30,11 @@ def show_commands(parrot_config, options = {}):
                     text("set jump2", color=accent_color)
                 ]
             ],
-            div(margin_top=24, flex_direction="row")[
-                text("jump2: "),
-                text("120ms", id="jump2", color="c43dff", font_weight="bold")
+            div(margin_top=18, flex_direction="row", align_items="center")[
+                text("jump2:"),
+                text("120ms", id="jump2", color="c43dff", font_weight="bold"),
+                # text("dir:"),
+                # text("←", id="dir", color="c43dff", font_weight="bold", font_size=28),
             ]
         ],
     ]

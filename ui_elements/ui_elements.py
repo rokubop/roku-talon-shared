@@ -7,6 +7,7 @@ from talon.types import Rect, Point2d
 from typing import TypedDict, Optional
 from itertools import cycle
 from dataclasses import dataclass
+import uuid
 
 debug_draw_step_by_step = False
 debug_points = False
@@ -296,7 +297,7 @@ class UIBox(UIWithChildren):
 
         c.draw_text(str(self.debug_number), cursor.x, cursor.y)
 
-    def render(self, c: SkiaCanvas, cursor: Cursor):
+    def render(self, c: SkiaCanvas, cursor: Cursor, builder_options: any):
         global ids, debug_current_step, render_step, debug_numbers, debug_points, debug_draw_step_by_step
         render_step += 1
         if debug_current_step and render_step >= debug_current_step:
@@ -306,7 +307,8 @@ class UIBox(UIWithChildren):
         if self.id:
             ids[self.id] = {
                 "box_model": self.box_model,
-                "options": self.options
+                "options": self.options,
+                "builder_id": builder_options["id"]
             }
         cursor.move_to(self.box_model.padding_rect.x, self.box_model.padding_rect.y)
 
@@ -393,7 +395,7 @@ class UIBox(UIWithChildren):
             #     self.draw_debug_number(c, cursor, new_color=True)
 
             child_last_cursor = Point2d(cursor.x, cursor.y)
-            rect = child.render(c, cursor)
+            rect = child.render(c, cursor, builder_options)
             cursor.move_to(child_last_cursor.x, child_last_cursor.y)
 
             if i == len(self.children) - 1:
@@ -477,7 +479,7 @@ class UIText:
         self.box_model.accumulate_dimensions(Rect(cursor.virtual_x, cursor.virtual_y, self.text_width, self.text_height))
         return self.box_model.margin_rect
 
-    def render(self, c: SkiaCanvas, cursor: Cursor):
+    def render(self, c: SkiaCanvas, cursor: Cursor, builder_options: dict[str, any]):
         global ids, state, debug_current_step, render_step, debug_points, debug_numbers, debug_draw_step_by_step
         render_now = True
 
@@ -487,15 +489,16 @@ class UIText:
                 return self.box_model.margin_rect
 
         self.box_model.prepare_render(cursor, self.options.flex_direction, self.options.align_items, self.options.justify_content)
-        if state["text"].get(self.id):
-            render_now = False
 
         if self.id:
             ids[self.id] = {
                 "box_model": self.box_model,
-                "options": self.options
+                "options": self.options,
+                "builder_id": builder_options["id"]
             }
-            state["text"][self.id] = self.text
+            if not state["text"].get(self.id):
+                state["text"][self.id] = self.text
+            render_now = False
         cursor.move_to(self.box_model.padding_rect.x, self.box_model.padding_rect.y)
 
         if debug_points:
@@ -536,10 +539,6 @@ class UIText:
         # if debug_numbers:
         #     self.draw_debug_number(c, cursor)
 
-        # c.paint.color = self.options.color
-        # c.paint.textsize = self.options.font_size
-        # c.paint.font.embolden = True if self.options.font_weight == "bold" else False
-        # c.draw_text(self.text, cursor.x, cursor.y + self.text_height)
         return self.box_model.margin_rect
 
 def draw_text_simple(c, text, options, x, y):
@@ -558,25 +557,26 @@ class UIBuilder(UIBox):
         self.highlight_color = options.get("highlight_color")
         opts = UIOptions(**options or {})
         super().__init__(opts)
+        if not self.id:
+            self.id = uuid.uuid4()
+        self.builder_options = {
+            "id": options.get("id") or self.id
+        }
 
     def on_draw_static(self, c: SkiaCanvas):
         self.virtual_render(c, self.cursor)
-        self.render(c, self.cursor)
-        # self.dynamic_canvas.freeze()
-        # self.highlight_canvas.freeze()
+        self.render(c, self.cursor, self.builder_options)
+        self.dynamic_canvas.freeze()
 
     def on_draw_dynamic(self, c: SkiaCanvas):
         global state
         if state["text"]:
             for id in state["text"]:
                 if id in ids:
-                    options = ids[id]["options"]
-                    cursor = ids[id]["cursor"]
-                    draw_text_simple(c, state["text"][id], options, cursor["x"], cursor["y"])
-                    # box_model = ids[id]["box_model"]
-                    # c.paint.color = state["text"][id]
-                    # c.paint.style = c.paint.Style.FILL
-                    # c.draw_rect(box_model.padding_rect)
+                    if ids[id]["builder_id"] == self.id:
+                        options = ids[id]["options"]
+                        cursor = ids[id]["cursor"]
+                        draw_text_simple(c, state["text"][id], options, cursor["x"], cursor["y"])
                 else:
                     print(f"Could not update state on ID {id}. ID not found.")
 
@@ -585,10 +585,11 @@ class UIBuilder(UIBox):
         if state["highlighted"]:
             for id in state["highlighted"]:
                 if id in ids:
-                    box_model = ids[id]["box_model"]
-                    c.paint.color = state["highlighted"][id]
-                    c.paint.style = c.paint.Style.FILL
-                    c.draw_rect(box_model.padding_rect)
+                    if ids[id]["builder_id"] == self.id:
+                        box_model = ids[id]["box_model"]
+                        c.paint.color = state["highlighted"][id]
+                        c.paint.style = c.paint.Style.FILL
+                        c.draw_rect(box_model.padding_rect)
                 else:
                     print(f"Could not highlight ID {id}. ID not found.")
 
@@ -655,7 +656,7 @@ class UIBuilder(UIBox):
 
     def hide(self):
         """Hide and destroy the UI builder."""
-        global ids
+        global ids, state
 
         if self.static_canvas:
             self.static_canvas.unregister("draw", self.on_draw_static)
@@ -673,6 +674,7 @@ class UIBuilder(UIBox):
             self.highlight_canvas.close()
             self.highlight_canvas = None
 
+        # state["text"] = {}
         # ids = {}
 
 # ui_elements

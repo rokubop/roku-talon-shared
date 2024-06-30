@@ -553,7 +553,7 @@ class UIBuilder(UIBox):
         self.static_canvas = None
         self.dynamic_canvas = None
         self.highlight_canvas = None
-        self.unhighlight_job = None
+        self.unhighlight_jobs = {}
         self.highlight_color = options.get("highlight_color")
         opts = UIOptions(**options or {})
         super().__init__(opts)
@@ -642,17 +642,17 @@ class UIBuilder(UIBox):
         if id in state["highlighted"]:
             state["highlighted"].pop(id)
 
-            if self.unhighlight_job:
-                cron.cancel(self.unhighlight_job[0])
-                self.unhighlight_job[1]()
-                self.unhighlight_job = None
+            if self.unhighlight_jobs.get(id):
+                cron.cancel(self.unhighlight_jobs[id][0])
+                self.unhighlight_jobs[id][1]()
+                self.unhighlight_jobs[id] = None
 
             self.highlight_canvas.freeze()
 
     def highlight_briefly(self, id: str, color_alpha: str = None, duration: int = 150):
         self.highlight(id, color_alpha)
         pending_unhighlight = lambda: self.unhighlight(id)
-        self.unhighlight_job = (cron.after(f"{duration}ms", pending_unhighlight), pending_unhighlight)
+        self.unhighlight_jobs[id] = (cron.after(f"{duration}ms", pending_unhighlight), pending_unhighlight)
 
     def hide(self):
         """Hide and destroy the UI builder."""

@@ -1,5 +1,5 @@
 from talon import Module
-from .ui_elements import UIBuilder, div, text, screen, css, ids, builders_core
+from .ui_elements import UIBuilder, div, text, screen, css, ids, state, builders_core
 from typing import Literal, Type, Union, List, Dict, Protocol
 from dataclasses import dataclass
 
@@ -128,6 +128,32 @@ class Actions:
 
     def ui_elements_set_text(id: str, value: str):
         """set text based on id"""
-        global builders_core
-        for builder in builders_core.values():
-            builder.set_text(id, value)
+        global builders_core, ids, state
+        if id in ids:
+            for builder_id, builder in builders_core.items():
+                if ids[id]["builder_id"] == builder_id:
+                    builder.set_text(id, value)
+
+    def ui_elements_highlight(id: str):
+        """highlight based on id"""
+        global builders_core, ids, state
+        if id in ids:
+            for builder_id, builder in builders_core.items():
+                if ids[id]["builder_id"] == builder_id:
+                    builder.highlight(id)
+
+    def ui_elements_unhighlight(id: str):
+        """unhighlight based on id"""
+        global builders_core, ids, state
+        if id in ids:
+            for builder_id, builder in builders_core.items():
+                if ids[id]["builder_id"] == builder_id:
+                    builder.unhighlight(id)
+
+    def ui_elements_highlight_briefly(id: str):
+        """highlight briefly based on id"""
+        global builders_core, ids, state
+        if id in ids:
+            for builder_id, builder in builders_core.items():
+                if ids[id]["builder_id"] == builder_id:
+                    builder.highlight_briefly(id)

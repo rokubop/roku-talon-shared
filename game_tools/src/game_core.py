@@ -21,7 +21,7 @@ mod.setting(
     default=500
 )
 _move_dir = None
-_move_dir_last_horizontal = "right"
+_move_dir_last_horizontal = "d"
 _horizontal_keys = { "right", "left", "a", "d" }
 _step_dir = None
 _step_job = None

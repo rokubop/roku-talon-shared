@@ -2,7 +2,7 @@ import os
 import re
 from itertools import islice
 from pathlib import Path
-from ..templates.fp.template_roku_14_parrot import game_talon, game_mode_talon, game_py
+from ..templates.fp.template_roku_14_parrot import game_talon, game_mode_talon, game_py, game_ui_py
 from ..user_game_settings import USER_GAMES_DIR
 from talon import Module, actions, app, ui
 
@@ -21,13 +21,12 @@ class Actions:
         """Create a new directory with talon and python context files for the current application"""
         global active_app
         app = active_app or ui.active_app()
-        print('hello world')
         app_name = get_app_name(active_app.name)
         app_dir = USER_GAMES_DIR / app_name
 
         game_talon_template = game_talon.format(app_name=app_name)
         game_mode_talon_template = game_mode_talon.format(app_name=app_name)
-        game_py_template = get_python_template(active_app, app_name)
+        game_py_template = get_python_template(game_py, active_app, app_name)
 
         if not app_dir.is_dir():
             os.mkdir(app_dir)
@@ -38,10 +37,12 @@ class Actions:
         create_file(file, game_mode_talon_template)
         file = app_dir / f"{get_platform_filename(app_name, platform_suffix)}.py"
         create_file(file, game_py_template)
+        file = app_dir / f"{app_name}_ui.py"
+        create_file(file, game_ui_py)
         active_app = None
 
-def get_python_template(active_app: ui.App, app_name: str) -> str:
-    return game_py.format(
+def get_python_template(py: any, active_app: ui.App, app_name: str) -> str:
+    return py.format(
         app_name=app_name,
         os=app.platform,
         app_context=get_app_context(active_app),

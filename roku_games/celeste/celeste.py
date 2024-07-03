@@ -1,5 +1,5 @@
 from talon import Module, Context, actions, cron
-from .celeste_ui import show_ui, hide_ui, refresh_ui, highlight, unhighlight
+from .celeste_ui import show_ui, hide_ui, refresh_ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 mod.apps.celeste = "os: windows\nand app.exe: Celeste.exe"
@@ -45,7 +45,7 @@ def dash_backward_up():
 
 def dash_backward_down():
     actions.user.game_state_switch_horizontal()
-    dash_backward_down()
+    dash_forward_down()
 
 def dash_demo_backward():
     actions.user.game_state_switch_horizontal(),
@@ -107,6 +107,7 @@ default_config = {
     "cluck guh":  ("debug", lambda: actions.key("f6")),
     "foot 1":     ("grab"),
     "foot 2":     ("move mode"),
+    "<number>":   ("set jump2")
 }
 parrot_config = default_config
 
@@ -133,7 +134,7 @@ pedal_center_up_job = None
 def stop_move_mode():
     global pedal_center_up_job
     pedal_center_up_job = None
-    unhighlight("foot_center")
+    actions.user.ui_elements_unhighlight("foot_center")
     use_default_mode()
 
 @ctx_game.action_class("user")
@@ -152,10 +153,10 @@ class Actions:
         # command mananged by playability app
         # it will hold "z", otherwise key gets untriggered every
         # time we issue another key with talon
-        highlight("foot_left")
+        actions.user.ui_elements_highlight("foot_left")
 
     def pedal_left_up():
-        unhighlight("foot_left")
+        actions.user.ui_elements_unhighlight("foot_left")
 
     def pedal_center_down():
         if pedal_center_up_job:
@@ -163,7 +164,7 @@ class Actions:
             # do nothing - already running
         else:
             use_move_mode()
-            highlight("foot_center")
+            actions.user.ui_elements_highlight("foot_center")
 
     def pedal_center_up():
         global pedal_center_up_job

@@ -4,9 +4,9 @@ from talon.canvas import Canvas
 from talon.screen import Screen
 from talon.skia import RoundRect
 from talon.types import Rect, Point2d
-from typing import TypedDict, Optional
+from typing import TypedDict, Optional, get_origin, get_args
 from itertools import cycle
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 import uuid
 
 debug_draw_step_by_step = False
@@ -159,6 +159,11 @@ class UITextOptionsDict(UIOptionsDict):
     id: str
     font_size: int
     font_weight: str
+
+VALID_PROPS = (
+    set(UIOptionsDict.__annotations__.keys())
+    .union(set(UITextOptionsDict.__annotations__.keys()))
+)
 
 class UIOptions:
     id: str = None
@@ -570,28 +575,26 @@ class UIBuilder(UIBox):
 
     def on_draw_dynamic(self, c: SkiaCanvas):
         global state
-        if state["text"]:
-            for id in state["text"]:
-                if id in ids:
-                    if ids[id]["builder_id"] == self.id:
-                        options = ids[id]["options"]
-                        cursor = ids[id]["cursor"]
-                        draw_text_simple(c, state["text"][id], options, cursor["x"], cursor["y"])
-                else:
-                    print(f"Could not update state on ID {id}. ID not found.")
+        for id in state["text"]:
+            if id in ids:
+                if ids[id]["builder_id"] == self.id:
+                    options = ids[id]["options"]
+                    cursor = ids[id]["cursor"]
+                    draw_text_simple(c, state["text"][id], options, cursor["x"], cursor["y"])
+            else:
+                print(f"Could not update state on ID {id}. ID not found.")
 
     def on_draw_highlight(self, c: SkiaCanvas):
         global state
-        if state["highlighted"]:
-            for id in state["highlighted"]:
-                if id in ids:
-                    if ids[id]["builder_id"] == self.id:
-                        box_model = ids[id]["box_model"]
-                        c.paint.color = state["highlighted"][id]
-                        c.paint.style = c.paint.Style.FILL
-                        c.draw_rect(box_model.padding_rect)
-                else:
-                    print(f"Could not highlight ID {id}. ID not found.")
+        for id in state["highlighted"]:
+            if id in ids:
+                if ids[id]["builder_id"] == self.id:
+                    box_model = ids[id]["box_model"]
+                    c.paint.color = state["highlighted"][id]
+                    c.paint.style = c.paint.Style.FILL
+                    c.draw_rect(box_model.padding_rect)
+            else:
+                print(f"Could not highlight ID {id}. ID not found.")
 
     def show(self):
         global debug_current_step, render_step, debug_start_step, debug_draw_step_by_step
@@ -677,22 +680,115 @@ class UIBuilder(UIBox):
         # state["text"] = {}
         # ids = {}
 
+@dataclass
+class UIProps:
+    id: str
+    align: str
+    background_color: str
+    border_color: str
+    border_radius: int
+    border_width: int
+    bottom: int
+    top: int
+    left: int
+    right: int
+    color: str
+    flex_direction: str
+    font_size: int
+    font_weight: str
+    gap: int
+    height: int
+    highlight_color: str
+    justify: str
+    justify_content: str
+    align_items: str
+    margin: int
+    margin_top: int
+    margin_right: int
+    margin_bottom: int
+    margin_left: int
+    padding: int
+    padding_top: int
+    padding_right: int
+    padding_bottom: int
+    padding_left: int
+    width: int
+
+VALID_PROPS = {f.name for f in fields(UIProps)}
+EXPECTED_TYPES = {f.name: f.type for f in fields(UIProps)}
+
+def resolve_type(type_hint):
+    if get_origin(type_hint) is Optional:
+        return get_args(type_hint)[0]
+    return type_hint
+
+def get_props(props, additional_props):
+    all_props = None
+    if props is None:
+        all_props = additional_props
+    elif not additional_props:
+        all_props = props
+    else:
+        all_props = {**props, **additional_props}
+
+    invalid_props = set(all_props.keys()) - VALID_PROPS
+    if invalid_props:
+        raise ValueError(
+            f"\nInvalid CSS prop: {', '.join(invalid_props)}\n\n"
+            f"Valid CSS props are:\n"
+            f"{', '.join(VALID_PROPS)}"
+        )
+
+    type_errors = []
+    for key, value in all_props.items():
+        expected_type = EXPECTED_TYPES[key]
+        if not isinstance(value, expected_type):
+            type_errors.append(f"{key}: expected {expected_type.__name__}, got {type(value).__name__}")
+
+    if type_errors:
+        raise ValueError(
+            f"\nInvalid CSS prop type:\n" +
+            "\n".join(type_errors)
+        )
+
+    return all_props
+
+class UIElementsProxy:
+    def __init__(self, func):
+        self.func = func
+
+    def __getitem__(self, item):
+        raise TypeError(f"You must call {self.func.__name__}() before declaring children. Use {self.func.__name__}()[..] instead of {self.func.__name__}[..].")
+
+    def __call__(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
+
 # ui_elements
-def screen(**props):
-    builders_core[id] = UIBuilder(
+def screen(props=None, **additional_props):
+    global builders_core
+    options = get_props(props, additional_props)
+    builder = UIBuilder(
         width=1920,
         height=1080,
-        **props
+        **options
     )
-    return builders_core[id]
+    builders_core[builder.id] = builder
+    return builder
 
-def div(**props):
-    box_options = UIOptions(**props)
+def div(props=None, **additional_props):
+    options = get_props(props, additional_props)
+    box_options = UIOptions(**options)
     return UIBox(box_options)
 
-def text(content, **props):
-    text_options = UITextOptions(**props)
+def text(content, props=None, **additional_props):
+    options = get_props(props, additional_props)
+    text_options = UITextOptions(**options)
     return UIText(content, text_options)
 
-def css(**props):
-    return props
+def css(props=None, **additional_props):
+    return get_props(props, additional_props)
+
+div = UIElementsProxy(div)
+text = UIElementsProxy(text)
+screen = UIElementsProxy(screen)
+css = UIElementsProxy(css)

@@ -7,27 +7,19 @@ accent_color = "87ceeb"
 def show_commands(parrot_config, options = {}):
     global ui_commands
     (commands, acts) = actions.user.parrot_config_format_display(parrot_config)
-    (css, div, text, screen) = actions.user.ui_elements(["css", "div", "text", "screen"])
+    (div, text, screen) = actions.user.ui_elements(["div", "text", "screen"])
     background_color = options.get("background_color") or "000000"
 
-    screen_css = css(
-        id="parrot_commands",
-        align_items="flex_end",
-        justify_content="flex_start",
-    )
-
-    ui_commands = screen(**screen_css)[
+    ui_commands = screen(align_items="flex_end", justify_content="flex_start")[
         div(background_color=f"{background_color}66", margin=16, margin_right=32, padding=16)[
             div(flex_direction="row", gap=16)[
                 div(gap=8)[
                     text("sound", font_weight="bold"),
                     *(text(command) for command in commands),
-                    text("<number>")
                 ],
                 div(gap=8)[
                     text("actions", font_weight="bold", color=accent_color),
                     *(text(action, color=accent_color) for action in acts),
-                    text("set jump2", color=accent_color)
                 ]
             ],
             div(margin_top=18, flex_direction="row", align_items="center")[
@@ -75,22 +67,22 @@ def show_keys(options = {}):
 
     key_css = css(
         padding=8,
-        background_color= "333333dd",
-        flex_direction= "row",
-        justify_content= "center",
-        align_items= "center",
+        background_color="333333dd",
+        flex_direction="row",
+        justify_content="center",
+        align_items="center",
         margin=1,
         width=30,
         height=30
     )
 
     def key(key_name, text_content, width=30):
-        css = {**key_css, 'id': key_name, 'width': width}
-        return div(**css)[text(text_content)]
+        return div(key_css, id=key_name, width=width)[
+            text(text_content)
+        ]
 
     def blank_key():
-        css = {**key_css, "background_color":"33333355" }
-        return div(**css)[text(" ")]
+        return div(key_css, background_color="33333355")[text(" ")]
 
     def col():
         return div(flex_direction="column")
@@ -98,8 +90,8 @@ def show_keys(options = {}):
     def row():
         return div(flex_direction="row")
 
-    ui_keys = screen(**screen_css)[
-        div(**gamepad_css)[
+    ui_keys = screen(screen_css)[
+        div(gamepad_css)[
             row()[
                 col()[
                     row()[blank_key(), key("up", "↑"), blank_key()],
@@ -110,7 +102,10 @@ def show_keys(options = {}):
                     row()[key("x", "dash"), key("t", "demo")]
                 ]
             ],
-            row()[key("foot_left", "foot1: grab"), key("foot_center", "foot2: move mode")]
+            row()[
+                key("foot_left", "foot1: grab"),
+                key("foot_center", "foot2: move mode")
+            ]
         ]
     ]
 
@@ -132,15 +127,3 @@ def hide_ui():
 def refresh_ui(parrot_config, options = {}):
     hide_commands()
     show_commands(parrot_config, options)
-
-def highlight(key):
-    if ui_keys:
-        ui_keys.highlight(key)
-
-def unhighlight(key):
-    if ui_keys:
-        ui_keys.unhighlight(key)
-
-def highlight_briefly(key):
-    if ui_keys:
-        ui_keys.highlight_briefly(key)

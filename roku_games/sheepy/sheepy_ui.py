@@ -7,31 +7,21 @@ accent_color = "87ceeb"
 def show_commands(parrot_config):
     global commands
 
-    commands = actions.user.ui_elements_screen(
-        id="parrot_commands",
-        align_items="flex_start",
-        justify_content="flex_start",
-    )
-    container = commands.add_div(
-        margin_top=48,
-        flex_direction="row",
-        padding=16,
-        gap=16,
-    )
-    commands_column = container.add_div(gap=8)
-    commands_column.add_text("sound", font_weight="bold")
-    for command, (action, _) in parrot_config.items():
-        if action == "":
-            continue
-        command = command.split(":")[0]
-        commands_column.add_text(command)
+    (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
+    (cmds, acts) = actions.user.parrot_config_format_display(parrot_config)
 
-    actions_column = container.add_div(gap=8)
-    actions_column.add_text("action", font_weight="bold", color=accent_color)
-    for command, (action, _) in parrot_config.items():
-        if action == "":
-            continue
-        actions_column.add_text(action, color=accent_color)
+    commands = screen(align_items="flex_start", justify_content="flex_start")[
+        div(margin_top=48, flex_direction="row", padding=16, gap=16)[
+            div(gap=8)[
+                text("sound", font_weight="bold"),
+                *(text(cmd) for cmd in cmds)
+            ],
+            div(gap=8)[
+                text("action", font_weight="bold", color=accent_color),
+                *(text(act, color=accent_color) for act in acts)
+            ]
+        ]
+    ]
 
     commands.show()
 
@@ -39,28 +29,20 @@ def hide_commands():
     global commands
     commands.hide()
 
+def on_key(key, state):
+    if keys:
+        if state == "press":
+            keys.highlight_briefly(key)
+        elif state == "hold":
+            keys.highlight(key)
+        elif state == "release":
+            keys.unhighlight(key)
+
 def show_keys():
     global keys
-    keys = actions.user.ui_elements_screen(
-        id="keys",
-        justify_content="flex_start",
-        align_items="flex_start",
-        highlight_color=f"{accent_color}88",
-    )
-    gamepad = keys.add_div(
-        flex_direction="row",
-        gap=0,
-        margin_top=325,
-        margin_left=16
-    )
-    dpad = gamepad.add_div(
-        flex_direction="column",
-    )
-    keyboard = gamepad.add_div(
-        flex_direction="column",
-    )
+    (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
 
-    key = {
+    key_css = {
         "padding": 8,
         "background_color": "333333dd",
         "flex_direction": "row",
@@ -70,36 +52,45 @@ def show_keys():
         "width": 30,
         "height": 30,
     }
-    def add_key(container, key_name, width=30):
-        opts = {**key, 'id': key_name, 'width': width}
-        div = container.add_div(**opts)
-        div.add_text(key_name)
 
-    def add_blank_key(container):
-        div = container.add_div(**{**key, "background_color":"33333355"})
-        div.add_text(" ")
+    def key(id, key_name=None, width=30):
+        return div(key_css, id=id.lower(), width=width)[text(key_name or id)]
 
-    first_row = dpad.add_div(flex_direction="row")
-    add_blank_key(first_row)
-    add_key(first_row, "W")
-    add_blank_key(first_row)
+    def blank_key():
+        return div(key_css, background_color="33333355")[text(" ")]
 
-    second_row = dpad.add_div(flex_direction="row")
-    add_key(second_row, "A")
-    add_key(second_row, "S")
-    add_key(second_row, "D")
-
-    first_row = keyboard.add_div(flex_direction="row")
-    add_key(first_row, "SH", 60)
-    add_key(first_row, "E")
-
-    second_row = keyboard.add_div(flex_direction="row")
-    add_key(second_row, "CT", 45)
-    add_key(second_row, "SP", 45)
+    keys = screen(justify_content="flex_start", align_items="flex_start", highlight_color=f"{accent_color}88")[
+        div(flex_direction="row", gap=0, margin_top=325, margin_left=16)[
+            div(flex_direction="column")[
+                div(flex_direction="row")[
+                    blank_key(),
+                    key("up", "W"),
+                    blank_key()
+                ],
+                div(flex_direction="row")[
+                    key("left", "A"),
+                    key("down", "S"),
+                    key("right", "D")
+                ]
+            ],
+            div(flex_direction="column")[
+                div(flex_direction="row")[
+                    key("shift", "SH", 60),
+                    key("E")
+                ],
+                div(flex_direction="row")[
+                    key("ctrl", "CT", 45),
+                    key("space", "SP", 45)
+                ]
+            ],
+        ]
+    ]
 
     keys.show()
+    actions.user.game_event_register_on_key(on_key)
 
 def hide_keys():
+    actions.user.game_event_unregister_on_key(on_key)
     keys.hide()
 
 def show_ui(parrot_config):
@@ -109,12 +100,3 @@ def show_ui(parrot_config):
 def hide_ui():
     hide_commands()
     hide_keys()
-
-def highlight(id):
-    keys.highlight(id)
-
-def unhighlight(id):
-    keys.unhighlight(id)
-
-def highlight_briefly(id):
-    keys.highlight_briefly(id)

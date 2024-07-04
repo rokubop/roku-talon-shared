@@ -1,5 +1,23 @@
 from talon import Module, actions, ctrl
-from .src.game_core import move_dir, step_dir, move_dir_toggle, stopper, mouse_calibrate_90_y, mouse_calibrate_x_360, game_move_dir_hold_last_horizontal, move_dir_toggle_last_horizontal, mouse_reset_center_y, game_key, game_key_hold, game_key_toggle, game_move_dir_hold_up_horizontal, game_move_dir_hold_down_horizontal, game_state_switch_horizontal
+from .src.game_core import (
+    move_dir,
+    step_dir,
+    move_dir_toggle,
+    stopper,
+    mouse_calibrate_90_y,
+    mouse_calibrate_x_360,
+    game_move_dir_hold_last_horizontal,
+    move_dir_toggle_last_horizontal,
+    mouse_reset_center_y,
+    game_key,
+    game_key_down,
+    game_key_up,
+    game_key_hold,
+    game_key_toggle,
+    game_move_dir_hold_up_horizontal,
+    game_move_dir_hold_down_horizontal,
+    game_state_switch_horizontal,
+)
 
 mod = Module()
 
@@ -11,9 +29,9 @@ def mouse_move_deg(deg_x: int, deg_y: int):
 @mod.action_class
 class Actions:
     def game_key(key: str): """Press a key"""; game_key(key)
-    def game_key_down(key: str): """Start holding a key"""; game_key(f"{key}:down")
-    def game_key_up(key: str): """Release a key"""; game_key(f"{key}:up")
-    def game_key_hold(key: str, hold: int = 500): """Hold a key"""; game_key_hold(key, hold)
+    def game_key_down(key: str): """Start holding a key"""; game_key_down(key)
+    def game_key_up(key: str): """Release a key"""; game_key_up(key)
+    def game_key_hold(key: str, hold: int = None): """Hold a key"""; game_key_hold(key, hold)
     def game_key_toggle(key: str): """Toggle holding a key"""; game_key_toggle(key)
     def game_mouse_click(button: int = 0, hold: int = 16000): """Click"""; ctrl.mouse_click(button=button, hold=hold)
     def game_mouse_click_left(hold: int = 16000): """Left click"""; ctrl.mouse_click(button=0, hold=hold)

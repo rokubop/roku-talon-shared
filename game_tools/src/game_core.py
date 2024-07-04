@@ -30,6 +30,9 @@ _last_calibrate_value_y = 0
 
 queue = []
 
+def no_op():
+    pass
+
 def queue_action(action, number):
     """Queue an action with optional modifier number"""
     global queue
@@ -252,13 +255,19 @@ def mouse_calibrate_90_y(dy_90: int):
 up_jobs = {}
 held_keys = set()
 
-def key_up(key):
+def game_key_up(key):
     global up_jobs
     actions.key(f"{key}:up")
     actions.user.game_event_trigger_on_key(key, "release")
     up_jobs[key] = None
     if key in held_keys:
         held_keys.remove(key)
+
+def game_key_down(key: str):
+    """Hold a key down"""
+    actions.key(f"{key}:down")
+    actions.user.game_event_trigger_on_key(key, "hold")
+    held_keys.add(key)
 
 def game_key(key: str):
     """Press a game key"""
@@ -267,26 +276,26 @@ def game_key(key: str):
     if key in held_keys:
         held_keys.remove(key)
 
-def game_key_hold(key: str, hold: int = 500):
+def game_key_hold(key: str, hold: int = None):
     """Hold a game key"""
     global up_jobs
+    if not hold:
+        game_key_down(key)
+        return
+
     if up_jobs.get(key):
         cron.cancel(up_jobs[key])
     actions.key(f"{key}:up")
     actions.key(f"{key}:down")
     actions.user.game_event_trigger_on_key(key, "hold")
-    up_jobs[key] = cron.after(f"{hold}ms", lambda: key_up(key))
+    up_jobs[key] = cron.after(f"{hold}ms", lambda: game_key_up(key))
 
 def game_key_toggle(key: str):
     """Toggle a game key"""
     if key in held_keys:
-        actions.key(f"{key}:up")
-        actions.user.game_event_trigger_on_key(key, "release")
-        held_keys.remove(key)
+        game_key_up(key)
     else:
-        actions.key(f"{key}:down")
-        actions.user.game_event_trigger_on_key(key, "hold")
-        held_keys.add(key)
+        game_key_down(key)
 
 @mod.action_class
 class Actions:
@@ -338,11 +347,11 @@ class Actions:
 
     def on_game_mode_enabled():
         """Triggered on game mode enabled"""
-        pass
+        no_op()
 
     def on_game_mode_disabled():
         """Triggered on game mode disabled"""
-        pass
+        no_op()
 
     def game_event_register_on_key(callback: callable):
         """

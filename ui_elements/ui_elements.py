@@ -229,11 +229,19 @@ class UIWithChildren:
         self.options = options
         self.children = []
 
+    def check_invalid_child(self, c):
+        if isinstance(c, str):
+            raise TypeError(
+                "Invalid child type: str. Use ui_element text() to wrap strings in a text element."
+            )
+
     def add_child(self, child):
         if isinstance(child, tuple):
             for c in child:
+                self.check_invalid_child(c)
                 self.children.append(c)
         else:
+            self.check_invalid_child(child)
             self.children.append(child)
 
     def __getitem__(self, children=None):

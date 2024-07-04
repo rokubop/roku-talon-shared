@@ -36,16 +36,14 @@ def hide_commands():
     global ui_commands
     ui_commands.hide()
 
-key_states = {
-    "press": "highlight_briefly",
-    "hold": "highlight",
-    "release": "unhighlight"
-}
-
 def on_key(key, state):
     if ui_keys:
-        # this is same as: ui_keys.highlight(key)
-        getattr(ui_keys, key_states[state])(key)
+        if state == "press":
+            ui_keys.highlight_briefly(key)
+        elif state == "hold":
+            ui_keys.highlight(key)
+        elif state == "release":
+            ui_keys.unhighlight(key)
 
 def show_keys(options = {}):
     global ui_keys

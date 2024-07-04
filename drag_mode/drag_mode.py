@@ -328,12 +328,9 @@ class Actions:
         """Show the grid commands"""
         global builder
 
-        builder = actions.user.ui_elements_screen(
-            justify_content="flex_end",
-            align_items="center",
-        )
+        (css, screen, div, text) = actions.user.ui_elements(["css", "screen", "div", "text"])
 
-        box = builder.add_flexbox(
+        bar_css = css(
             background_color="222222",
             margin_bottom=48,
             padding=16,
@@ -342,40 +339,41 @@ class Actions:
             align_items="center",
             border_width=1,
             border_color="666666",
-            border_radius=4,
-        )
-        top = box.add_flexbox(
-            flex_direction="row",
-            gap=12,
-            align_items="center",
-        )
-        top.add_text("Mode:")
-        top.add_text("Drag Mode", color="87CEEB", bold=True)
-        top.add_text("|", color="666666")
-        top.add_text("X to Y (LMB)")
-        top.add_text("|", color="666666")
-        top.add_text("Drag X to Y (LMB)")
-        top.add_text("|", color="666666")
-        top.add_text("Pan X to Y (MMB)")
-        top.add_text("|", color="666666")
-        top.add_text("Roll X to Y (RMB)")
-        top.add_text("|", color="666666")
-        # top.add_text("<T> = Target")
-        # top.add_text("fly <dir>")
-        # top.add_text("|", color="666666")
-        # top.add_text("fly to <T>")
-        # top.add_text("|", color="666666")
-        # top.add_text("fly stop")
-        # top.add_text("|", color="666666")
-        # top.add_text("tick [<dir>]")
-        # top.add_text("|", color="666666")
-        # top.add_text("<T> to <T>")
-        # top.add_text("|", color="666666")
-        # top.add_text("<T> <dir>")
-        top.add_text("|", color="666666")
-        top.add_text("(more | less) squares")
-        top.add_text("|", color="666666")
-        top.add_text("grid hide", color="DD2222", bold=True)
+            border_radius=4)
+
+        builder = screen(justify_content="flex_end", align_items="center")[
+            div(bar_css)[
+                div(flex_direction="row", gap=12, align_items="center")[
+                    text("Mode:"),
+                    text("Drag Mode", color="87CEEB", font_weight="bold"),
+                    text("|", color="666666"),
+                    text("X to Y (LMB)"),
+                    text("|", color="666666"),
+                    text("Drag X to Y (LMB)"),
+                    text("|", color="666666"),
+                    text("Pan X to Y (MMB)"),
+                    text("|", color="666666"),
+                    text("Roll X to Y (RMB)"),
+                    text("|", color="666666"),
+                    # text("<T> = Target")
+                    # text("fly <dir>")
+                    # text("|", color="666666")
+                    # text("fly to <T>")
+                    # text("|", color="666666")
+                    # text("fly stop")
+                    # text("|", color="666666")
+                    # text("tick [<dir>]")
+                    # text("|", color="666666")
+                    # text("<T> to <T>")
+                    # text("|", color="666666")
+                    # text("<T> <dir>")print('color', color)
+                    text("|", color="666666"),
+                    text("(more | less) squares"),
+                    text("|", color="666666"),
+                    text("grid hide", color="DD2222", font_weight="bold")
+                ]
+            ]
+        ]
 
         builder.show()
 

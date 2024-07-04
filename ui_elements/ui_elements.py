@@ -745,10 +745,11 @@ def get_props(props, additional_props):
 
     invalid_props = set(all_props.keys()) - VALID_PROPS
     if invalid_props:
+        valid_props_message = ",\n".join(sorted(VALID_PROPS))
         raise ValueError(
-            f"\nInvalid CSS prop: {', '.join(invalid_props)}\n\n"
+            f"\nInvalid CSS prop: {', '.join(sorted(invalid_props))}\n\n"
             f"Valid CSS props are:\n"
-            f"{', '.join(VALID_PROPS)}"
+            f"{valid_props_message}"
         )
 
     type_errors = []

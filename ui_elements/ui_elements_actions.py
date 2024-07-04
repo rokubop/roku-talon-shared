@@ -20,6 +20,10 @@ class Actions:
         """
         Usage:
         ```py
+        global ui
+
+        # def show
+        global ui
         (css, div, text, screen) = actions.user.ui_elements(["css", "div", "text", "screen"])
         ui = screen(align_items="flex_end", justify_content="center")[
             div(id="box", padding=16, background_color="FF000088")[
@@ -29,15 +33,16 @@ class Actions:
         ]
         ui.show()
 
-        # update values
+        # trigger update text
         actions.user.ui_elements_set_text("test", "Updated")
 
-        # show trigger
+        # trigger highlight
         actions.user.ui_elements_highlight("box")
         actions.user.ui_elements_highlight_briefly("box")
         actions.user.ui_elements_unhighlight("box")
 
-        # later
+        # def hide
+        global ui
         ui.hide()
         ```
         """

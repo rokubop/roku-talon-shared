@@ -1,5 +1,5 @@
 from talon import Module, Context, actions
-from .hi_fi_rush_ui import show_commands, hide_commands
+from .hi_fi_rush_ui import show_ui, hide_ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 mod.apps.hi_fi_rush = "os: windows\nand app.exe: Hi-Fi-RUSH.exe"
@@ -17,12 +17,12 @@ def peppermint_mode():
     global parrot_config
     key("alt:down"),
     parrot_config = peppermint_config
-    show_commands(parrot_config, background_color="45f24888")
+    show_ui(parrot_config, background_color="45f24888")
 
 def rpg_mode():
     global parrot_config
     parrot_config = nav_config
-    show_commands(parrot_config, background_color="FCD12A88")
+    show_ui(parrot_config, background_color="FCD12A88")
 
 default_config = {
     "eh":         ('forward', actions.user.game_move_dir_hold_w),
@@ -70,7 +70,7 @@ def rpg_mouse_click_exit():
     actions.user.rpg_mouse_stop()
     actions.user.mouse_click()
     parrot_config = default_config
-    show_commands(parrot_config)
+    show_ui(parrot_config)
 
 nav_config = {
     "cluck":  ("exit", rpg_mouse_mode_disable),
@@ -108,17 +108,13 @@ peppermint_config = {
     "er":     ("exit mode", shoot_and_exit),
 }
 
-@ctx.action_class("user")
-class Actions:
-    def game_mode_enable():
-        show_commands(parrot_config)
-        actions.next()
-
 @ctx_game.action_class("user")
 class Actions:
-    def game_mode_disable():
-        hide_commands()
-        actions.next()
+    def on_game_mode_enabled():
+        show_ui(parrot_config)
+
+    def on_game_mode_disabled():
+        hide_ui()
 
     def parrot_config():
         return parrot_config

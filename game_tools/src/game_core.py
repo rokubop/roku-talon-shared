@@ -156,14 +156,14 @@ def step_stop():
         _step_job = None
         _step_dir = None
 
-def step_dir(key: str, duration: str):
+def step_dir(key: str, duration_ms: int):
     """Step in a direction for a duration"""
     global _step_dir, _step_job
     step_stop()
     _step_dir = key
     actions.key(f"{_step_dir}:down")
     actions.user.game_event_trigger_on_key(_step_dir, "hold")
-    _step_job = cron.after(duration, step_stop)
+    _step_job = cron.after(f"{duration_ms}ms", step_stop)
 
 def stopper():
     """Perform stop based on a priority"""

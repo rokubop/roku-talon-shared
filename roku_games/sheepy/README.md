@@ -5,6 +5,6 @@
 - Your own trained parrot model
 
 ## User script dependencies:
-- talon_game_tools
+- game_tools
 - parrot_config
-- ui_builder
+- ui_elements

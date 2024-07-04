@@ -48,7 +48,22 @@ def categorize_commands(commands):
     active_commands = []
 
     for noise, action in commands.items():
-        if not noise or not isinstance(action, tuple) or len(action) < 2 or action[1] is None:
+        if not noise or not isinstance(action, tuple) or len(action) < 2:
+            continue
+
+        try:
+            if action[1] is None or not callable(action[1]):
+                raise ValueError(
+                    f"\nThe action for '{noise}' must be a callable (function or lambda).\n\n"
+                    f"Valid examples:\n"
+                    f'"pop": ("E", lambda: actions.user.game_key("e")),\n'
+                    f'"pop": ("L click", actions.user.game_mouse_click_left),\n\n'
+                    f"Invalid examples:\n"
+                    f'"pop": ("E", actions.user.game_key("e")),\n'
+                    f'"pop": ("L click", actions.user.game_mouse_click_left())\n'
+                )
+        except ValueError as e:
+            print(e)
             continue
 
         base_combo, base_noises = get_base_noise(noise)

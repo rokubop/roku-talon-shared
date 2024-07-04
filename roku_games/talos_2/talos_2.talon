@@ -2,7 +2,7 @@ app: talos_2
 -
 settings():
     speech.timeout = 0.05
-    user.game_calibrate_x_360 = 4521
+    user.game_calibrate_x_360 = 1377
     user.game_calibrate_y_90 = 1110
     key_hold = 64.0
     key_wait = 16.0

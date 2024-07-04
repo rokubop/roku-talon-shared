@@ -28,3 +28,7 @@ def hide_ui():
     """Hide and destroy the commands UI"""
     global commands
     commands.hide()
+
+def refresh_ui(parrot_config):
+    hide_ui()
+    show_ui(parrot_config)

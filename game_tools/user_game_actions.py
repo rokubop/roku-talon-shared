@@ -1,6 +1,7 @@
 from talon import Module, actions, ctrl
 from .src.game_core import (
     move_dir,
+    move_dir_curve,
     step_dir,
     move_dir_toggle,
     stopper,
@@ -44,6 +45,8 @@ class Actions:
     def game_move_dir_hold_d(): """Start holding direction 'd'"""; move_dir('d')
     def game_move_dir_hold_w(): """Start holding direction 'w'"""; move_dir('w')
     def game_move_dir_hold_s(): """Start holding direction 's'"""; move_dir('s')
+    def game_move_dir_hold_a_curved(initial_curve_speed: int = 5): """Start holding direction 'a' with an adjustable curve"""; move_dir_curve('a', initial_curve_speed)
+    def game_move_dir_hold_d_curved(initial_curve_speed: int = 5): """Start holding direction 'd' with an adjustable curve"""; move_dir_curve('d', initial_curve_speed)
     def game_move_dir_hold_w_a(): """Start holding direction 'w' and 'a'"""; move_dir(('w', 'a'))
     def game_move_dir_hold_w_d(): """Start holding direction 'w' and 'd'"""; move_dir(('w', 'd'))
     def game_move_dir_hold_s_a(): """Start holding direction 's' and 'a'"""; move_dir(('s', 'a'))

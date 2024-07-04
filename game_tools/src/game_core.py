@@ -27,6 +27,9 @@ _step_dir = None
 _step_job = None
 _last_calibrate_value_x = 0
 _last_calibrate_value_y = 0
+_curve_dir = None
+_curve_type = "inward"
+_curve_speed = None
 
 queue = []
 
@@ -44,6 +47,7 @@ def queue_action(action, number):
     #     queue_action(action, number)
 
 def release_dir(keys):
+    curve_dir_stop()
     if isinstance(keys, tuple):
         for k in keys:
             actions.key(f"{k}:up")
@@ -80,6 +84,29 @@ def move_dir(keys: str | tuple[str, str]):
         _move_dir_last_horizontal = keys
 
     hold_dir(_move_dir)
+
+def curve_dir(key: str):
+    global _curve_dir
+    curve_dir_stop()
+    if key in ["a", "left"]:
+        actions.user.mouse_move_continuous(-1, 0, _curve_speed)
+    elif key in ["d", "right"]:
+        actions.user.mouse_move_continuous(1, 0, _curve_speed)
+    _curve_dir = key
+
+def curve_dir_stop():
+    global _curve_dir
+    if _curve_dir:
+        actions.user.mouse_move_continuous_stop()
+        _curve_dir = None
+
+def move_dir_curve(key: str, initial_curve_amount: int = 5):
+    """Hold a direction key with a curve"""
+    global _curve_speed
+    if _curve_speed is None:
+        _curve_speed = initial_curve_amount
+    move_dir(key)
+    curve_dir(key)
 
 def move_dir_toggle(keys: str | tuple[str, str]):
     """Toggle a direction key"""
@@ -167,11 +194,12 @@ def step_dir(key: str, duration_ms: int):
 
 def stopper():
     """Perform stop based on a priority"""
-    global _move_dir, _step_job
-    if actions.user.mouse_move_info()["continuous_active"]:
+    global _move_dir, _step_job, _curve_dir
+    if actions.user.mouse_move_info()["continuous_active"] and not _curve_dir:
         actions.user.mouse_move_continuous_stop()
         return
 
+    curve_dir_stop()
     actions.user.mouse_move_stop()
     if _move_dir:
         move_dir_stop()

@@ -265,7 +265,7 @@ class UIBox(UIWithChildren):
     def __init__(self, options: UIOptions = None):
         super().__init__(options)
         self.box_model: BoxModelLayout = None
-        self.type = "box"
+        self.type = "div"
         self.id = self.options.id or None
         self.debug_number = 0
         self.debug_color = "red"
@@ -449,6 +449,12 @@ class UIBox(UIWithChildren):
 
         return self.box_model.margin_rect
 
+    def show(self):
+        raise NotImplementedError(f"div cannot use .show() directly. Wrap it in a screen()[..] like this: \nmy_ui = None\n\n#show def\nglobal my_ui\n(screen, div, text) = actions.user.ui_elements(['screen', 'div', 'text'])\nmy_ui = screen()[\n  div()[\n    text('hello world')\n  ]\n]\nmy_ui.show()\n\n#hide def\nglobal my_ui\nmy_ui.hide()")
+
+    def hide(self):
+        raise NotImplementedError(f"div cannot use .hide() directly. Wrap it in a screen()[..] like this: \nmy_ui = None\n\n#show def\nglobal my_ui\n(screen, div, text) = actions.user.ui_elements(['screen', 'div', 'text'])\nmy_ui = screen()[\n  div()[\n    text('hello world')\n  ]\n]\nmy_ui.show()\n\n#hide def\nglobal my_ui\nmy_ui.hide()")
+
 class UIText:
     def __init__(self, text: str, options: UITextOptions = None):
         self.options = options
@@ -545,6 +551,12 @@ class UIText:
         #     self.draw_debug_number(c, cursor)
 
         return self.box_model.margin_rect
+
+    def show(self):
+        raise NotImplementedError(f"text cannot use .show() directly. Wrap it in a screen()[..] like this: \nmy_ui = None\n\n#show def\nglobal my_ui\n(screen, div, text) = actions.user.ui_elements(['screen', 'div', 'text'])\nmy_ui = screen()[\n  div()[\n    text('hello world')\n  ]\n]\nmy_ui.show()\n\n#hide def\nglobal my_ui\nmy_ui.hide()")
+
+    def hide(self):
+        raise NotImplementedError(f"text cannot use .hide() directly. Wrap it in a screen()[..] like this: \nmy_ui = None\n\n#show def\nglobal my_ui\n(screen, div, text) = actions.user.ui_elements(['screen', 'div', 'text'])\nmy_ui = screen()[\n  div()[\n    text('hello world')\n  ]\n]\nmy_ui.show()\n\n#hide def\nglobal my_ui\nmy_ui.hide()")
 
 def draw_text_simple(c, text, options, x, y):
     c.paint.color = options.color

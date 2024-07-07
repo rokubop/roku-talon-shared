@@ -192,6 +192,8 @@ def game_settings_open():
     actions.sleep("500ms")
     actions.edit.file_end()
 
+builder = None
+
 @mod.action_class
 class Actions:
     def game_settings_open():
@@ -286,63 +288,102 @@ class Actions:
 
     def ui_show_game_modal_large():
         """Show the game modal"""
+        global builder
         actions.user.prep_game_create_files()
-        builder = actions.user.ui_flexbox_builder({
-            'id': 'main',
-            'align': 'center',
-            'darken': True,
-        })
-        builder.add_title('Game Setup')
-        builder.add_gap()
+        (screen, div, text, css, button) = actions.user.ui_elements(["screen", "div", "text", "css", "button"])
         active_app = ui.active_app()
         app_name = get_app_name(active_app.name)
-        builder.add_key_value('Current app:', app_name)
-        builder.add_gap()
-        if has_game_files():
-            builder.add_text('Game files already setup', color="00FF00")
-        else:
-            builder.add_text('No game files found', color="888888")
-            builder.add_gap()
-            builder.add_text('The following folder and files will be created:')
+        has_files = has_game_files()
+
+        file_list = []
+        if not has_files:
             USER_GAMES_DIR = Path(__file__).parent.parent / "user_games"
             for part in USER_GAMES_DIR.parts:
                 if part == "talon":
                     break
                 USER_GAMES_DIR = USER_GAMES_DIR.relative_to(part)
-            NEW_FOLDER = USER_GAMES_DIR/app_name
-            builder.add_code_block(f"""{NEW_FOLDER}
-{NEW_FOLDER/app_name}.talon
-{NEW_FOLDER/app_name}.py""")
-            builder.add_gap()
-        builder.add_text('You can say:')
-        button_group = []
-        if not has_game_files():
-            button_group.append({
-                'text': 'Game create files',
-                'primary': True,
-                'action': lambda: (
-                    actions.user.game_create_files(),
-                    actions.user.ui_hide_game_modal_large()
-                ),
-            })
-        button_group.append({
-            'text': 'Game settings',
-            'action': lambda: (
-                game_settings_open(),
-                actions.user.ui_hide_game_modal_large()
-            ),
-        })
-        button_group.append({
-            'text': 'Game setup cancel',
-            'action': actions.user.ui_hide_game_modal_large,
-        })
+            NEW_FOLDER = f"{USER_GAMES_DIR}/{app_name}"
+            file_list.append(NEW_FOLDER)
+            file_list.append(f"{NEW_FOLDER}/{app_name}.talon")
+            file_list.append(f"{NEW_FOLDER}/{app_name}.py")
 
-        builder.add_button_group(button_group)
+        builder = screen(id="main", justify_content="center", align_items="center")[
+            div(background_color="333333", padding=16, border_radius=8, border_color="FFD700", border_width=1)[
+                text('Game Setup', font_size=24, margin_bottom=24),
+                div(flex_direction="row")[
+                    text('Current app:'),
+                    text(app_name, color="FFD700")
+                ],
+                div(margin_top=24)[
+                    has_files and text('Game files already setup', color="00FF00"),
+                    not has_files and div()[
+                        text('No game files found', color="888888"),
+                        text('The following folder and files will be created:', margin_top=12),
+                        div(background_color="222222", border_radius=8, margin_top=16, padding=12, width=350)[
+                            *(text(file, color="FFD700", font_size=14) for file in file_list)
+                        ]
+                    ]
+                ],
+                button("hello")
+            ]
+        ]
+#         builder = actions.user.ui_flexbox_builder({
+#             'id': 'main',
+#             'align': 'center',
+#             'darken': True,
+#         })
+#         builder.add_title('Game Setup')
+#         builder.add_gap()
+#         builder.add_key_value('Current app:', app_name)
+#         builder.add_gap()
+#         if has_game_files():
+#             builder.add_text('Game files already setup', color="00FF00")
+#         else:
+#             builder.add_text('No game files found', color="888888")
+#             builder.add_gap()
+#             builder.add_text('The following folder and files will be created:')
+#             USER_GAMES_DIR = Path(__file__).parent.parent / "user_games"
+#             for part in USER_GAMES_DIR.parts:
+#                 if part == "talon":
+#                     break
+#                 USER_GAMES_DIR = USER_GAMES_DIR.relative_to(part)
+#             NEW_FOLDER = USER_GAMES_DIR/app_name
+#             builder.add_code_block(f"""{NEW_FOLDER}
+# {NEW_FOLDER/app_name}.talon
+# {NEW_FOLDER/app_name}.py""")
+#             builder.add_gap()
+#         builder.add_text('You can say:')
+#         button_group = []
+#         if not has_game_files():
+#             button_group.append({
+#                 'text': 'Game create files',
+#                 'primary': True,
+#                 'action': lambda: (
+#                     actions.user.game_create_files(),
+#                     actions.user.ui_hide_game_modal_large()
+#                 ),
+#             })
+#         button_group.append({
+#             'text': 'Game settings',
+#             'action': lambda: (
+#                 game_settings_open(),
+#                 actions.user.ui_hide_game_modal_large()
+#             ),
+#         })
+#         button_group.append({
+#             'text': 'Game setup cancel',
+#             'action': actions.user.ui_hide_game_modal_large,
+#         })
+
+#         builder.add_button_group(button_group)
         builder.show()
         # ui_show_game_modal_large()
 
     def ui_hide_game_modal_large():
         """Hide the game modal"""
+        # actions.user.ele
+        global builder
+        builder.hide()
         actions.user.ui_flexbox_hide('main')
         # ui_hide_game_modal_large()
 

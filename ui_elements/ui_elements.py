@@ -238,9 +238,10 @@ class UIWithChildren:
     def add_child(self, child):
         if isinstance(child, tuple):
             for c in child:
-                self.check_invalid_child(c)
-                self.children.append(c)
-        else:
+                if c:
+                    self.check_invalid_child(c)
+                    self.children.append(c)
+        elif child:
             self.check_invalid_child(child)
             self.children.append(child)
 

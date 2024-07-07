@@ -119,15 +119,9 @@ move_config = {
     "eh":         ("up", actions.user.game_move_dir_hold_up),
     "t":          ("f-up", actions.user.game_move_dir_hold_up_horizontal),
     "mm":         ("f-down", actions.user.game_move_dir_hold_down_horizontal),
+    "palate":     ("short up", lambda: actions.user.game_key_hold("up", 30)),
+    "pop":        ("short down", lambda: actions.user.game_key_hold("down", 30))
 }
-
-@ctx.action_class("user")
-class Actions:
-    def on_game_mode_enabled():
-        show_ui(parrot_config)
-
-    def on_game_mode_disabled():
-        hide_ui()
 
 pedal_center_up_job = None
 

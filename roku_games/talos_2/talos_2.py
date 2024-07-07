@@ -37,6 +37,7 @@ default_config = {
     "t":          ("shift", lambda: actions.user.game_key("shift")),
     "-":          ("-"),
     "tut":        ("reset y", actions.user.game_reset_center_y),
+    "tut tut":    ("look mode", enter_look_mode),
     "tut hiss":   ("look down", lambda: (
         actions.user.game_look_down_15(),
         enter_look_mode()

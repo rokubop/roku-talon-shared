@@ -43,7 +43,38 @@ class Actions:
         return parrot_config
 ```
 
-If you want to swap out the parrot config, you can simply override the variable.
+## Throttling
+Throttling is useful when you have a continuous parrot noise, but you only want to trigger it once per 100ms for example:
+```py
+"shush:th_100":("jump", lambda: actions.user.game_key("space")),
+```
+
+## Debouncing
+Debouncing on the start of a command means that you need to hold it for 100ms until it will trigger. You might want this if you also want to use normal english commands as well and don't want the shush to be triggered immediately.
+```py
+"shush:db_100":("turn left", actions.user.game_turn_left_continuous),
+```
+
+Debouncing at the stop of a command basically just means the stop will be delayed
+```py
+"shush_stop:db_100":("", actions.user.game_turn_continuous_stop),
+```
+
+## Switching config dynamically
+If you want to swap out the parrot config, you can override the variable, and it will automatically update.
+
+```py
+parrot_config = default_config
+
+def use_other_config():
+    global parrot_config
+    parrot_config = other_config
+
+@ctx.action_class("user")
+class Actions:
+    def parrot_config():
+        return parrot_config
+```
 
 ## Options:
 | Definition | Description |

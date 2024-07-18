@@ -290,7 +290,7 @@ class Actions:
         """Show the game modal"""
         global builder
         actions.user.prep_game_create_files()
-        (screen, div, text, css, button) = actions.user.ui_elements(["screen", "div", "text", "css", "button"])
+        (screen, div, text, button) = actions.user.ui_elements(["screen", "div", "text", "button"])
         active_app = ui.active_app()
         app_name = get_app_name(active_app.name)
         has_files = has_game_files()
@@ -317,7 +317,7 @@ class Actions:
                 div(margin_top=24)[
                     has_files and text('Game files already setup', color="00FF00"),
                     not has_files and div()[
-                        text('No game files found', color="888888"),
+                        text('No game files found', color="888888", background_color="FF0000", padding=24, border_radius=18, border_color="0000FF"),
                         text('The following folder and files will be created:', margin_top=12),
                         div(background_color="222222", border_radius=8, margin_top=16, padding=12, width=350)[
                             *(text(file, color="FFD700", font_size=14) for file in file_list)

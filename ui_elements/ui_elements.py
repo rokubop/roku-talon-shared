@@ -19,8 +19,9 @@ ids = {}
 builders_core = {}
 state = {
     "highlighted": {},
-    "text": {}
+    "text": {},
 }
+buttons = {}
 
 @dataclass
 class BoxModelSpacing:
@@ -183,6 +184,7 @@ class UIOptions:
     justify: str = "flex_start"
     justify_content: str = "flex_start"
     align_items: str = "flex_start"
+    type: str = None
     margin: Margin = Margin(0, 0, 0, 0)
     padding: Padding = Padding(0, 0, 0, 0)
     width: int = 0
@@ -469,7 +471,7 @@ class UIText:
         self.options = options
         self.id = self.options.id
         self.text = text
-        self.type = "text"
+        self.type = options.type or "text"
         self.text_width = None
         self.text_height = None
         self.box_model = None
@@ -516,6 +518,11 @@ class UIText:
                 "options": self.options,
                 "builder_id": builder_options["id"]
             }
+            if self.type == "button" and not buttons.get(self.id):
+                buttons[self.id] = {
+                    "is_hovering": False,
+                    "on_click": self.options.on_click or (lambda: None)
+                }
             if not state["text"].get(self.id):
                 state["text"][self.id] = self.text
             render_now = False
@@ -680,7 +687,7 @@ class UIBuilder(UIBox):
 
     def hide(self):
         """Hide and destroy the UI builder."""
-        global ids, state
+        global ids, state, buttons
 
         if self.static_canvas:
             self.static_canvas.unregister("draw", self.on_draw_static)
@@ -697,6 +704,8 @@ class UIBuilder(UIBox):
             self.highlight_canvas.hide()
             self.highlight_canvas.close()
             self.highlight_canvas = None
+
+        buttons = {}
 
         # state["text"] = {}
         # ids = {}
@@ -737,6 +746,7 @@ class UIProps:
 
 VALID_PROPS = {f.name for f in fields(UIProps)}
 EXPECTED_TYPES = {f.name: f.type for f in fields(UIProps)}
+EXPECTED_TYPES["type"] = str
 
 def resolve_type(type_hint):
     if get_origin(type_hint) is Optional:
@@ -752,7 +762,7 @@ def get_props(props, additional_props):
     else:
         all_props = {**props, **additional_props}
 
-    invalid_props = set(all_props.keys()) - VALID_PROPS
+    invalid_props = set(all_props.keys()) - VALID_PROPS - {'type'}
     if invalid_props:
         valid_props_message = ",\n".join(sorted(VALID_PROPS))
         raise ValueError(
@@ -802,15 +812,31 @@ def div(props=None, **additional_props):
     box_options = UIOptions(**options)
     return UIBox(box_options)
 
-def text(content, props=None, **additional_props):
+def text(text_str: str, props=None, **additional_props):
     options = get_props(props, additional_props)
     text_options = UITextOptions(**options)
-    return UIText(content, text_options)
+    return UIText(text_str, text_options)
 
 def css(props=None, **additional_props):
     return get_props(props, additional_props)
+
+def button(text_str: str, props=None, **additional_props):
+    default_props = {
+        "type": "button",
+        "color": "FFFFFF",
+        "padding": 8,
+        "background_color": "444444",
+        **(props or {})
+    }
+
+    return text(
+        text_str,
+        default_props,
+        **additional_props
+    )
 
 div = UIElementsProxy(div)
 text = UIElementsProxy(text)
 screen = UIElementsProxy(screen)
 css = UIElementsProxy(css)
+button = UIElementsProxy(button)

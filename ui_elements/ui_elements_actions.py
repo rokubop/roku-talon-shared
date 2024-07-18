@@ -1,5 +1,5 @@
 from talon import Module
-from .ui_elements import UIBuilder, div, text, screen, css, ids, state, builders_core
+from .ui_elements import UIBuilder, div, text, screen, css, button, ids, state, builders_core
 from typing import Literal, Type, Union, List, Dict, Protocol
 from dataclasses import dataclass
 
@@ -50,7 +50,8 @@ class Actions:
             'css': css,
             'div': div,
             'text': text,
-            'screen': screen
+            'screen': screen,
+            'button': button,
         }
         return tuple(element_mapping[element] for element in elements)
 

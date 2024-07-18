@@ -78,6 +78,10 @@ def return_map():
     actions.user.game_stopper()
     actions.key("escape up c c")
 
+def restart_chapter():
+    actions.user.game_stopper()
+    actions.key("escape up up c c")
+
 default_config = {
     "sh:th_100":  ("jump 1", jump_primary),
     "sh_stop":    ("", lambda: None),
@@ -101,6 +105,7 @@ default_config = {
     "tut mm":     ("", dash_backward_down),
     "tut ee":     ("skip scene", skip_scene),
     "tut cluck":  ("return map", return_map),
+    "tut er":     ("restart chapter", restart_chapter),
     "cluck":      ("load", lambda: (actions.key("f8"), actions.user.game_stopper())),
     "cluck cluck":("save", lambda: actions.key("f7")),
     "cluck ee":   ("clear", lambda: actions.key("f4")),

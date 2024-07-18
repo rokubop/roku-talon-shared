@@ -1,4 +1,4 @@
-app: hades
+app: stray
 mode: user.game
 -
 <phrase>:                   skip()

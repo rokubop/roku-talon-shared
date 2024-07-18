@@ -1,27 +1,79 @@
 # ui_elements
 
-Build a UI using a object oriented html style. Supports common css properties such as:
+This is an experimental repository for making any generic UI in HTML-like syntax. Currently supports `div`, `screen`, `text`. In the future I would like to add buttons and inputs. WIP.
 
-- [ui\_elements](#ui_elements)
-  - [Actions](#actions)
-  - [CSS Options](#css-options)
-  - [Example command list with 2 columns](#example-command-list-with-2-columns)
-  - [Example dpad display with highlighting](#example-dpad-display-with-highlighting)
+## Usage
 
-## Actions
+first we tell ui_elements what we want to use:
+```py
+(css, div, text, screen) = actions.user.ui_elements(["css", "div", "text", "screen"])
+```
 
-| Method | Description |
-| -- | -- |
-| `builder = actions.user.ui_elements_screen(**options)` | Create a new html builder from the screens dimensions |
-| `div = builder.add_div(**options)` | Add div to the builder |
-| `child_div = div.add_div(**options)` | Add div to a div |
-| `builder.add_text("text", **options)` | Add a text element |
-| `div.add_text("text", **options)` | Add a text element |
-| `builder.show()` | Show the UI |
-| `builder.hide()` | Hide the UI |
-| `builder.highlight('id_name')` | Highlight a div by id |
-| `builder.unhighlight('id_name')` | Unhighlight a div by id |
-| `builder.highlight_briefly('id_name')` | Highlight a div by id briefly |
+the outermost layer must be the screen component
+```py
+my_ui = screen()[
+    div()[
+        ...
+    ]
+]
+```
+
+To define css, we put it inside of the parentheses, and to define children, we put it inside the square brackets. let's give it 1 div, positioned to the right center:
+```py
+my_ui = screen(align_items="flex_end", justify_content="center")[
+    div()[
+        text("Hello world")
+    ]
+]
+```
+
+by default everything operates under the assumption of `display: flex`, and all properties are the same wording as regular css syntax, including `padding`, `margin`, etc...
+
+`background_color` accepts two extra characters at the end, which are the opacity
+
+here's a full example:
+
+
+```py
+global my_ui
+
+# def show
+global my_ui
+(css, div, text, screen) = actions.user.ui_elements(["css", "div", "text", "screen"])
+my_ui = screen(align_items="flex_end", justify_content="center")[
+    div(id="box", padding=16, background_color="FF000088")[
+        text("Hello world", color="FFFFFF"),
+        text("Test", id="test", font_size=24)
+    ]
+]
+my_ui.show()
+
+# trigger update text
+actions.user.ui_elements_set_text("test", "Updated")
+
+# trigger highlight
+actions.user.ui_elements_highlight("box")
+actions.user.ui_elements_highlight_briefly("box")
+actions.user.ui_elements_unhighlight("box")
+
+# def hide
+global my_ui
+my_ui.hide()
+```
+
+If we have a list of commands, we can populate it into a div like this:
+```py
+commands = [
+    "left",
+    "right",
+    "up",
+    "down"
+]
+div(gap=8)[
+    text("Commands", font_weight="bold"),
+    *(text(command) for command in commands)
+],
+```
 
 ## CSS Options
 
@@ -58,88 +110,3 @@ Build a UI using a object oriented html style. Supports common css properties su
 | right | `int` |
 | top | `int` |
 | width | `int` |
-
-## Example command list with 2 columns
-
-**Example**: Show a "Command | Action" list of commands on the right side of screen in the center
-```py
-builder = actions.user.ui_elements_screen(
-    id="commands",
-    justify_content="flex_end",
-    align_items="center",
-)
-
-box = builder.add_div(
-    flex_direction="row",
-    padding=16,
-    gap=16,
-    background_color="00000088" # color: 000000, opacity: 88
-)
-
-commands_column = box.add_div(gap=8)
-commands_column.add_text("Command", font_weight="bold")
-commands_column.add_text("hello")
-commands_column.add_text("peanut")
-commands_column.add_text("french")
-
-actions_column = box.add_div(gap=8)
-actions_column.add_text("Action", font_weight="bold")
-actions_column.add_text("world")
-actions_column.add_text("butter")
-actions_column.add_text("fries")
-
-builder.show()
-
-# later
-builder.hide()
-```
-
----
-
-## Example dpad display with highlighting
-
-**Example**: Make a dpad that highlights when the key is active at the top left of your screen
-```py
-builder = actions.user.ui_html_css_builder_screen(
-    id="keys",
-    justify_content="flex_start",
-    align_items="flex_start",
-    highlight_color="87ceeb88",
-)
-
-dpad = gamepad.add_div(
-    flex_direction="column",
-)
-
-key_css = {
-    "padding": 8,
-    "background_color": "333333dd",
-    "flex_direction": "row",
-    "justify_content": "center",
-    "align_items": "center",
-    "margin": 1,
-    "width": 30,
-    "height": 30,
-}
-
-first_row = dpad.add_div(flex_direction="row")
-first_row.add_div(**key_css).add_text(' ')
-first_row.add_div(**{**key_css, 'id': 'W'}).add_text('W')
-first_row.add_div(**key_css).add_text(' ')
-
-second_row = dpad.add_div(flex_direction="row")
-second_row.add_div(**key_css).add_text('A').add_text('A')
-second_row.add_div(**{**key_css, 'id': 'S'}).add_text('S')
-second_row.add_div(**key_css).add_text('D').add_text('D')
-
-builder.show()
-
-# highlighting the keys
-builder.highlight('A') # targeting the 'id'
-builder.unhighlight('S')
-
-builder.highlight_briefly('D')
-
-# later
-builder.hide()
-```

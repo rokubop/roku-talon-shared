@@ -36,7 +36,7 @@ default_config = {
     "palate":     ("Q", lambda: key("q")),
     "t":          ("shift", lambda: key("shift")),
     "hiss":       ("R", lambda: key("r") if not spam else key("space")),
-    "shush:th_100": ("space", lambda: key("space")),
+    "shush:th_100":("space", lambda: key("space")),
     "er":         ("exit mode", actions.user.game_mode_disable),
     "tut":        ("alt", lambda: key("alt")),
     "tut er":     ("look mode", rpg_mode),

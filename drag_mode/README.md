@@ -1,6 +1,6 @@
 # Drag Grid/Mode
 
-Allows you drag from one point to another.
+This is an experimental repository. WIP. Likely will change in the future. Allows you drag from one point to another.
 
 | Command | Description | Example |
 | --- | --- | --- |

@@ -59,7 +59,7 @@ def show_keys(options = {}):
     gamepad_css = css(
         flex_direction="column",
         gap=0,
-        margin_top=530,
+        margin_top=545,
         margin_right=16
     )
 

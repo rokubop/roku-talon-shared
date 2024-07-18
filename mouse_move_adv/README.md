@@ -1,17 +1,22 @@
 # Mouse Move Advanced (WIP)
 
+This is an experimental repository. WIP. action names may change in the future. This is used for helping you turn in game and drag commandsp
+
 Mouse movement actions for Talon using a delta (dx, dy) or position(s) (x, y) over a duration of time, with control over the easing type, API (Windows or Talon), and callbacks.
 
-Easing Types:
-- `linear`
-- `ease_in_out`
-- `ease_in`
-- `ease_out`
-- `instant`
-
-| **Action** | **Description** |
-|------------|-----------------|
-| `user.mouse_move_delta` | Moves the mouse using a delta (dx, dy) starting from the current position, over a duration of time. |
-| `user.mouse_move_delta_to` | Moves the mouse to a screen position (x, y) over a duration of time. |
-| `user.mouse_move_delta_from` | Moves the mouse from a position (x, y) back to the current position over a duration of time. |
-| `user.mouse_move_delta_from_to` | Moves the mouse from one point (x1, y1) to another (x2, y2) over a duration of time. |
+| **Action** |
+|------------|
+mouse_move_from_to
+mouse_move_to
+mouse_move_from
+mouse_move_delta_degrees
+mouse_move_queue
+mouse_move_continuous
+mouse_move_continuous_towards
+mouse_move_continuous_stop
+mouse_tick_last_direction
+mouse_tick_reverse_last_direction
+mouse_tick_direction
+mouse_speed_increase
+mouse_speed_decrease
+mouse_move_info

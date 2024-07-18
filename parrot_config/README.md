@@ -4,10 +4,10 @@ This is an alternate way to define your parrot commands in a way that supports
 - combos
 - throttling
 - debounce
-- screen positions (WIP)
 - switching out configs easily without needing to create new modes.
+- screen positions (WIP)
 
-When you define a combo, then if you try to do the first one by itself without combing, it will have a timeout of `300ms`
+Combos have a timeout of `300ms`. If you define a combo, then the first sound will no longer fire immediately, but only after `300ms`.
 
 ## Example
 
@@ -22,13 +22,19 @@ parrot(cluck):               user.use_parrot_config("cluck")
 
 ```py
 parrot_config = {
-    "pop":         ("attack", lambda: actions.mouse_click(0)),
-    "pop pop":     ("hard attack", lambda: actions.mouse_click(1)),
-    "hiss:db_100": ("jump", lambda: actions.key("space")),
+    "pop":         ("use", lambda: actions.user.game_key("e")),
+    "cluck":       ("attack", lambda: actions.mouse_click(0)),
+    "cluck cluck": ("hard attack", lambda: actions.mouse_click(1)),
+    "cluck pop":   ("special", lambda: actions.mouse_click(2)),
+    "hiss:db_100": ("jump", lambda: actions.user.game_key("space")),
     "hiss:stop":   ("", lambda: None),
-    "shush:th_100":("crouch", lambda: actions.key("c")),
-    "cluck@left":  ("left", lambda: actions.key("a")), # WIP
-    "cluck@right": ("right", lambda: actions.key("d")), # WIP
+    "shush:th_100":("crouch", lambda: actions.user.game_key("c")),
+    "tut":         ("alt", lambda: actions.user.game_key("alt")),
+    "tut ah":      ("turn left", actions.user.game_turn_left_90),
+    "tut oh":      ("turn right", actions.user.game_turn_right_90),
+    "tut guh":     ("turn around", actions.user.game_turn_180),
+    "cluck@left":  ("left", lambda: actions.user.game_key("a")), # WIP
+    "cluck@right": ("right", lambda: actions.user.game_key("d")), # WIP
 }
 
 @ctx.action_class("user")

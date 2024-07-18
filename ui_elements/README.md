@@ -6,7 +6,7 @@ This is an experimental repository for making any generic UI in HTML-like syntax
 
 first we tell ui_elements what we want to use:
 ```py
-(css, div, text, screen) = actions.user.ui_elements(["css", "div", "text", "screen"])
+(div, text, screen) = actions.user.ui_elements(["div", "text", "screen"])
 ```
 
 the outermost layer must be the screen component
@@ -18,7 +18,7 @@ my_ui = screen()[
 ]
 ```
 
-To define css, we put it inside of the parentheses, and to define children, we put it inside the square brackets. let's give it 1 div, positioned to the right center:
+To define css, we put it inside of the parentheses. This uses standard css naming. To define children, we put it inside the square brackets. let's give it 1 div, positioned to the right center:
 ```py
 my_ui = screen(align_items="flex_end", justify_content="center")[
     div()[
@@ -27,7 +27,7 @@ my_ui = screen(align_items="flex_end", justify_content="center")[
 ]
 ```
 
-by default everything operates under the assumption of `display: flex`, and all properties are the same wording as regular css syntax, including `padding`, `margin`, etc...
+By default everything operates under the assumption of `display: flex`.
 
 `background_color` accepts two extra characters at the end, which are the opacity
 
@@ -39,7 +39,7 @@ global my_ui
 
 # def show
 global my_ui
-(css, div, text, screen) = actions.user.ui_elements(["css", "div", "text", "screen"])
+(div, text, screen) = actions.user.ui_elements(["div", "text", "screen"])
 my_ui = screen(align_items="flex_end", justify_content="center")[
     div(id="box", padding=16, background_color="FF000088")[
         text("Hello world", color="FFFFFF"),

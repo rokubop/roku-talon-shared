@@ -2,7 +2,7 @@ from talon import Module, Context, actions, cron
 from .celeste_ui import show_ui, hide_ui, refresh_ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
-mod.apps.celeste = "os: windows\nand app.exe: Celeste.exe"
+mod.apps.celeste = "os: windows\nand app.exe: /Celeste.exe/i"
 ctx.matches = "os: windows\napp: celeste"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 

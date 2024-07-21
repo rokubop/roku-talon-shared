@@ -202,6 +202,7 @@ class UITextOptions(UIOptions):
     id: str = None
     font_size: int = 16
     font_weight: str = "normal"
+    on_click: any = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -502,7 +503,7 @@ class UIText:
         return self.box_model.margin_rect
 
     def render(self, c: SkiaCanvas, cursor: Cursor, builder_options: dict[str, any]):
-        global ids, state, debug_current_step, render_step, debug_points, debug_numbers, debug_draw_step_by_step
+        global ids, state, buttons, debug_current_step, render_step, debug_points, debug_numbers, debug_draw_step_by_step
         render_now = True
 
         if debug_draw_step_by_step:
@@ -520,6 +521,7 @@ class UIText:
             }
             if self.type == "button" and not buttons.get(self.id):
                 buttons[self.id] = {
+                    "builder_id": builder_options["id"],
                     "is_hovering": False,
                     "on_click": self.options.on_click or (lambda: None)
                 }
@@ -586,6 +588,7 @@ class UIBuilder(UIBox):
         self.static_canvas = None
         self.dynamic_canvas = None
         self.highlight_canvas = None
+        self.blockable_canvas = None
         self.unhighlight_jobs = {}
         self.highlight_color = options.get("highlight_color")
         opts = UIOptions(**options or {})
@@ -624,8 +627,16 @@ class UIBuilder(UIBox):
             else:
                 print(f"Could not highlight ID {id}. ID not found.")
 
+    def init_blockable_canvas(self):
+        if buttons:
+            rect = self.box_model.content_children_rect
+            self.blockable_canvas = Canvas.from_rect(rect)
+            self.blockable_canvas.blocks_mouse = True
+            self.blockable_canvas.register("mouse", self.on_mouse)
+            self.blockable_canvas.freeze()
+
     def show(self):
-        global debug_current_step, render_step, debug_start_step, debug_draw_step_by_step
+        global state, debug_current_step, render_step, debug_start_step, debug_draw_step_by_step
 
         if debug_draw_step_by_step:
             if self.static_canvas:
@@ -641,6 +652,7 @@ class UIBuilder(UIBox):
             self.static_canvas.freeze()
             self.dynamic_canvas.freeze()
             self.highlight_canvas.freeze()
+            self.blockable_canvas.freeze()
         else:
             self.static_canvas = canvas_from_main_screen()
             self.static_canvas.register("draw", self.on_draw_static)
@@ -654,11 +666,35 @@ class UIBuilder(UIBox):
             self.highlight_canvas.register("draw", self.on_draw_highlight)
             self.highlight_canvas.freeze()
 
+            # is there a way to do this without a hard coded delay?
+            # we need to wait for everything to render so we have
+            # all the dimensions to calculate the blockable canvas
+            cron.after("300ms", lambda: self.init_blockable_canvas())
+
+    def on_mouse(self, e):
+        if e.event == "mousemove":
+            for id, button in buttons.items():
+                if button["builder_id"] == self.id:
+                    rect = ids[id]["box_model"].padding_rect
+                    hovering = rect.contains(e.gpos)
+                    if state["highlighted"].get(id) != hovering:
+                        if hovering:
+                            self.highlight(id)
+                        else:
+                            self.unhighlight(id)
+        elif e.event == "mousedown":
+            for id, button in buttons.items():
+                if button["builder_id"] == self.id:
+                    rect = ids[id]["box_model"].padding_rect
+                    if rect.contains(e.gpos):
+                        button["on_click"]()
+
     def get_ids(self):
         return ids
 
     def set_text(self, id: str, text: str):
         global state
+
         state["text"][id] = text
         if self.dynamic_canvas:
             self.dynamic_canvas.freeze()
@@ -705,6 +741,12 @@ class UIBuilder(UIBox):
             self.highlight_canvas.close()
             self.highlight_canvas = None
 
+            if self.blockable_canvas:
+                self.blockable_canvas.unregister("mouse", self.on_mouse)
+                self.blockable_canvas.hide()
+                self.blockable_canvas.close()
+                self.blockable_canvas = None
+
         buttons = {}
 
         # state["text"] = {}
@@ -737,6 +779,7 @@ class UIProps:
     margin_right: int
     margin_bottom: int
     margin_left: int
+    on_click: callable
     padding: int
     padding_top: int
     padding_right: int
@@ -774,7 +817,10 @@ def get_props(props, additional_props):
     type_errors = []
     for key, value in all_props.items():
         expected_type = EXPECTED_TYPES[key]
-        if not isinstance(value, expected_type):
+        if expected_type is callable:
+            if not callable(value):
+                type_errors.append(f"{key}: expected callable, got {type(value).__name__}")
+        elif not isinstance(value, expected_type):
             type_errors.append(f"{key}: expected {expected_type.__name__}, got {type(value).__name__}")
 
     if type_errors:
@@ -822,6 +868,7 @@ def css(props=None, **additional_props):
 
 def button(text_str: str, props=None, **additional_props):
     default_props = {
+        "id": str(uuid.uuid4()),
         "type": "button",
         "color": "FFFFFF",
         "padding": 8,

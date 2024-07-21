@@ -3,7 +3,7 @@ from .sheepy_ui import show_ui, hide_ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 
-mod.apps.sheepy = "os: windows\nand app.exe: SheepyAShortAdventure.exe"
+mod.apps.sheepy = "os: windows\nand app.exe: /SheepyAShortAdventure.exe/i"
 ctx.matches = "os: windows\napp: sheepy"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 

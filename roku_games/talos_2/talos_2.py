@@ -5,7 +5,7 @@ mod = Module()
 ctx = Context()
 
 mod, ctx, ctx_game = Module(), Context(), Context()
-mod.apps.talos_2 = "os: windows\nand app.exe: Talos2-Win64-Shipping.exe"
+mod.apps.talos_2 = "os: windows\nand app.exe: /Talos2-Win64-Shipping.exe/i"
 ctx.matches = "os: windows\napp: talos_2"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 
@@ -18,6 +18,19 @@ def exit_look_mode():
     global parrot_config
     parrot_config = default_config
     refresh_ui(parrot_config)
+
+def use_scroll_tick():
+    global parrot_config
+    parrot_config.pop('hiss', None)
+    parrot_config.pop('shush', None)
+
+    parrot_config = {
+        **parrot_config,
+        "hiss:th_100":("scroll tick down", lambda: actions.mouse_scroll(-1, by_lines=True)),
+        "hiss_stop":  ("", lambda: None),
+        "shush:th_100":("scroll tick up", lambda: actions.mouse_scroll(1, by_lines=True)),
+        "shush_stop":  ("", lambda: None),
+    }
 
 default_config = {
     "eh":         ("forward", actions.user.game_move_dir_hold_w),
@@ -49,6 +62,9 @@ default_config = {
     "tut ah":     ("left 90", actions.user.game_turn_left_90),
     "tut oh":     ("right 90", actions.user.game_turn_right_90),
     "tut guh":    ("180", actions.user.game_turn_180),
+    "tut pop":    ("hold L click", actions.user.game_mouse_hold_left),
+    "tut cluck":  ("hold R click", actions.user.game_mouse_hold_right),
+    "tut ee":     ("scroll tick mode", use_scroll_tick),
     "er":         ("exit mode", actions.user.game_mode_disable),
 }
 
@@ -60,7 +76,7 @@ look_config = {
     "hiss_stop":  ("", actions.user.game_turn_continuous_stop),
     "shush":      ("look up", actions.user.game_look_up_continuous_10),
     "shush_stop": ("", actions.user.game_turn_continuous_stop),
-    "er":         ("exit look", exit_look_mode)
+    "er":         ("exit look", exit_look_mode),
 }
 
 parrot_config = default_config

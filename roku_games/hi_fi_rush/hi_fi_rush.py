@@ -2,7 +2,7 @@ from talon import Module, Context, actions
 from .hi_fi_rush_ui import show_ui, hide_ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
-mod.apps.hi_fi_rush = "os: windows\nand app.exe: Hi-Fi-RUSH.exe"
+mod.apps.hi_fi_rush = "os: windows\nand app.exe: /Hi-Fi-RUSH.exe/i"
 ctx.matches = "os: windows\napp: hi_fi_rush"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 

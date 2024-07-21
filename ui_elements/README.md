@@ -1,12 +1,12 @@
 # ui_elements
 
-This is an experimental repository for making any generic UI in HTML-like syntax. Currently supports `div`, `screen`, `text`. In the future I would like to add buttons and inputs. WIP.
+This is an experimental repository for making any generic UI in HTML-like syntax. Currently supports `div`, `screen`, `text`, `button`. In the future I would like to add inputs as well. WIP.
 
 ## Usage
 
 first we tell ui_elements what we want to use:
 ```py
-(div, text, screen) = actions.user.ui_elements(["div", "text", "screen"])
+(div, text, screen, button) = actions.user.ui_elements(["div", "text", "screen", "button"])
 ```
 
 the outermost layer must be the screen component
@@ -39,11 +39,11 @@ global my_ui
 
 # def show
 global my_ui
-(div, text, screen) = actions.user.ui_elements(["div", "text", "screen"])
+(div, text, screen, button) = actions.user.ui_elements(["div", "text", "screen", "button"])
 my_ui = screen(align_items="flex_end", justify_content="center")[
     div(id="box", padding=16, background_color="FF000088")[
         text("Hello world", color="FFFFFF"),
-        text("Test", id="test", font_size=24)
+        text("Test", id="test", font_size=24),
     ]
 ]
 my_ui.show()
@@ -59,6 +59,13 @@ actions.user.ui_elements_unhighlight("box")
 # def hide
 global my_ui
 my_ui.hide()
+```
+
+If you use a button, the canvas will block the mouse instead of being pass through.
+```py
+# button
+button("Click me", on_click=lambda: print("clicked")),
+button("Click me", on_click=actions.user.hide_my_custom_ui),
 ```
 
 If we have a list of commands, we can populate it into a div like this:
@@ -102,6 +109,7 @@ div(gap=8)[
 | margin_left | `int` |
 | margin_right | `int` |
 | margin_top | `int` |
+| on_click | `function` - Function to call when clicked |
 | padding | `int` - Padding in every direction |
 | padding_bottom | `int` |
 | padding_left | `int` |

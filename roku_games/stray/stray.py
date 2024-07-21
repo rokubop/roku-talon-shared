@@ -2,7 +2,7 @@ from talon import Module, Context, actions
 from .stray_ui import show_ui, hide_ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
-mod.apps.stray = "os: windows\nand app.exe: Stray-Win64-Shipping.exe"
+mod.apps.stray = "os: windows\nand app.exe: /Stray-Win64-Shipping.exe/i"
 ctx.matches = "os: windows\napp: stray"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 

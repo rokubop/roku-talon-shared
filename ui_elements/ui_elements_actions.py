@@ -24,11 +24,12 @@ class Actions:
 
         # def show
         global ui
-        (css, div, text, screen) = actions.user.ui_elements(["css", "div", "text", "screen"])
+        (div, text, screen, button) = actions.user.ui_elements(["div", "text", "screen", "button"])
         ui = screen(align_items="flex_end", justify_content="center")[
             div(id="box", padding=16, background_color="FF000088")[
                 text("Hello world", color="FFFFFF"),
-                text("Test", id="test", font_size=24)
+                text("Test", id="test", font_size=24),
+                button("Click me", on_click=lambda: print("Clicked"))
             ]
         ]
         ui.show()

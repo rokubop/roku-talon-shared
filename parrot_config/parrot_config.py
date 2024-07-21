@@ -215,7 +215,7 @@ def parrot_debounce(time_ms: int, id: str, command: callable):
 def use_parrot_config(sound: str):
     config = actions.user.parrot_config()
     if parrot_config_saved.parrot_config_ref != config:
-        print("setting up parrot")
+        print("init parrot config")
         parrot_config_saved.setup(config)
 
     parrot_config_saved.execute(sound)

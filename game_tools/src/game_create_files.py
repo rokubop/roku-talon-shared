@@ -59,7 +59,7 @@ def get_app_context(active_app: ui.App) -> str:
         return f"app.bundle: {active_app.bundle}"
     if app.platform == "windows":
         exe_name = active_app.exe.split(os.path.sep)[-1]
-        return f"and app.exe: /{exe_name}/i"
+        return f"app.exe: /{exe_name}/i"
     return f"app.name: {active_app.name}"
 
 

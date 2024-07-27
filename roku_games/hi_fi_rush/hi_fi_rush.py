@@ -108,13 +108,13 @@ peppermint_config = {
     "er":     ("exit mode", shoot_and_exit),
 }
 
-@ctx_game.action_class("user")
-class Actions:
-    def on_game_mode_enabled():
-        show_ui(parrot_config)
+# @ctx_game.action_class("user")
+# class Actions:
+#     def on_game_mode_enabled():
+#         show_ui(parrot_config)
 
-    def on_game_mode_disabled():
-        hide_ui()
+#     def on_game_mode_disabled():
+#         hide_ui()
 
-    def parrot_config():
-        return parrot_config
+#     def parrot_config():
+#         return parrot_config

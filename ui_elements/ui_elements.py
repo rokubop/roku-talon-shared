@@ -576,6 +576,115 @@ class UIText:
     def hide(self):
         raise NotImplementedError(f"text cannot use .hide() directly. Wrap it in a screen()[..] like this: \nmy_ui = None\n\n#show def\nglobal my_ui\n(screen, div, text) = actions.user.ui_elements(['screen', 'div', 'text'])\nmy_ui = screen()[\n  div()[\n    text('hello world')\n  ]\n]\nmy_ui.show()\n\n#hide def\nglobal my_ui\nmy_ui.hide()")
 
+class UIInputText:
+    def __init__(self, text: str, options: UITextOptions = None):
+        self.options = options
+        self.id = self.options.id
+        self.text = text
+        self.type = options.type or "text"
+        self.text_width = None
+        self.text_height = None
+        self.box_model = None
+        self.debug_number = 0
+        self.debug_color = "red"
+        self.debug_colors = iter(cycle(["red", "green", "blue", "yellow", "purple", "orange", "cyan", "magenta"]))
+
+        if self.options.gap is None:
+            self.options.gap = 16
+
+    def draw_debug_number(self, c: SkiaCanvas, cursor: Cursor, new_color = False):
+        if new_color:
+            self.debug_color = next(self.debug_colors)
+
+        c.paint.color = self.debug_color
+        self.debug_number += 1
+
+        c.draw_text(str(self.debug_number), cursor.x, cursor.y)
+
+    def virtual_render(self, c: SkiaCanvas, cursor: Cursor):
+        self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.width, self.options.height)
+        cursor.virtual_move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
+        c.paint.textsize = self.options.font_size
+        c.paint.font.embolden = True if self.options.font_weight == "bold" else False
+        self.text_width = c.paint.measure_text(self.text)[1].width
+        self.text_height = c.paint.measure_text("E")[1].height
+        self.box_model.accumulate_dimensions(Rect(cursor.virtual_x, cursor.virtual_y, self.text_width, self.text_height))
+        return self.box_model.margin_rect
+
+    def render(self, c: SkiaCanvas, cursor: Cursor, builder_options: dict[str, any]):
+        global ids, state, buttons, debug_current_step, render_step, debug_points, debug_numbers, debug_draw_step_by_step
+        render_now = True
+
+        if debug_draw_step_by_step:
+            render_step += 1
+            if debug_current_step and render_step >= debug_current_step:
+                return self.box_model.margin_rect
+
+        self.box_model.prepare_render(cursor, self.options.flex_direction, self.options.align_items, self.options.justify_content)
+
+        if self.id:
+            ids[self.id] = {
+                "box_model": self.box_model,
+                "options": self.options,
+                "builder_id": builder_options["id"]
+            }
+            if self.type == "button" and not buttons.get(self.id):
+                buttons[self.id] = {
+                    "builder_id": builder_options["id"],
+                    "is_hovering": False,
+                    "on_click": self.options.on_click or (lambda: None)
+                }
+            if not state["text"].get(self.id):
+                state["text"][self.id] = self.text
+            render_now = False
+        cursor.move_to(self.box_model.padding_rect.x, self.box_model.padding_rect.y)
+
+        if debug_points:
+            c.paint.color = "red"
+            c.draw_circle(cursor.x, cursor.y, 2)
+        if debug_draw_step_by_step:
+            render_step += 1
+            if debug_current_step and render_step >= debug_current_step:
+                return self.box_model.margin_rect
+        if debug_numbers:
+            self.draw_debug_number(c, cursor)
+
+        if self.options.background_color:
+            c.paint.color = self.options.background_color
+
+            if self.options.border_radius:
+                options = RoundRect.from_rect(self.box_model.padding_rect, x=self.options.border_radius, y=self.options.border_radius)
+                c.draw_rrect(options)
+            else:
+                c.draw_rect(self.box_model.padding_rect)
+
+        cursor.move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
+        if self.id:
+            ids[self.id]["cursor"] = {
+                "x": cursor.x,
+                "y": cursor.y + self.text_height
+            }
+
+        if render_now:
+            draw_text_simple(c, self.text, self.options, cursor.x, cursor.y + self.text_height)
+        # if debug_points:
+        #     c.paint.color = "red"
+        #     c.draw_circle(cursor.x, cursor.y, 2)
+        # if debug_draw_step_by_step:
+        #     render_step += 1
+        #     if debug_current_step and render_step >= debug_current_step:
+        #         return self.box_model.margin_rect
+        # if debug_numbers:
+        #     self.draw_debug_number(c, cursor)
+
+        return self.box_model.margin_rect
+
+    def show(self):
+        raise NotImplementedError(f"text cannot use .show() directly. Wrap it in a screen()[..] like this: \nmy_ui = None\n\n#show def\nglobal my_ui\n(screen, div, text) = actions.user.ui_elements(['screen', 'div', 'text'])\nmy_ui = screen()[\n  div()[\n    text('hello world')\n  ]\n]\nmy_ui.show()\n\n#hide def\nglobal my_ui\nmy_ui.hide()")
+
+    def hide(self):
+        raise NotImplementedError(f"text cannot use .hide() directly. Wrap it in a screen()[..] like this: \nmy_ui = None\n\n#show def\nglobal my_ui\n(screen, div, text) = actions.user.ui_elements(['screen', 'div', 'text'])\nmy_ui = screen()[\n  div()[\n    text('hello world')\n  ]\n]\nmy_ui.show()\n\n#hide def\nglobal my_ui\nmy_ui.hide()")
+
 def draw_text_simple(c, text, options, x, y):
     c.paint.color = options.color
     c.paint.textsize = options.font_size
@@ -880,6 +989,14 @@ def button(text_str: str, props=None, **additional_props):
         text_str,
         default_props,
         **additional_props
+    )
+
+def input_text(text_str: str, props=None, **additional_props):
+    options = get_props(props, additional_props)
+    input_text_options = UITextOptions(**options)
+    return UIInputText(
+        text_str,
+        input_text_options
     )
 
 div = UIElementsProxy(div)

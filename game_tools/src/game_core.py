@@ -2,9 +2,7 @@ from talon import Module, actions, cron, ctrl, clip
 from typing import Any
 
 mod = Module()
-# mod.mode("game_menu", "game menu mode")
 mod.mode("game", "game play mode")
-# mod.mode("game_nav", "game nav mode")
 mod.mode("game_calibrating_x", "calibrating x")
 mod.mode("game_calibrating_y", "calibrating y")
 
@@ -30,8 +28,20 @@ _last_calibrate_value_y = 0
 _curve_dir = None
 _curve_type = "inward"
 _curve_speed = None
+_held_keys = set()
+_held_mouse_buttons = set()
+key_up_pending_jobs = {}
 
 queue = []
+
+EVENT_ON_KEY = "on_key"
+EVENT_KEY_PRESS = "press"
+EVENT_KEY_HOLD = "hold"
+EVENT_KEY_RELEASE = "release"
+EVENT_ON_MOUSE = "on_mouse"
+EVENT_MOUSE_CLICK = "click"
+EVENT_MOUSE_HOLD = "hold"
+EVENT_MOUSE_RELEASE = "release"
 
 def no_op():
     pass
@@ -51,25 +61,25 @@ def release_dir(keys):
     if isinstance(keys, tuple):
         for k in keys:
             actions.key(f"{k}:up")
-            actions.user.game_event_trigger_on_key(k, "release")
-            if k in held_keys:
-                held_keys.remove(k)
+            actions.user.game_event_trigger_on_key(k, EVENT_KEY_RELEASE)
+            if k in _held_keys:
+                _held_keys.remove(k)
     else:
         actions.key(f"{keys}:up")
-        actions.user.game_event_trigger_on_key(keys, "release")
-        if keys in held_keys:
-                held_keys.remove(keys)
+        actions.user.game_event_trigger_on_key(keys, EVENT_KEY_RELEASE)
+        if keys in _held_keys:
+                _held_keys.remove(keys)
 
 def hold_dir(keys):
     if isinstance(keys, tuple):
         for k in keys:
             actions.key(f"{k}:down")
-            actions.user.game_event_trigger_on_key(k, "hold")
-            held_keys.add(k)
+            actions.user.game_event_trigger_on_key(k, EVENT_KEY_HOLD)
+            _held_keys.add(k)
     else:
         actions.key(f"{keys}:down")
-        actions.user.game_event_trigger_on_key(keys, "hold")
-        held_keys.add(keys)
+        actions.user.game_event_trigger_on_key(keys, EVENT_KEY_HOLD)
+        _held_keys.add(keys)
 
 def move_dir(keys: str | tuple[str, str]):
     """Hold a direction key"""
@@ -112,7 +122,8 @@ def move_dir_toggle(keys: str | tuple[str, str]):
     """Toggle a direction key"""
     global _move_dir
     if _move_dir:
-        release_dir(keys)
+        release_dir(_move_dir)
+        # release_dir(keys)
         if _move_dir == keys:
             _move_dir = None
             return
@@ -176,9 +187,9 @@ def step_stop():
     global _step_job, _step_dir
     if _step_job:
         actions.key(f"{_step_dir}:up")
-        actions.user.game_event_trigger_on_key(_step_dir, "release")
-        if _step_dir in held_keys:
-            held_keys.remove(_step_dir)
+        actions.user.game_event_trigger_on_key(_step_dir, EVENT_KEY_RELEASE)
+        if _step_dir in _held_keys:
+            _held_keys.remove(_step_dir)
         cron.cancel(_step_job)
         _step_job = None
         _step_dir = None
@@ -189,14 +200,55 @@ def step_dir(key: str, duration_ms: int):
     step_stop()
     _step_dir = key
     actions.key(f"{_step_dir}:down")
-    actions.user.game_event_trigger_on_key(_step_dir, "hold")
+    actions.user.game_event_trigger_on_key(_step_dir, EVENT_KEY_HOLD)
     _step_job = cron.after(f"{duration_ms}ms", step_stop)
 
+def mouse_release_all():
+    """Release all mouse buttons"""
+    global _held_mouse_buttons
+    for button in _held_mouse_buttons:
+        actions.mouse_release(button)
+        actions.user.game_event_trigger_on_mouse(button, EVENT_MOUSE_RELEASE)
+    _held_mouse_buttons.clear()
+
+def mouse_hold(button: int, duration_ms: int = None):
+    """Hold a mouse button"""
+    global _held_mouse_buttons
+    if duration_ms:
+        ctrl.mouse_click(button, hold=duration_ms*1000)
+    else:
+        ctrl.mouse_click(button, down=True)
+    _held_mouse_buttons.add(button)
+    actions.user.game_event_trigger_on_mouse(button, EVENT_MOUSE_HOLD)
+
+def mouse_toggle(button: int):
+    """Toggle a mouse button"""
+    global _held_mouse_buttons
+    if button in _held_mouse_buttons:
+        mouse_release(button)
+    else:
+        mouse_hold(button)
+
+def mouse_release(button: int):
+    """Release a mouse button"""
+    global _held_mouse_buttons
+    if button in _held_mouse_buttons:
+        actions.mouse_release(button)
+        actions.user.game_event_trigger_on_mouse(button, EVENT_MOUSE_RELEASE)
+        _held_mouse_buttons.remove(button)
+
+def mouse_click(button: int, duration_ms: int = 16):
+    """Click a mouse button"""
+    ctrl.mouse_click(button, hold=duration_ms*1000)
+    actions.user.game_event_trigger_on_mouse(button, EVENT_MOUSE_CLICK)
+
 def stopper():
-    """Perform stop based on a priority"""
-    global _move_dir, _step_job, _curve_dir
+    """Perform general purpose stopper based on priority"""
+    global _move_dir, _step_job, _curve_dir, _held_mouse_buttons
     if actions.user.mouse_move_info()["continuous_active"] and not _curve_dir:
         actions.user.mouse_move_continuous_stop()
+        if _held_mouse_buttons:
+            mouse_release_all()
         return
 
     curve_dir_stop()
@@ -205,6 +257,8 @@ def stopper():
         move_dir_stop()
     if _step_job:
         step_stop()
+    if _held_mouse_buttons:
+        mouse_release_all()
 
 @mod.action_class
 class Actions:
@@ -280,50 +334,55 @@ def mouse_calibrate_90_y(dy_90: int):
     actions.user.rt_mouse_move_delta(0, dy_90 * 2, 100, mouse_api_type="windows")
     actions.user.mouse_move_queue(lambda: actions.user.rt_mouse_move_delta(0, -dy_90, 100, on_calibrate_y_90_tick, mouse_api_type="windows"))
 
-up_jobs = {}
-held_keys = set()
-
 def game_key_up(key):
-    global up_jobs
+    global key_up_pending_jobs
     actions.key(f"{key}:up")
-    actions.user.game_event_trigger_on_key(key, "release")
-    up_jobs[key] = None
-    if key in held_keys:
-        held_keys.remove(key)
+    actions.user.game_event_trigger_on_key(key, EVENT_KEY_RELEASE)
+    key_up_pending_jobs[key] = None
+    if key in _held_keys:
+        _held_keys.remove(key)
 
 def game_key_down(key: str):
     """Hold a key down"""
     actions.key(f"{key}:down")
-    actions.user.game_event_trigger_on_key(key, "hold")
-    held_keys.add(key)
+    actions.user.game_event_trigger_on_key(key, EVENT_KEY_HOLD)
+    _held_keys.add(key)
 
 def game_key(key: str):
     """Press a game key"""
     actions.key(key)
-    actions.user.game_event_trigger_on_key(key, "press")
-    if key in held_keys:
-        held_keys.remove(key)
+    actions.user.game_event_trigger_on_key(key, EVENT_KEY_PRESS)
+    if key in _held_keys:
+        _held_keys.remove(key)
 
 def game_key_hold(key: str, hold: int = None):
     """Hold a game key"""
-    global up_jobs
+    global key_up_pending_jobs
     if not hold:
         game_key_down(key)
         return
 
-    if up_jobs.get(key):
-        cron.cancel(up_jobs[key])
+    if key_up_pending_jobs.get(key):
+        cron.cancel(key_up_pending_jobs[key])
     actions.key(f"{key}:up")
     actions.key(f"{key}:down")
-    actions.user.game_event_trigger_on_key(key, "hold")
-    up_jobs[key] = cron.after(f"{hold}ms", lambda: game_key_up(key))
+    actions.user.game_event_trigger_on_key(key, EVENT_KEY_HOLD)
+    key_up_pending_jobs[key] = cron.after(f"{hold}ms", lambda: game_key_up(key))
 
 def game_key_toggle(key: str):
     """Toggle a game key"""
-    if key in held_keys:
+    if key in _held_keys:
         game_key_up(key)
     else:
         game_key_down(key)
+
+def get_held_keys():
+    """Get the held keys"""
+    return _held_keys
+
+def get_held_mouse_buttons():
+    """Get the held mouse buttons"""
+    return _held_mouse_buttons
 
 @mod.action_class
 class Actions:
@@ -408,9 +467,40 @@ class Actions:
         Trigger an event and call all registered callbacks.
         """
         global event_subscribers
-        if "on_key" in event_subscribers:
-            for callback in event_subscribers["on_key"]:
+        if EVENT_ON_KEY in event_subscribers:
+            for callback in event_subscribers[EVENT_ON_KEY]:
                 callback(key, state)
+
+    def game_event_register_on_mouse(callback: callable):
+        """
+        events:
+        ```py
+        "on_mouse", lambda mouse, state: # click/hold/release
+        ```
+        """
+        global event_subscribers
+        if EVENT_ON_MOUSE not in event_subscribers:
+            event_subscribers[EVENT_ON_MOUSE] = []
+        event_subscribers[EVENT_ON_MOUSE].append(callback)
+
+    def game_event_unregister_on_mouse(callback: callable):
+        """
+        Unregister a callback for a specific game event.
+        """
+        global event_subscribers
+        if EVENT_ON_MOUSE in event_subscribers:
+            event_subscribers[EVENT_ON_MOUSE].remove(callback)
+            if not event_subscribers[EVENT_ON_MOUSE]:
+                del event_subscribers[EVENT_ON_MOUSE]
+
+    def game_event_trigger_on_mouse(button: str, state: str):
+        """
+        Trigger an event and call all registered callbacks.
+        """
+        global event_subscribers
+        if EVENT_ON_MOUSE in event_subscribers:
+            for callback in event_subscribers[EVENT_ON_MOUSE]:
+                callback(button, state)
 
 event_subscribers = {}
 

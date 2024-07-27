@@ -235,16 +235,29 @@ class Actions:
         start_pos = grid_pos_map[target_one]
         target_pos = grid_pos_map[target_two]
 
-        def release(ev):
-            if ev.type == "stop":
-                ctrl.mouse_click(button=button, up=True)
+        def release():
+            ctrl.mouse_click(button=button, up=True)
 
-        def moved(ev):
-            if ev.type == "stop":
-                ctrl.mouse_click(button=button, down=True)
-                actions.user.mouse_move_from_to(start_pos.x, start_pos.y, target_pos.x, target_pos.y, 200, callback_tick=release)
+        def moved():
+            ctrl.mouse_click(button=button, down=True)
+            actions.user.mouse_move_from_to(start_pos.x, start_pos.y, target_pos.x, target_pos.y, 200, callback_stop=release)
 
-        actions.user.mouse_move_to(start_pos.x, start_pos.y, 200, callback_tick=moved)
+        actions.user.mouse_move_to(start_pos.x, start_pos.y, 200, callback_stop=moved)
+
+    def drag_mode_bring_to_center(target: str, button: int = 0):
+        """Center the target"""
+        rect = ui.active_window().rect
+        end_pos_x = rect.left + (rect.width / 2)
+        end_pos_y = rect.top + (rect.height / 2)
+        start_pos = grid_pos_map[target]
+        def release():
+            ctrl.mouse_click(button=button, up=True)
+
+        def moved():
+            ctrl.mouse_click(button=button, down=True)
+            actions.user.mouse_move_from_to(start_pos.x, start_pos.y, end_pos_x, end_pos_y, 200, callback_stop=release)
+
+        actions.user.mouse_move_to(start_pos.x, start_pos.y, 200, callback_stop=moved)
 
     def drag_mode_exclude_area_targets(target_one: str, target_two: str):
         """Exclude the grid of numbers from target one to target two"""

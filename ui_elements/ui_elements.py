@@ -7,6 +7,7 @@ from talon.types import Rect, Point2d
 from typing import TypedDict, Optional, get_origin, get_args
 from itertools import cycle
 from dataclasses import dataclass, fields
+from talon.experimental.textarea import DarkThemeLabels, TextArea
 import uuid
 
 debug_draw_step_by_step = False
@@ -22,6 +23,7 @@ state = {
     "text": {},
 }
 buttons = {}
+inputs = {}
 
 @dataclass
 class BoxModelSpacing:
@@ -161,9 +163,15 @@ class UITextOptionsDict(UIOptionsDict):
     font_size: int
     font_weight: str
 
+class UIInputTextOptionsDict(UIOptionsDict):
+    id: str
+    font_size: int
+    value: str
+
 VALID_PROPS = (
     set(UIOptionsDict.__annotations__.keys())
     .union(set(UITextOptionsDict.__annotations__.keys()))
+    .union(set(UIInputTextOptionsDict.__annotations__.keys()))
 )
 
 class UIOptions:
@@ -205,6 +213,23 @@ class UITextOptions(UIOptions):
     on_click: any = None
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+@dataclass
+class UIInputTextOptions(UIOptions):
+    id: str = None
+    font_size: int = 16
+    value: str = ""
+
+    def __init__(self, **kwargs):
+        kwargs['padding_left'] = max(
+            kwargs.get('padding_left', 0),
+            kwargs.get('padding', 0)
+        ) + max(8, kwargs.get('border_radius', 0))
+        kwargs['padding_right'] = max(
+            kwargs.get('padding_right', 0),
+            kwargs.get('padding', 0)
+        ) + max(8, kwargs.get('border_radius', 0))
         super().__init__(**kwargs)
 
 class Cursor:
@@ -577,14 +602,17 @@ class UIText:
         raise NotImplementedError(f"text cannot use .hide() directly. Wrap it in a screen()[..] like this: \nmy_ui = None\n\n#show def\nglobal my_ui\n(screen, div, text) = actions.user.ui_elements(['screen', 'div', 'text'])\nmy_ui = screen()[\n  div()[\n    text('hello world')\n  ]\n]\nmy_ui.show()\n\n#hide def\nglobal my_ui\nmy_ui.hide()")
 
 class UIInputText:
-    def __init__(self, text: str, options: UITextOptions = None):
+    def __init__(self, options: UIInputTextOptions = None):
         self.options = options
         self.id = self.options.id
-        self.text = text
-        self.type = options.type or "text"
-        self.text_width = None
+        self.type = "input_text"
         self.text_height = None
+        self.padding_left = self.options.padding
+        self.width = self.options.width or round(self.options.font_size * 15)
+        self.height = self.options.height or round(self.options.font_size * 2.2)
         self.box_model = None
+        self.background_color = self.options.background_color or "333333"
+        self.color = self.options.color or "FFFFFF"
         self.debug_number = 0
         self.debug_color = "red"
         self.debug_colors = iter(cycle(["red", "green", "blue", "yellow", "purple", "orange", "cyan", "magenta"]))
@@ -605,15 +633,11 @@ class UIInputText:
         self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.width, self.options.height)
         cursor.virtual_move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
         c.paint.textsize = self.options.font_size
-        c.paint.font.embolden = True if self.options.font_weight == "bold" else False
-        self.text_width = c.paint.measure_text(self.text)[1].width
-        self.text_height = c.paint.measure_text("E")[1].height
-        self.box_model.accumulate_dimensions(Rect(cursor.virtual_x, cursor.virtual_y, self.text_width, self.text_height))
+        self.box_model.accumulate_dimensions(Rect(cursor.virtual_x, cursor.virtual_y, self.width, self.height))
         return self.box_model.margin_rect
 
     def render(self, c: SkiaCanvas, cursor: Cursor, builder_options: dict[str, any]):
-        global ids, state, buttons, debug_current_step, render_step, debug_points, debug_numbers, debug_draw_step_by_step
-        render_now = True
+        global ids, inputs, debug_current_step, render_step, debug_points, debug_numbers, debug_draw_step_by_step
 
         if debug_draw_step_by_step:
             render_step += 1
@@ -628,15 +652,6 @@ class UIInputText:
                 "options": self.options,
                 "builder_id": builder_options["id"]
             }
-            if self.type == "button" and not buttons.get(self.id):
-                buttons[self.id] = {
-                    "builder_id": builder_options["id"],
-                    "is_hovering": False,
-                    "on_click": self.options.on_click or (lambda: None)
-                }
-            if not state["text"].get(self.id):
-                state["text"][self.id] = self.text
-            render_now = False
         cursor.move_to(self.box_model.padding_rect.x, self.box_model.padding_rect.y)
 
         if debug_points:
@@ -662,11 +677,25 @@ class UIInputText:
         if self.id:
             ids[self.id]["cursor"] = {
                 "x": cursor.x,
-                "y": cursor.y + self.text_height
+                "y": cursor.y + self.height
             }
 
-        if render_now:
-            draw_text_simple(c, self.text, self.options, cursor.x, cursor.y + self.text_height)
+        input = TextArea()
+        input.theme = DarkThemeLabels(
+            title_size=0,
+            padding=0, # Keep this 0. Manage our own padding because this adds to the top hidden title as well
+            text_size=self.options.font_size,
+            title_bg=self.background_color,
+            line_spacing=-8, # multiline text is too spaced out
+            bg=self.background_color,
+            fg=self.color,
+        )
+        if self.options.value:
+            input.value = self.options.value
+        input.rect = Rect(cursor.x, cursor.y, self.box_model.content_rect.width, self.box_model.content_rect.height)
+        input.show()
+        inputs[self.id] = input
+
         # if debug_points:
         #     c.paint.color = "red"
         #     c.draw_circle(cursor.x, cursor.y, 2)
@@ -832,7 +861,7 @@ class UIBuilder(UIBox):
 
     def hide(self):
         """Hide and destroy the UI builder."""
-        global ids, state, buttons
+        global ids, state, buttons, inputs
 
         if self.static_canvas:
             self.static_canvas.unregister("draw", self.on_draw_static)
@@ -857,6 +886,10 @@ class UIBuilder(UIBox):
                 self.blockable_canvas = None
 
         buttons = {}
+
+        for id in inputs:
+            inputs[id].hide()
+        inputs = {}
 
         # state["text"] = {}
         # ids = {}
@@ -894,6 +927,7 @@ class UIProps:
     padding_right: int
     padding_bottom: int
     padding_left: int
+    value: str
     width: int
 
 VALID_PROPS = {f.name for f in fields(UIProps)}
@@ -991,13 +1025,13 @@ def button(text_str: str, props=None, **additional_props):
         **additional_props
     )
 
-def input_text(text_str: str, props=None, **additional_props):
+def input_text(props=None, **additional_props):
     options = get_props(props, additional_props)
-    input_text_options = UITextOptions(**options)
-    return UIInputText(
-        text_str,
-        input_text_options
-    )
+    opts = UIInputTextOptions(**options)
+    print("input_text", opts)
+    if not opts.id:
+        raise ValueError("input_text must have an id prop.")
+    return UIInputText(opts)
 
 div = UIElementsProxy(div)
 text = UIElementsProxy(text)

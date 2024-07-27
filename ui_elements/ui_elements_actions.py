@@ -1,5 +1,5 @@
 from talon import Module
-from .ui_elements import UIBuilder, div, text, screen, css, button, input_text, ids, state, builders_core
+from .ui_elements import UIBuilder, div, text, screen, css, button, input_text, ids, state, inputs, builders_core
 from typing import Literal, Type, Union, List, Dict, Protocol
 from dataclasses import dataclass
 
@@ -53,7 +53,7 @@ class Actions:
             'text': text,
             'screen': screen,
             'button': button,
-            "input_text": input_text
+            'input_text': input_text
         }
         return tuple(element_mapping[element] for element in elements)
 
@@ -133,6 +133,13 @@ class Actions:
     def ui_builder_get_ids():
         """Get by ID"""
         return ids
+
+    def ui_elements_get_value(id: str) -> str:
+        """Get value of an input based on id"""
+        input = inputs.get(id)
+        if input:
+            return input.value
+        return None
 
     def ui_elements_set_text(id: str, value: str):
         """set text based on id"""

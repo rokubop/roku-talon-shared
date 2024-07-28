@@ -1,20 +1,10 @@
 from talon import Module
 from .ui_elements import UIBuilder, div, text, screen, css, button, input_text, ids, state, inputs, builders_core
-from typing import Literal, Type, Union, List, Dict, Protocol
-from dataclasses import dataclass
-from talon.experimental.textarea import Span
-
+from typing import Literal, List, Dict
 
 mod = Module()
 
 builders = {}
-
-@dataclass
-class CSSConfig:
-    flex_direction: str
-    gap: int
-    margin_top: int
-    margin_right: int
 
 @mod.action_class
 class Actions:
@@ -26,11 +16,12 @@ class Actions:
 
         # def show
         global ui
-        (div, text, screen, button) = actions.user.ui_elements(["div", "text", "screen", "button"])
+        (div, text, screen, button, input_text) = actions.user.ui_elements(["div", "text", "screen", "button", "input_text"])
         ui = screen(align_items="flex_end", justify_content="center")[
             div(id="box", padding=16, background_color="FF000088")[
                 text("Hello world", color="FFFFFF"),
                 text("Test", id="test", font_size=24),
+                input_text(id="the_input"),
                 button("Click me", on_click=lambda: print("Clicked"))
             ]
         ]
@@ -44,6 +35,9 @@ class Actions:
         actions.user.ui_elements_highlight_briefly("box")
         actions.user.ui_elements_unhighlight("box")
 
+        # trigger get value
+        actions.user.ui_elements_get_value("the_input")
+
         # def hide
         global ui
         ui.hide()
@@ -55,7 +49,9 @@ class Actions:
             'text': text,
             'screen': screen,
             'button': button,
-            'input_text': input_text
+            'input': input_text,
+            'input_text': input_text,
+            'text_input': input_text
         }
         return tuple(element_mapping[element] for element in elements)
 
@@ -68,6 +64,7 @@ class Actions:
         flex_direction: str = "column",
         highlight_color: str = None) -> UIBuilder:
         """
+        DEPRECATED - use ui_elements instead
         Create a new UIBuilder instance with specific layout settings.
 
         Args:
@@ -111,9 +108,11 @@ class Actions:
         """
         Show the UI builder with the given ID.
         """
-        global builders
+        global builders, builders_core
         if id in builders:
             builders[id].show()
+        elif id in builders_core:
+            builders_core[id].show()
         else:
             print(f"UI builder with ID {id} not found.")
 
@@ -121,9 +120,11 @@ class Actions:
         """
         Get the UI builder with the given ID.
         """
-        global builders
+        global builders, builders_core
         if id in builders:
             return builders[id]
+        elif id in builders_core:
+            return builders_core[id]
         else:
             print(f"UI builder with ID {id} not found.")
             return None
@@ -141,16 +142,6 @@ class Actions:
         input = inputs.get(id)
         if input:
             return input.value
-        return None
-
-    def ui_elements_focus(id: str) -> str:
-        """Get value of an input based on id"""
-        input = inputs.get(id)
-        if input:
-            # print("setting selection to something")
-            print(input.sel.right)
-            # input.sel = Span(0, 2)
-
         return None
 
     def ui_elements_set_text(id: str, value: str):

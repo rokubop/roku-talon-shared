@@ -290,7 +290,7 @@ class Actions:
         """Show the game modal"""
         global builder
         actions.user.prep_game_create_files()
-        (screen, div, text, button) = actions.user.ui_elements(["screen", "div", "text", "button"])
+        (screen, div, text, button, input_text) = actions.user.ui_elements(["screen", "div", "text", "button", "input_text"])
         active_app = ui.active_app()
         app_name = get_app_name(active_app.name)
         has_files = has_game_files()

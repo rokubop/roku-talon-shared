@@ -607,11 +607,10 @@ class UIInputText:
         self.id = self.options.id
         self.type = "input_text"
         self.text_height = None
-        self.padding_left = self.options.padding
         self.width = self.options.width or round(self.options.font_size * 15)
         self.height = self.options.height or round(self.options.font_size * 2.2)
         self.box_model = None
-        self.background_color = self.options.background_color or "333333"
+        self.options.background_color = self.options.background_color or "333333"
         self.color = self.options.color or "FFFFFF"
         self.debug_number = 0
         self.debug_color = "red"
@@ -680,21 +679,21 @@ class UIInputText:
                 "y": cursor.y + self.height
             }
 
-        input = TextArea()
-        input.theme = DarkThemeLabels(
+        text_area = TextArea()
+        text_area.theme = DarkThemeLabels(
             title_size=0,
             padding=0, # Keep this 0. Manage our own padding because this adds to the top hidden title as well
             text_size=self.options.font_size,
-            title_bg=self.background_color,
+            title_bg=self.options.background_color,
             line_spacing=-8, # multiline text is too spaced out
-            bg=self.background_color,
+            bg=self.options.background_color,
             fg=self.color,
         )
         if self.options.value:
-            input.value = self.options.value
-        input.rect = Rect(cursor.x, cursor.y, self.box_model.content_rect.width, self.box_model.content_rect.height)
-        input.show()
-        inputs[self.id] = input
+            text_area.value = self.options.value
+        text_area.rect = Rect(cursor.x, cursor.y, self.box_model.content_rect.width, self.box_model.content_rect.height)
+        text_area.show()
+        inputs[self.id] = text_area
 
         # if debug_points:
         #     c.paint.color = "red"
@@ -761,14 +760,19 @@ class UIBuilder(UIBox):
                     box_model = ids[id]["box_model"]
                     c.paint.color = state["highlighted"][id]
                     c.paint.style = c.paint.Style.FILL
-                    c.draw_rect(box_model.padding_rect)
+
+                    if 'options' in ids[id] and hasattr(ids[id]['options'], 'border_radius'):
+                        border_radius = ids[id]['options'].border_radius
+                        c.draw_rrect(RoundRect.from_rect(box_model.padding_rect, x=border_radius, y=border_radius))
+                    else:
+                        c.draw_rect(box_model.padding_rect)
             else:
                 print(f"Could not highlight ID {id}. ID not found.")
 
     def init_blockable_canvases(self):
         """
         If we have at least one button or input, then we will consider the whole content area as blockable.
-        However if we have an input, then everything should be blockable except for that input.
+        If we have an inputs, then everything should be blockable except for those inputs.
         """
         if buttons or inputs:
             full_rect = self.box_model.content_children_rect
@@ -789,7 +793,7 @@ class UIBuilder(UIBox):
                     bottom_rect = Rect(current_rect.x, input.rect.y + input.rect.height, current_rect.width, current_rect.y + current_rect.height - input.rect.y - input.rect.height)
                 self.blockable_canvases.append(Canvas.from_rect(bottom_rect))
             else:
-                self.blockable_canvases = Canvas.from_rect(full_rect)
+                self.blockable_canvases = [Canvas.from_rect(full_rect)]
 
             for blockable_canvas in self.blockable_canvases:
                 blockable_canvas.blocks_mouse = True

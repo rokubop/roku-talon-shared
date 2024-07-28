@@ -6,7 +6,12 @@ This is an experimental repository for making any generic UI in HTML-like syntax
 
 first we tell ui_elements what we want to use:
 ```py
-(div, text, screen, button) = actions.user.ui_elements(["div", "text", "screen", "button"])
+# example 1
+(div, text, screen, button, input_text) = actions.user.ui_elements(
+    ["div", "text", "screen", "button", "input_text"]
+)
+# example 2
+(screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
 ```
 
 the outermost layer must be the screen component
@@ -68,6 +73,14 @@ button("Click me", on_click=lambda: print("clicked")),
 button("Click me", on_click=actions.user.hide_my_custom_ui),
 ```
 
+If you use a input, We can get the value of the input like this:
+```py
+# input
+text_input(id="the_input")
+# later
+actions.user.ui_elements_get_value("the_input")
+```
+
 If we have a list of commands, we can populate it into a div like this:
 ```py
 commands = [
@@ -117,4 +130,5 @@ div(gap=8)[
 | padding_top | `int` |
 | right | `int` |
 | top | `int` |
+| value | `str` - For input |
 | width | `int` |

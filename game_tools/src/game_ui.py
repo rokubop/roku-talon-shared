@@ -337,6 +337,29 @@ class Actions:
                         background_color="222222",
                         border_color="222222")
                 ],
+                div(flex_direction="row", align_items="center", margin_top=16)[
+                    text('Clone from existing game files:', margin_right=8),
+                    button('Choose game'),
+                ],
+                div(flex_direction="row", align_items="center", margin_top=16)[
+                    text('Game type:', margin_right=8),
+                    button('2D sidescroller', margin_right=4, background_color="FFD70055"),
+                    button('3D camera 1st/3rd person', margin_right=4),
+                    button('Top down'),
+                ],
+                div(flex_direction="row", align_items="center", margin_top=28)[
+                    text('Movement keys:', margin_right=8),
+                    button('ASDW', margin_right=4, background_color="FFD70055"),
+                    button('←↓→↑', margin_right=4),
+                    button('None'),
+                ],
+                div(flex_direction="row", align_items="center", margin_top=28)[
+                    text('Noises:', margin_right=8),
+                    button('Commands + Talon pop/hiss', margin_right=4, background_color="FFD70055"),
+                    button('Commands + parrot', margin_right=4),
+                    button('Parrot only', margin_right=4),
+                    button('None'),
+                ],
                 div(margin_top=24)[
                     has_files and text('Game files already setup', color="00FF00"),
                     not has_files and div()[
@@ -348,8 +371,8 @@ class Actions:
                     ]
                 ],
                 div(margin_top=24, flex_direction="row", gap=8)[
-                    button("Game create files"),
-                    button("Game setup close")
+                    button("Game create files", on_click=actions.user.ui_hide_game_modal_large),
+                    button("Game setup close", on_click=actions.user.ui_hide_game_modal_large)
                 ]
             ]
         ]

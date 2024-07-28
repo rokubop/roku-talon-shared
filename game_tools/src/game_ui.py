@@ -310,21 +310,24 @@ class Actions:
         builder = screen(id="main", justify_content="center", align_items="center")[
             div(background_color="333333", padding=16, border_radius=8, border_color="FFD700", border_width=1)[
                 text('Game Setup', font_size=24, margin_bottom=24),
-                div(flex_direction="row")[
-                    text('Current app:'),
-                    text(app_name, color="FFD700")
+                div(flex_direction="row", align_items="center")[
+                    text('Current app:', margin_right=8),
+                    input_text(id="app_name", value=app_name, background_color="222222", border_color="222222")
                 ],
                 div(margin_top=24)[
                     has_files and text('Game files already setup', color="00FF00"),
                     not has_files and div()[
-                        text('No game files found', color="888888", background_color="FF0000", padding=24, border_radius=18, border_color="0000FF"),
+                        # text('No game files found', color="888888", background_color="FF0000", padding=24, border_radius=18, border_color="0000FF"),
                         text('The following folder and files will be created:', margin_top=12),
                         div(background_color="222222", border_radius=8, margin_top=16, padding=12, width=350)[
                             *(text(file, color="FFD700", font_size=14) for file in file_list)
                         ]
                     ]
                 ],
-                button("hello")
+                div(margin_top=24, flex_direction="row", gap=8)[
+                    button("Game create files"),
+                    button("Game setup close")
+                ]
             ]
         ]
 #         builder = actions.user.ui_flexbox_builder({

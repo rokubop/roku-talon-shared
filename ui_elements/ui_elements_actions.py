@@ -2,6 +2,8 @@ from talon import Module
 from .ui_elements import UIBuilder, div, text, screen, css, button, input_text, ids, state, inputs, builders_core
 from typing import Literal, Type, Union, List, Dict, Protocol
 from dataclasses import dataclass
+from talon.experimental.textarea import Span
+
 
 mod = Module()
 
@@ -139,6 +141,16 @@ class Actions:
         input = inputs.get(id)
         if input:
             return input.value
+        return None
+
+    def ui_elements_focus(id: str) -> str:
+        """Get value of an input based on id"""
+        input = inputs.get(id)
+        if input:
+            # print("setting selection to something")
+            print(input.sel.right)
+            # input.sel = Span(0, 2)
+
         return None
 
     def ui_elements_set_text(id: str, value: str):

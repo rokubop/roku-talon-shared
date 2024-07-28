@@ -726,7 +726,7 @@ class UIBuilder(UIBox):
         self.static_canvas = None
         self.dynamic_canvas = None
         self.highlight_canvas = None
-        self.blockable_canvas = None
+        self.blockable_canvases = None
         self.unhighlight_jobs = {}
         self.highlight_color = options.get("highlight_color")
         opts = UIOptions(**options or {})
@@ -765,13 +765,14 @@ class UIBuilder(UIBox):
             else:
                 print(f"Could not highlight ID {id}. ID not found.")
 
-    def init_blockable_canvas(self):
+    def init_blockable_canvases(self):
         if buttons:
             rect = self.box_model.content_children_rect
-            self.blockable_canvas = Canvas.from_rect(rect)
-            self.blockable_canvas.blocks_mouse = True
-            self.blockable_canvas.register("mouse", self.on_mouse)
-            self.blockable_canvas.freeze()
+            blockable_canvas = Canvas.from_rect(rect)
+            blockable_canvas.blocks_mouse = True
+            blockable_canvas.register("mouse", self.on_mouse)
+            blockable_canvas.freeze()
+            self.blockable_canvases = [blockable_canvas]
 
     def show(self):
         global state, debug_current_step, render_step, debug_start_step, debug_draw_step_by_step
@@ -790,7 +791,8 @@ class UIBuilder(UIBox):
             self.static_canvas.freeze()
             self.dynamic_canvas.freeze()
             self.highlight_canvas.freeze()
-            self.blockable_canvas.freeze()
+            for canvas in self.blockable_canvases:
+                canvas.freeze()
         else:
             self.static_canvas = canvas_from_main_screen()
             self.static_canvas.register("draw", self.on_draw_static)
@@ -807,7 +809,7 @@ class UIBuilder(UIBox):
             # is there a way to do this without a hard coded delay?
             # we need to wait for everything to render so we have
             # all the dimensions to calculate the blockable canvas
-            cron.after("300ms", lambda: self.init_blockable_canvas())
+            cron.after("300ms", lambda: self.init_blockable_canvases())
 
     def on_mouse(self, e):
         if e.event == "mousemove":
@@ -879,11 +881,12 @@ class UIBuilder(UIBox):
             self.highlight_canvas.close()
             self.highlight_canvas = None
 
-            if self.blockable_canvas:
-                self.blockable_canvas.unregister("mouse", self.on_mouse)
-                self.blockable_canvas.hide()
-                self.blockable_canvas.close()
-                self.blockable_canvas = None
+            if self.blockable_canvases:
+                for canvas in self.blockable_canvases:
+                    canvas.unregister("mouse", self.on_mouse)
+                    canvas.hide()
+                    canvas.close()
+                self.blockable_canvases = None
 
         buttons = {}
 
@@ -984,6 +987,16 @@ class UIElementsProxy:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
+class UIElementsNoChildrenProxy:
+    def __init__(self, func):
+        self.func = func
+
+    def __getitem__(self, item):
+        raise TypeError(f"{self.func.__name__} does not support children. Use {self.func.__name__}().")
+
+    def __call__(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
+
 # ui_elements
 def screen(props=None, **additional_props):
     global builders_core
@@ -1028,13 +1041,13 @@ def button(text_str: str, props=None, **additional_props):
 def input_text(props=None, **additional_props):
     options = get_props(props, additional_props)
     opts = UIInputTextOptions(**options)
-    print("input_text", opts)
     if not opts.id:
-        raise ValueError("input_text must have an id prop.")
+        raise ValueError("input_text must have an id prop so that it can be targeted with actions.user.ui_elements_get_value(id)")
     return UIInputText(opts)
 
 div = UIElementsProxy(div)
-text = UIElementsProxy(text)
+text = UIElementsNoChildrenProxy(text)
 screen = UIElementsProxy(screen)
 css = UIElementsProxy(css)
 button = UIElementsProxy(button)
+input_text = UIElementsNoChildrenProxy(input_text)

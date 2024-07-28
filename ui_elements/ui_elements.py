@@ -167,6 +167,7 @@ class UIInputTextOptionsDict(UIOptionsDict):
     id: str
     font_size: int
     value: str
+    on_change: callable
 
 VALID_PROPS = (
     set(UIOptionsDict.__annotations__.keys())
@@ -220,6 +221,7 @@ class UIInputTextOptions(UIOptions):
     id: str = None
     font_size: int = 16
     value: str = ""
+    on_change: callable = None
 
     def __init__(self, **kwargs):
         kwargs['padding_left'] = max(
@@ -614,6 +616,7 @@ class UIInputText:
         self.color = self.options.color or "FFFFFF"
         self.debug_number = 0
         self.debug_color = "red"
+        self.value = self.options.value or ""
         self.debug_colors = iter(cycle(["red", "green", "blue", "yellow", "purple", "orange", "cyan", "magenta"]))
 
         if self.options.gap is None:
@@ -691,6 +694,12 @@ class UIInputText:
         )
         if self.options.value:
             text_area.value = self.options.value
+        if self.options.on_change:
+            def on_change(value):
+                if value != self.value:
+                    self.value = value
+                    self.options.on_change(value)
+            text_area.register("label", on_change)
         text_area.rect = Rect(cursor.x, cursor.y, self.box_model.content_rect.width, self.box_model.content_rect.height)
         text_area.show()
         inputs[self.id] = text_area
@@ -950,6 +959,7 @@ class UIProps:
     margin_right: int
     margin_bottom: int
     margin_left: int
+    on_change: callable
     on_click: callable
     padding: int
     padding_top: int

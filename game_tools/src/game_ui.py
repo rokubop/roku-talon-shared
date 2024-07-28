@@ -194,6 +194,29 @@ def game_settings_open():
 
 builder = None
 
+def get_path_prefix():
+    USER_GAMES_DIR = Path(__file__).parent.parent / "user_games"
+    for part in USER_GAMES_DIR.parts:
+        if part == "talon":
+            break
+        USER_GAMES_DIR = USER_GAMES_DIR.relative_to(part)
+    return str(USER_GAMES_DIR)
+
+def get_path_text(id: str, path_prefix:str, app_name: str) -> str:
+    NEW_FOLDER = f"{path_prefix}/{app_name}"
+    if id == "root":
+        return NEW_FOLDER
+    elif id == "talon":
+        return f"{NEW_FOLDER}/{app_name}.talon"
+    elif id == "py":
+        return f"{NEW_FOLDER}/{app_name}.py"
+
+def on_path_text_change(value: str):
+    app_name = get_path_prefix()
+    actions.user.ui_elements_set_text("root", get_path_text("root", app_name, value))
+    actions.user.ui_elements_set_text("talon", get_path_text("talon", app_name, value))
+    actions.user.ui_elements_set_text("py", get_path_text("py", app_name, value))
+
 @mod.action_class
 class Actions:
     def game_settings_open():
@@ -297,22 +320,22 @@ class Actions:
 
         file_list = []
         if not has_files:
-            USER_GAMES_DIR = Path(__file__).parent.parent / "user_games"
-            for part in USER_GAMES_DIR.parts:
-                if part == "talon":
-                    break
-                USER_GAMES_DIR = USER_GAMES_DIR.relative_to(part)
-            NEW_FOLDER = f"{USER_GAMES_DIR}/{app_name}"
-            file_list.append(NEW_FOLDER)
-            file_list.append(f"{NEW_FOLDER}/{app_name}.talon")
-            file_list.append(f"{NEW_FOLDER}/{app_name}.py")
+            USER_GAMES_DIR = get_path_prefix()
+            file_list.append(("root", get_path_text("root", USER_GAMES_DIR, app_name)))
+            file_list.append(("talon", get_path_text("talon", USER_GAMES_DIR, app_name)))
+            file_list.append(("py", get_path_text("py", USER_GAMES_DIR, app_name)))
 
         builder = screen(id="main", justify_content="center", align_items="center")[
             div(background_color="333333", padding=16, border_radius=8, border_color="FFD700", border_width=1)[
                 text('Game Setup', font_size=24, margin_bottom=24),
                 div(flex_direction="row", align_items="center")[
                     text('Current app:', margin_right=8),
-                    input_text(id="app_name", value=app_name, background_color="222222", border_color="222222")
+                    input_text(
+                        id="app_name",
+                        value=app_name,
+                        on_change=on_path_text_change,
+                        background_color="222222",
+                        border_color="222222")
                 ],
                 div(margin_top=24)[
                     has_files and text('Game files already setup', color="00FF00"),
@@ -320,7 +343,7 @@ class Actions:
                         # text('No game files found', color="888888", background_color="FF0000", padding=24, border_radius=18, border_color="0000FF"),
                         text('The following folder and files will be created:', margin_top=12),
                         div(background_color="222222", border_radius=8, margin_top=16, padding=12, width=350)[
-                            *(text(file, color="FFD700", font_size=14) for file in file_list)
+                            *(text(file, id=id, color="FFD700", font_size=14) for id, file in file_list)
                         ]
                     ]
                 ],

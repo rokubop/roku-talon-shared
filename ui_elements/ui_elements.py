@@ -726,7 +726,7 @@ class UIBuilder(UIBox):
         self.static_canvas = None
         self.dynamic_canvas = None
         self.highlight_canvas = None
-        self.blockable_canvases = None
+        self.blockable_canvases = []
         self.unhighlight_jobs = {}
         self.highlight_color = options.get("highlight_color")
         opts = UIOptions(**options or {})
@@ -766,13 +766,35 @@ class UIBuilder(UIBox):
                 print(f"Could not highlight ID {id}. ID not found.")
 
     def init_blockable_canvases(self):
-        if buttons:
-            rect = self.box_model.content_children_rect
-            blockable_canvas = Canvas.from_rect(rect)
-            blockable_canvas.blocks_mouse = True
-            blockable_canvas.register("mouse", self.on_mouse)
-            blockable_canvas.freeze()
-            self.blockable_canvases = [blockable_canvas]
+        """
+        If we have at least one button or input, then we will consider the whole content area as blockable.
+        However if we have an input, then everything should be blockable except for that input.
+        """
+        if buttons or inputs:
+            full_rect = self.box_model.content_children_rect
+            if inputs:
+                bottom_rect = None
+                for input in inputs.values():
+                    current_rect = bottom_rect or full_rect
+
+                    top_rect = Rect(current_rect.x, current_rect.y, current_rect.width, input.rect.y - current_rect.y)
+                    self.blockable_canvases.append(Canvas.from_rect(top_rect))
+
+                    left_rect = Rect(current_rect.x, input.rect.y, input.rect.x - current_rect.x, input.rect.height)
+                    self.blockable_canvases.append(Canvas.from_rect(left_rect))
+
+                    right_rect = Rect(input.rect.x + input.rect.width, input.rect.y, current_rect.x + current_rect.width - input.rect.x - input.rect.width, input.rect.height)
+                    self.blockable_canvases.append(Canvas.from_rect(right_rect))
+
+                    bottom_rect = Rect(current_rect.x, input.rect.y + input.rect.height, current_rect.width, current_rect.y + current_rect.height - input.rect.y - input.rect.height)
+                self.blockable_canvases.append(Canvas.from_rect(bottom_rect))
+            else:
+                self.blockable_canvases = Canvas.from_rect(full_rect)
+
+            for blockable_canvas in self.blockable_canvases:
+                blockable_canvas.blocks_mouse = True
+                blockable_canvas.register("mouse", self.on_mouse)
+                blockable_canvas.freeze()
 
     def show(self):
         global state, debug_current_step, render_step, debug_start_step, debug_draw_step_by_step
@@ -886,7 +908,7 @@ class UIBuilder(UIBox):
                     canvas.unregister("mouse", self.on_mouse)
                     canvas.hide()
                     canvas.close()
-                self.blockable_canvases = None
+                self.blockable_canvases = []
 
         buttons = {}
 

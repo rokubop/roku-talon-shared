@@ -98,9 +98,11 @@ class Margin(BoxModelSpacing):
 class Padding(BoxModelSpacing):
     pass
 
-def canvas_from_main_screen():
+def get_screen(index: int = None) -> Screen:
+    return ui.main_screen() if index is None else ui.screens()[index]
+
+def canvas_from_screen(screen: Screen) -> Canvas:
     """ui_main_screen"""
-    screen: Screen = ui.main_screen()
     return Canvas.from_screen(screen)
 
 def grow_rect(orig_rect: Rect, new_rect: Rect):
@@ -153,8 +155,10 @@ class UIOptionsDict(TypedDict):
     justify: str
     left: int
     margin: Margin
+    opacity: float
     padding: Padding
     right: int
+    screen: int
     top: int
     width: int
 
@@ -179,14 +183,14 @@ class UIOptions:
     id: str = None
     align: str = "start"
     background_color: str = None
-    border_color: str = "red"
+    border_color: str = "FF0000"
     border_radius: int = 0
     border_width: int = 0
     bottom: Optional[int] = None
     top: Optional[int] = None
     left: Optional[int] = None
     right: Optional[int] = None
-    color: str = "white"
+    color: str = "FFFFFF"
     flex_direction: str = "column"
     gap: int = None
     height: int = 0
@@ -195,6 +199,7 @@ class UIOptions:
     align_items: str = "flex_start"
     type: str = None
     margin: Margin = Margin(0, 0, 0, 0)
+    opacity: float = None
     padding: Padding = Padding(0, 0, 0, 0)
     width: int = 0
 
@@ -202,6 +207,19 @@ class UIOptions:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)
+
+        if self.opacity is not None:
+            # convert float to 2 digit hex e.g. 00 44 88 AA FF
+            opacity_hex = format(int(round(self.opacity * 255)), '02X')
+
+            if self.background_color and len(self.background_color) == 6:
+                    self.background_color = self.background_color + opacity_hex
+
+            if self.border_color and len(self.border_color) == 6:
+                    self.border_color = self.border_color + opacity_hex
+
+            if self.color and len(self.color) == 6:
+                    self.color = self.color + opacity_hex
 
         self.padding = parse_box_model(Padding, **{k: v for k, v in kwargs.items() if 'padding' in k})
         self.margin = parse_box_model(Margin, **{k: v for k, v in kwargs.items() if 'margin' in k})
@@ -235,11 +253,11 @@ class UIInputTextOptions(UIOptions):
         super().__init__(**kwargs)
 
 class Cursor:
-    def __init__(self):
-        self.x = 0
-        self.y = 0
-        self.virtual_x = 0
-        self.virtual_y = 0
+    def __init__(self, screen: Screen):
+        self.x = screen.x
+        self.y = screen.y
+        self.virtual_x = screen.x
+        self.virtual_y = screen.y
 
     def move_to(self, x, y):
         self.x = x
@@ -730,7 +748,10 @@ def draw_text_simple(c, text, options, x, y):
 
 class UIBuilder(UIBox):
     def __init__(self, **options: UIOptionsDict):
-        self.cursor = Cursor()
+        screen_index = options.get("screen")
+        screen = get_screen(screen_index)
+        self.screen = screen_index
+        self.cursor = Cursor(screen)
         self.static_canvas = None
         self.dynamic_canvas = None
         self.highlight_canvas = None
@@ -811,6 +832,7 @@ class UIBuilder(UIBox):
 
     def show(self):
         global state, debug_current_step, render_step, debug_start_step, debug_draw_step_by_step
+        screen = get_screen(self.screen)
 
         if debug_draw_step_by_step:
             if self.static_canvas:
@@ -822,22 +844,22 @@ class UIBuilder(UIBox):
                 debug_current_step = debug_start_step
 
         if self.static_canvas:
-            self.cursor = Cursor()
+            self.cursor = Cursor(screen)
             self.static_canvas.freeze()
             self.dynamic_canvas.freeze()
             self.highlight_canvas.freeze()
             for canvas in self.blockable_canvases:
                 canvas.freeze()
         else:
-            self.static_canvas = canvas_from_main_screen()
+            self.static_canvas = canvas_from_screen(screen)
             self.static_canvas.register("draw", self.on_draw_static)
             self.static_canvas.freeze()
 
-            self.dynamic_canvas = canvas_from_main_screen()
+            self.dynamic_canvas = canvas_from_screen(screen)
             self.dynamic_canvas.register("draw", self.on_draw_dynamic)
             self.dynamic_canvas.freeze()
 
-            self.highlight_canvas = canvas_from_main_screen()
+            self.highlight_canvas = canvas_from_screen(screen)
             self.highlight_canvas.register("draw", self.on_draw_highlight)
             self.highlight_canvas.freeze()
 
@@ -961,11 +983,13 @@ class UIProps:
     margin_left: int
     on_change: callable
     on_click: callable
+    opacity: float
     padding: int
     padding_top: int
     padding_right: int
     padding_bottom: int
     padding_left: int
+    screen: int
     value: str
     width: int
 
@@ -1034,12 +1058,41 @@ class UIElementsNoChildrenProxy:
         return self.func(*args, **kwargs)
 
 # ui_elements
-def screen(props=None, **additional_props):
+def screen(*args, **additional_props):
+    """
+    ```py
+    # Top left align children:
+    screen(justify_content="flex_start", align_items="flex_start")
+
+    # Center align children:
+    screen(justify_content="center", align_items="center")
+
+    # Bottom right align children:
+    screen(justify_content="flex_end", align_items="flex_end")
+
+    # Specify a screen index:
+    screen(1, justify_content="center", align_items="center")
+
+    # Use a dictionary instead:
+    screen({"justify_content": "center", "align_items": "center"})
+    ```
+    """
     global builders_core
+    props = None
+    if len(args) == 1 and isinstance(args[0], dict):
+        props = args[0]
+    elif len(args) == 1:
+        props = { "screen": args[0] }
+    elif len(args) > 1:
+        props = args[1]
+        props["screen"] = args[0]
+
+    ref_screen: Screen = get_screen(props.get("screen") if props else None)
+
     options = get_props(props, additional_props)
     builder = UIBuilder(
-        width=1920,
-        height=1080,
+        width=ref_screen.width,
+        height=ref_screen.height,
         **options
     )
     builders_core[builder.id] = builder

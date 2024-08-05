@@ -1,4 +1,4 @@
-from talon import Module, actions, cron, ctrl, clip
+from talon import Module, actions, cron, ctrl, clip, settings
 from typing import Any
 
 mod = Module()
@@ -18,6 +18,12 @@ mod.setting(
     type=int,
     default=500
 )
+mod.setting(
+    "game_mouse_click_hold",
+    desc="Hold time for a click.",
+    type=float,
+    default=16.0
+)
 _move_dir = None
 _move_dir_last_horizontal = "d"
 _horizontal_keys = { "right", "left", "a", "d" }
@@ -30,7 +36,7 @@ _curve_type = "inward"
 _curve_speed = None
 _held_keys = set()
 _held_mouse_buttons = set()
-key_up_pending_jobs = {}
+_key_up_pending_jobs = {}
 
 queue = []
 
@@ -237,9 +243,9 @@ def mouse_release(button: int):
         actions.user.game_event_trigger_on_mouse(button, EVENT_MOUSE_RELEASE)
         _held_mouse_buttons.remove(button)
 
-def mouse_click(button: int, duration_ms: int = 16):
+def mouse_click(button: int, duration_ms: int = None):
     """Click a mouse button"""
-    ctrl.mouse_click(button, hold=duration_ms*1000)
+    ctrl.mouse_click(button, hold=(duration_ms or settings.get("user.game_mouse_click_hold"))*1000)
     actions.user.game_event_trigger_on_mouse(button, EVENT_MOUSE_CLICK)
 
 def stopper():
@@ -335,10 +341,10 @@ def mouse_calibrate_90_y(dy_90: int):
     actions.user.mouse_move_queue(lambda: actions.user.rt_mouse_move_delta(0, -dy_90, 100, on_calibrate_y_90_tick, mouse_api_type="windows"))
 
 def game_key_up(key):
-    global key_up_pending_jobs
+    global _key_up_pending_jobs
     actions.key(f"{key}:up")
     actions.user.game_event_trigger_on_key(key, EVENT_KEY_RELEASE)
-    key_up_pending_jobs[key] = None
+    _key_up_pending_jobs[key] = None
     if key in _held_keys:
         _held_keys.remove(key)
 
@@ -357,17 +363,17 @@ def game_key(key: str):
 
 def game_key_hold(key: str, hold: int = None):
     """Hold a game key"""
-    global key_up_pending_jobs
+    global _key_up_pending_jobs
     if not hold:
         game_key_down(key)
         return
 
-    if key_up_pending_jobs.get(key):
-        cron.cancel(key_up_pending_jobs[key])
+    if _key_up_pending_jobs.get(key):
+        cron.cancel(_key_up_pending_jobs[key])
     actions.key(f"{key}:up")
     actions.key(f"{key}:down")
     actions.user.game_event_trigger_on_key(key, EVENT_KEY_HOLD)
-    key_up_pending_jobs[key] = cron.after(f"{hold}ms", lambda: game_key_up(key))
+    _key_up_pending_jobs[key] = cron.after(f"{hold}ms", lambda: game_key_up(key))
 
 def game_key_toggle(key: str):
     """Toggle a game key"""

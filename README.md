@@ -6,7 +6,7 @@ This is shared set of Talon tools and scripts to help you play games, build UIs,
 | Feature | Description | README |
 | --- | --- | --- |
 | `drag_mode` | Grid specializing in dragging between points with left, mid, and right click. WIP. | [README](drag_mode/README.md) |
-| `game_tools` | Actions for playing games. Auto setup script. | [README](game_tools/README.md) |
+| `game_tools` | Actions for playing games. Eventually with auto setup script. | [README](game_tools/README.md) |
 | `mouse_move_adv` | Actions for moving the mouse to and from points. | [README](mouse_move_adv/README.md) |
 | `parrot_config` | Quick and easy way to assign your parrot commands to combos, throttling, debounce, screen positions. Easy to swap out with other configs without using modes or tags. | [README](parrot_config/README.md) |
 | `roku_games` | My personal game setups for reference. | [README](roku_games/README.md) |

@@ -1,5 +1,9 @@
 from talon import Module
-from .parrot_config import use_parrot_config
+from .parrot_config import (
+    use_parrot_config,
+    parrot_config_event_register,
+    parrot_config_event_unregister,
+)
 
 mod = Module()
 
@@ -54,7 +58,9 @@ class Actions:
         """
         return {}
 
-    def parrot_config_format_display(parrot_config: dict[str, tuple[str, callable]]) -> tuple[list[str], list[str]]:
+    def parrot_config_format_display(
+        parrot_config: dict[str, tuple[str, callable]],
+    ) -> tuple[list[str], list[str]]:
         """
         Format/prettify into commands/actions
         ```
@@ -78,3 +84,20 @@ class Actions:
             acts.append(action)
 
         return (cmds, acts)
+
+    def parrot_config_event_register(on_noise: callable):
+        """
+        Register noise event triggered from parrot_config
+        ```py
+        def on_noise(noise: str, command: str):
+            print(noise, command)
+        actions.user.parrot_config_event_register(on_noise)
+        ```
+        """
+        parrot_config_event_register(on_noise)
+
+    def parrot_config_event_unregister(on_noise: callable):
+        """
+        Unregister event set by actions.user.parrot_config_event_register
+        """
+        parrot_config_event_unregister(on_noise)

@@ -1,6 +1,6 @@
 # Mouse Move Advanced (WIP)
 
-This is an experimental repository. WIP. action names may change in the future. This is used for helping you turn in game and drag commandsp
+This is an experimental repository. WIP. action names may change in the future. This is used for helping you turn in game and drag commands.
 
 Mouse movement actions for Talon using a delta (dx, dy) or position(s) (x, y) over a duration of time, with control over the easing type, API (Windows or Talon), and callbacks.
 

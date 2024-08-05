@@ -114,14 +114,14 @@ def hide_keys():
     actions.user.game_event_unregister_on_key(on_key)
     ui_keys.hide()
 
-def show_ui(parrot_config, options = {}):
+def show_full_ui(parrot_config, options = {}):
     show_commands(parrot_config, options)
     show_keys(options)
 
-def hide_ui():
+def hide_full_ui():
     hide_commands()
     hide_keys()
 
-def refresh_ui(parrot_config, options = {}):
+def refresh_full_ui(parrot_config, options = {}):
     hide_commands()
     show_commands(parrot_config, options)

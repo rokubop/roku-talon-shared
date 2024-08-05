@@ -2,6 +2,8 @@ from talon import Module, actions, cron, ui, ctrl
 import re
 mod = Module()
 
+event_subscribers = []
+
 def get_base_noise(noise):
     """The part before colon or @ e.g.'pop' in 'pop:db_170' or 'pop@top'"""
     base_combo = noise.split(':')[0].split('@')[0]
@@ -12,9 +14,6 @@ def get_base_with_location_noise(noise):
     """The part before colon or @ e.g.'pop' in 'pop:db_170' or 'pop@top'"""
     base_noise = noise.split(':')[0]
     return base_noise.strip()
-
-def is_prefix_of_other(cmd):
-    return any(other_cmd.startswith(f"{cmd} ") and other_cmd != cmd for other_cmd in commands)
 
 def executeActionOrLocationAction(action):
     if isinstance(action, dict):
@@ -136,6 +135,8 @@ class ParrotConfig():
             self.combo_job = None
         action = self.delayed_commands[self.pending_combo][1]
         executeActionOrLocationAction(action)
+        command = self.delayed_commands[self.pending_combo][0]
+        parrot_config_event_trigger(self.pending_combo, command)
         self.combo_chain = ""
         self.pending_combo = None
 
@@ -167,6 +168,8 @@ class ParrotConfig():
             # print(f"match for {self.combo_chain}")
             action = self.immediate_commands[self.combo_chain][1]
             executeActionOrLocationAction(action)
+            command = self.immediate_commands[self.combo_chain][0]
+            parrot_config_event_trigger(self.combo_chain, command)
             self.combo_chain = ""
             self.pending_combo = None
         elif noise in self.immediate_commands:
@@ -176,6 +179,8 @@ class ParrotConfig():
                 actions.sleep("20ms")
             action = self.immediate_commands[noise][1]
             executeActionOrLocationAction(action)
+            command = self.immediate_commands[noise][0]
+            parrot_config_event_trigger(noise, command)
             self.combo_chain = ""
             self.pending_combo = None
         else:
@@ -219,3 +224,13 @@ def use_parrot_config(sound: str):
         parrot_config_saved.setup(config)
 
     parrot_config_saved.execute(sound)
+
+def parrot_config_event_register(on_noise: callable):
+    event_subscribers.append(on_noise)
+
+def parrot_config_event_unregister(on_noise: callable):
+    event_subscribers.remove(on_noise)
+
+def parrot_config_event_trigger(noise: str, command: str):
+    for on_noise_subscriber in event_subscribers:
+        on_noise_subscriber(noise, command)

@@ -1,5 +1,5 @@
 from talon import Module, Context, actions, cron
-from .celeste_ui import show_ui, hide_ui, refresh_ui
+from .ui.index import show_ui, hide_ui, refresh_ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 mod.apps.celeste = "os: windows\nand app.exe: /Celeste.exe/i"
@@ -63,12 +63,12 @@ def use_move_mode():
         **default_config,
         **move_config
     }
-    refresh_ui(parrot_config, { "background_color": "C70039" })
+    refresh_ui("C70039")
 
 def use_default_mode():
     global parrot_config
     parrot_config = default_config
-    refresh_ui(parrot_config, { "background_color": "000000" })
+    refresh_ui("000000")
 
 def skip_scene():
     actions.user.game_stopper()
@@ -105,7 +105,7 @@ default_config = {
     "tut mm":     ("", dash_backward_down),
     "tut ee":     ("skip scene", skip_scene),
     "tut cluck":  ("return map", return_map),
-    "tut er":     ("restart chapter", restart_chapter),
+    "tut pop":    ("restart chapter", restart_chapter),
     "cluck":      ("load", lambda: (actions.key("f8"), actions.user.game_stopper())),
     "cluck cluck":("save", lambda: actions.key("f7")),
     "cluck ee":   ("clear", lambda: actions.key("f4")),
@@ -125,7 +125,11 @@ move_config = {
     "t":          ("f-up", actions.user.game_move_dir_hold_up_horizontal),
     "mm":         ("f-down", actions.user.game_move_dir_hold_down_horizontal),
     "palate":     ("short up", lambda: actions.user.game_key_hold("up", 30)),
-    "pop":        ("short down", lambda: actions.user.game_key_hold("down", 30))
+    "pop":        ("short down", lambda: actions.user.game_key_hold("down", 30)),
+    "sh:th_100":  ("c", lambda: actions.user.game_key("c")),
+    "sh_stop":    ("", lambda: None),
+    "ss:th_100":  ("x", lambda: actions.user.game_key("x")),
+    "ss_stop":    ("", lambda: None),
 }
 
 pedal_center_up_job = None
@@ -139,7 +143,7 @@ def stop_move_mode():
 @ctx_game.action_class("user")
 class Actions:
     def on_game_mode_enabled():
-        show_ui(parrot_config)
+        show_ui()
 
     def on_game_mode_disabled():
         hide_ui()

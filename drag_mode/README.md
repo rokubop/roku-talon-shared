@@ -11,7 +11,7 @@ This is an experimental repository. WIP. Likely will change in the future. Allow
 | more squares | Increase the number of squares in the grid | |
 | less squares | Decrease the number of squares in the grid | |
 | grid hide \| hide grid | Hide the grid | |
-| X | Click a target | sun plex |r
+| X | Click a target | sun plex |
 | X then Y | Click two targets in sequence. **You** can chain as many as you want. | sun plex then air bat |
 | clear X ( to \| past) Y | Clear the grid between two targets. So there isn't so much noise on your screen. | clear air bat to sun plex |
 | bring X | Drag from a target to the current mouse position | bring sun plex |

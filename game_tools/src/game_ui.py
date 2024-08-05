@@ -327,7 +327,7 @@ class Actions:
 
         builder = screen(id="main", justify_content="center", align_items="center")[
             div(background_color="333333", padding=16, border_radius=8, border_color="FFD700", border_width=1)[
-                text('Game Setup', font_size=24, margin_bottom=24),
+                text('Game Setup (WIP) - DOESNT WORK', font_size=24, margin_bottom=24),
                 div(flex_direction="row", align_items="center")[
                     text('Current app:', margin_right=8),
                     input_text(

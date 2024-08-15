@@ -1,11 +1,8 @@
 from talon import actions
 
-commands = None
 accent_color = "87ceeb"
 
 def show_ui(parrot_config, background_color="22266688"):
-    global commands
-
     (div, screen, text) = actions.user.ui_elements(['div', 'screen', 'text'])
     (cmds, acts) = actions.user.parrot_config_format_display(parrot_config)
 
@@ -25,9 +22,7 @@ def show_ui(parrot_config, background_color="22266688"):
     commands.show()
 
 def hide_ui():
-    """Hide and destroy the commands UI"""
-    global commands
-    commands.hide()
+    actions.user.ui_elements_hide_all()
 
 def refresh_ui(parrot_config):
     hide_ui()

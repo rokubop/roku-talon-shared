@@ -1,5 +1,5 @@
 from talon import Module, Context, actions
-from .rdr2_ui import show_ui, hide_ui
+from .rdr2_ui import show_ui, hide_ui, update_pop, update_hiss
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 mod.apps.rdr2 = "os: windows\nand app.exe: /code.exe/i"
@@ -13,7 +13,11 @@ class Actions:
         print("Game state change", state)
 
     def on_dynamic_action_change(name: str, action_name: str):
-        print("Dynamic action change", name, action_name)
+        print("***************Dynamic action change", name, action_name)
+        if name == "pop":
+            update_pop(action_name)
+        elif name == "hiss" or name == "wish":
+            update_hiss(action_name)
 
     def on_game_mode_enabled():
         print("Game mode enabled")
@@ -22,10 +26,15 @@ class Actions:
             actions.user.game_mouse_click
         )
         actions.user.noise_register_dynamic_action_hiss(
-            "toggle right",
-            actions.user.game_mouse_toggle_right,
+            "stop",
+            actions.user.game_stopper,
             alias="wish"
         )
+        # actions.user.noise_register_dynamic_action_hiss(
+        #     "toggle right",
+        #     actions.user.game_mouse_toggle_right,
+        #     alias="wish"
+        # )
         show_ui()
 
     def on_game_mode_disabled():

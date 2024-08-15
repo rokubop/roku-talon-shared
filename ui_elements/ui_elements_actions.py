@@ -104,6 +104,11 @@ class Actions:
         else:
             print(f"UI builder with ID {id} not found.")
 
+    def ui_elements_hide_all():
+        """Hide/close all currently active ui_elements"""
+        for id in builders_core:
+            builders_core[id].hide()
+
     def ui_builder_show(id: str):
         """
         Show the UI builder with the given ID.

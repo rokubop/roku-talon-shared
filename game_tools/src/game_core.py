@@ -401,22 +401,22 @@ def mouse_calibrate_x_360(dx360: int):
     """Calibrate a 360 spin"""
     global _last_calibrate_value_x
     _last_calibrate_value_x = 0
-    actions.user.rt_mouse_move_delta(dx360, 0, 1000, on_calibrate_x_360_tick, mouse_api_type="windows")
+    actions.user.mouse_move_delta_smooth(dx360, 0, 1000, on_calibrate_x_360_tick, mouse_api_type="windows")
 
 def game_calibrate_x_360_adjust_last(dx: int):
     """Add or subtract to the last x calibration."""
-    actions.user.rt_mouse_move_delta(dx, 0, 500, on_calibrate_x_360_tick, mouse_api_type="windows")
+    actions.user.mouse_move_delta_smooth(dx, 0, 500, on_calibrate_x_360_tick, mouse_api_type="windows")
 
 def game_calibrate_y_90_adjust_last(dy: int):
     """Add or subtract to the last x calibration."""
-    actions.user.rt_mouse_move_delta(0, dy, 500, on_calibrate_y_90_tick, mouse_api_type="windows")
+    actions.user.mouse_move_delta_smooth(0, dy, 500, on_calibrate_y_90_tick, mouse_api_type="windows")
 
 def mouse_calibrate_90_y(dy_90: int):
     """Calibrate looking down to the ground and looking up to center."""
     global _last_calibrate_value_y
     _last_calibrate_value_y = 0
-    actions.user.rt_mouse_move_delta(0, dy_90 * 2, 100, mouse_api_type="windows")
-    actions.user.mouse_move_queue(lambda: actions.user.rt_mouse_move_delta(0, -dy_90, 100, on_calibrate_y_90_tick, mouse_api_type="windows"))
+    actions.user.mouse_move_delta_smooth(0, dy_90 * 2, 100, mouse_api_type="windows")
+    actions.user.mouse_move_queue(lambda: actions.user.mouse_move_delta_smooth(0, -dy_90, 100, on_calibrate_y_90_tick, mouse_api_type="windows"))
 
 def game_key_up(key):
     global _key_up_pending_jobs

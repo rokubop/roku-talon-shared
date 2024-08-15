@@ -31,7 +31,7 @@ center <user.drag_mode_target>: user.drag_mode_bring_to_center(drag_mode_target,
 
 swipe <user.drag_mode_target> left:
     user.drag_mode_move_mouse(drag_mode_target)
-    user.rt_mouse_move_delta(-200, 0)
+    user.mouse_move_delta_smooth(-200, 0)
 
 drag (grid | mode | off | hide): user.drag_mode_hide()
 ^grid (hide | close | off)$: user.drag_mode_hide()

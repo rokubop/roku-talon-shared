@@ -1,7 +1,10 @@
-from talon import Module, actions, cron, ctrl, clip, settings
+from talon import Module, Context, actions, cron, ctrl, clip, settings
 from typing import Any
 
 mod = Module()
+ctx = Context()
+ctx_game = Context()
+ctx_game.matches = "mode: user.game"
 mod.mode("game", "game play mode")
 mod.mode("game_calibrating_x", "calibrating x")
 mod.mode("game_calibrating_y", "calibrating y")
@@ -24,6 +27,27 @@ mod.setting(
     type=float,
     default=16.0
 )
+
+# mod.setting("game_camera_dynamic_speed", desc="Dynamic camera speed", type=int, default=5)
+# mod.setting("game_camera_speed", desc="Camera speed", type=int, default=5)
+mod.list("game_actions", desc="Game actions")
+mod.list("game_key_actions", desc="Game actions")
+mod.list("game_action_values", desc="Game actions")
+mod.list("game_keys_mouse", desc="Game actions")
+mod.list("game_dir", desc="Game actions")
+ctx.lists["user.game_dir"] = {
+    "left",
+    "right",
+    "up",
+    "down",
+}
+arrow_to_wasd = {
+    "left": "a",
+    "right": "d",
+    "up": "w",
+    "down": "s",
+}
+
 _move_dir = None
 _move_dir_last_horizontal = "d"
 _horizontal_keys = { "right", "left", "a", "d" }
@@ -37,6 +61,19 @@ _curve_speed = None
 _held_keys = set()
 _held_mouse_buttons = set()
 _key_up_pending_jobs = {}
+_camera_speed = None
+_camera_snap_angle = None
+_game_use_awsd_for_arrows = False
+
+DIR_MODE_CAM_CONTINUOUS = "continuous"
+DIR_MODE_CAM_SNAP = "snap"
+DIR_MODE_MOVE = "move"
+SNAP_DIR_X = "x"
+SNAP_DIR_Y = "y"
+
+_preferred_dir_mode = DIR_MODE_CAM_CONTINUOUS
+_dir_mode = None
+_last_snap_dir = SNAP_DIR_X
 
 queue = []
 
@@ -91,6 +128,12 @@ def move_dir(keys: str | tuple[str, str]):
     """Hold a direction key"""
     global _move_dir, _move_dir_last_horizontal
 
+    if _game_use_awsd_for_arrows:
+        if isinstance(keys, tuple):
+            keys = tuple(arrow_to_wasd.get(k, k) for k in keys)
+        else:
+            keys = arrow_to_wasd.get(keys, keys)
+
     if _move_dir:
         release_dir(_move_dir)
 
@@ -119,6 +162,8 @@ def curve_dir_stop():
 def move_dir_curve(key: str, initial_curve_amount: int = 5):
     """Hold a direction key with a curve"""
     global _curve_speed
+    if _game_use_awsd_for_arrows:
+        key = arrow_to_wasd.get(key, key)
     if _curve_speed is None:
         _curve_speed = initial_curve_amount
     move_dir(key)
@@ -127,6 +172,12 @@ def move_dir_curve(key: str, initial_curve_amount: int = 5):
 def move_dir_toggle(keys: str | tuple[str, str]):
     """Toggle a direction key"""
     global _move_dir
+    if _game_use_awsd_for_arrows:
+        if isinstance(keys, tuple):
+            keys = tuple(arrow_to_wasd.get(k, k) for k in keys)
+        else:
+            keys = arrow_to_wasd.get(keys, keys)
+
     if _move_dir:
         release_dir(_move_dir)
         # release_dir(keys)
@@ -266,8 +317,28 @@ def stopper():
     if _held_mouse_buttons:
         mouse_release_all()
 
+@mod.capture(rule="{user.game_actions}")
+def game_action(m) -> str:
+    print(m)
+    return m.game_actions
+
+@mod.capture(rule="{user.game_action_values}")
+def game_action_values(m) -> str:
+    print(m)
+    return m.game_action_values
+
 @mod.action_class
 class Actions:
+    def game_action_test(a: str):
+        """Test game action"""
+        print("game_action_test:")
+        print(a)
+
+    def game_action_test_2(a: str, b: str):
+        """Test game action 2"""
+        print("game_action_test_2:")
+        print(a, b)
+
     def game_show_commands(title: str, text_lines: list, bg_color: str = "222666", align: str = "right"):
         """Show the game commands"""
         actions.user.ui_textarea_show({
@@ -287,8 +358,14 @@ class Actions:
 
     def game_mode_enable():
         """Enable play mode"""
+        global _game_use_awsd_for_arrows
         actions.mode.enable("user.game")
         actions.mode.disable("command")
+        print("game_mode_enable")
+        if settings.get("user.game_use_awsd_for_arrows"):
+            _game_use_awsd_for_arrows = True
+        # print(actions.user.game_actions)
+        # print(mod.lists["user.game_actions"])
         actions.user.on_game_mode_enabled()
 
     def game_nav_mode_enable():
@@ -301,6 +378,7 @@ class Actions:
         actions.mode.disable("user.game")
         actions.mode.enable("command")
         stopper()
+        print("game_mode_disable")
 
 def mouse_reset_center_y():
     """Reset the mouse to the center of the screen."""
@@ -389,6 +467,84 @@ def get_held_keys():
 def get_held_mouse_buttons():
     """Get the held mouse buttons"""
     return _held_mouse_buttons
+
+def mouse_move_deg(deg_x: int, deg_y: int, mouse_button: int = None):
+    action_duration_ms = settings.get("user.game_camera_snap_speed_ms")
+    if mouse_button is not None:
+        mouse_hold(mouse_button)
+
+        def on_stop():
+            mouse_release(mouse_button)
+
+        actions.user.mouse_move_delta_degrees(deg_x, deg_y, action_duration_ms, mouse_api_type="windows", callback_stop=on_stop)
+    else:
+        actions.user.mouse_move_delta_degrees(deg_x, deg_y, action_duration_ms, mouse_api_type="windows")
+
+def mouse_move_continuous(x: int, y: int, speed: int, mouse_button: int = None):
+    if mouse_button is not None:
+        mouse_hold(mouse_button)
+    actions.user.mouse_move_continuous(x, y, speed)
+
+def mouse_move_continuous_stop(debounce_ms: int = 150):
+    if get_held_mouse_buttons():
+        mouse_release_all()
+    actions.user.mouse_move_continuous_stop(debounce_ms)
+
+def camera_continuous_dynamic(dir: str):
+    global _dir_mode, _camera_speed
+    _dir_mode = DIR_MODE_CAM_CONTINUOUS
+
+    if not _camera_speed:
+        _camera_speed = settings.get("user.game_camera_continuous_default_speed")
+
+    if dir == "left":
+        mouse_move_continuous(-1, 0, _camera_speed)
+    elif dir == "right":
+        mouse_move_continuous(1, 0, _camera_speed)
+    elif dir == "up":
+        mouse_move_continuous(0, -1, _camera_speed)
+    elif dir == "down":
+        mouse_move_continuous(0, 1, _camera_speed)
+
+def camera_continuous_dynamic_set_speed(speed: int):
+    global _camera_speed
+    _camera_speed = speed
+
+def camera_snap_dynamic(dir: str):
+    global _last_snap_dir, _dir_mode, _camera_snap_angle
+    _dir_mode = DIR_MODE_CAM_SNAP
+
+    if not _camera_snap_angle:
+        _camera_snap_angle = settings.get("user.game_camera_snap_default_angle")
+
+    if dir == "left":
+        mouse_move_deg(-_camera_snap_angle, 0)
+        _last_snap_dir = SNAP_DIR_X
+    elif dir == "right":
+        mouse_move_deg(_camera_snap_angle, 0)
+        _last_snap_dir = SNAP_DIR_X
+    elif dir == "up":
+        mouse_move_deg(0, -_camera_snap_angle)
+        _last_snap_dir = SNAP_DIR_Y
+    elif dir == "down":
+        mouse_move_deg(0, _camera_snap_angle)
+        _last_snap_dir = SNAP_DIR_Y
+    elif dir == "back":
+        mouse_move_deg(0, 180)
+
+def camera_snap_dynamic_set_angle(angle: int):
+    global _camera_snap_angle
+    _camera_snap_angle = angle
+
+def game_gear_set(gear_num: int):
+    """Set the gear number"""
+    if _dir_mode == DIR_MODE_CAM_CONTINUOUS:
+        speed = settings.get("user.game_camera_continuous_gear_speeds").split(" ").get(gear_num)
+        camera_continuous_dynamic_set_speed(speed)
+    elif _dir_mode == DIR_MODE_CAM_SNAP:
+        angle = settings.get("user.game_camera_snap_gear_angles").split(" ").get(gear_num)
+        camera_snap_dynamic_set_angle(angle)
+
 
 @mod.action_class
 class Actions:
@@ -507,6 +663,10 @@ class Actions:
         if EVENT_ON_MOUSE in event_subscribers:
             for callback in event_subscribers[EVENT_ON_MOUSE]:
                 callback(button, state)
+
+    def on_game_state_change(state: dict):
+        """On game state change"""
+        pass
 
 event_subscribers = {}
 

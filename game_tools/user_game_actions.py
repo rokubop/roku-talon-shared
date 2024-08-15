@@ -1,55 +1,39 @@
 from talon import Module, actions, ctrl
 from .src.game_core import (
-    move_dir,
-    move_dir_curve,
-    step_dir,
-    move_dir_toggle,
-    stopper,
-    mouse_calibrate_90_y,
-    mouse_calibrate_x_360,
-    game_move_dir_hold_last_horizontal,
-    move_dir_toggle_last_horizontal,
-    mouse_reset_center_y,
+    camera_continuous_dynamic,
+    camera_snap_dynamic,
+    game_gear_set,
     game_key,
     game_key_down,
-    game_key_up,
     game_key_hold,
     game_key_toggle,
-    game_move_dir_hold_up_horizontal,
+    game_key_up,
     game_move_dir_hold_down_horizontal,
+    game_move_dir_hold_last_horizontal,
+    game_move_dir_hold_up_horizontal,
     game_state_switch_horizontal,
-    get_held_mouse_buttons,
-    mouse_release_all,
+    mouse_calibrate_90_y,
+    mouse_calibrate_x_360,
     mouse_click,
     mouse_hold,
+    mouse_move_continuous,
+    mouse_move_continuous_stop,
+    mouse_move_deg,
     mouse_release,
+    mouse_release_all,
+    mouse_reset_center_y,
     mouse_toggle,
+    move_dir,
+    move_dir_curve,
+    move_dir_toggle,
+    move_dir_toggle_last_horizontal,
+    step_dir,
+    stopper
 )
 
 mod = Module()
 
 action_duration_ms = 200
-
-def mouse_move_deg(deg_x: int, deg_y: int, mouse_button: int = None):
-    if mouse_button is not None:
-        mouse_hold(mouse_button)
-
-        def on_stop():
-            mouse_release(mouse_button)
-
-        actions.user.mouse_move_delta_degrees(deg_x, deg_y, action_duration_ms, mouse_api_type="windows", callback_stop=on_stop)
-    else:
-        actions.user.mouse_move_delta_degrees(deg_x, deg_y, action_duration_ms, mouse_api_type="windows")
-
-def mouse_move_continuous(x: int, y: int, speed: int, mouse_button: int = None):
-    if mouse_button is not None:
-        mouse_hold(mouse_button)
-    actions.user.mouse_move_continuous(x, y, speed)
-
-def mouse_move_continuous_stop(debounce_ms: int = 150):
-    if get_held_mouse_buttons():
-        mouse_release_all()
-    actions.user.mouse_move_continuous_stop(debounce_ms)
 
 @mod.action_class
 class Actions:
@@ -102,6 +86,7 @@ class Actions:
     def game_move_dir_hold_down_horizontal(): """Start holding direction 'down' and last 'left' or 'right'"""; game_move_dir_hold_down_horizontal()
     def game_move_dir_hold_last_horizontal(): """Start holding the last left or right direction. Mutually exclusive."""; game_move_dir_hold_last_horizontal()
     def game_move_dir_toggle_last_horizontal(): """Toggle between stop and holding the last left or right direction"""; move_dir_toggle_last_horizontal()
+    def game_move_dir_toggle(key: str): """Toggle between stop and holding direction"""; move_dir_toggle(key)
     def game_move_dir_toggle_a(): """Toggle between stop and holding direction 'a'"""; move_dir_toggle('a')
     def game_move_dir_toggle_d(): """Toggle between stop and holding direction 'd'"""; move_dir_toggle('d')
     def game_move_dir_toggle_w(): """Toggle between stop and holding direction 'w'"""; move_dir_toggle('w')
@@ -112,6 +97,10 @@ class Actions:
     def game_move_dir_step_s(duration_ms: int = 200): """Briefly hold direction 's'"""; step_dir('s', duration_ms)
     def game_stopper(): """All purpose stopper for movement and mouse"""; stopper()
     def game_stop_all(): """Stop all movement and mouse actions"""; stopper()
+    def game_camera_snap_dynamic(dir: str): """Dynamic action based on current gear/setting. Snap the camera in a direction"""; camera_snap_dynamic(dir)
+    # def game_camera_snap_dynamic_set_angle(num: int): """Set angle for game_camera_snap"""; mouse_snap_dynamic(dir)
+    def game_camera_continuous_dynamic(dir: str): """Dynamic action based on current gear/setting. Move the camera continuously"""; camera_continuous_dynamic(dir)
+    # def game_camera_continuous_dynamic_set_speed(num: int): """Set speed for game_camera_continuous"""; mouse_move_continuous_dy
     def game_turn_left_15(mouse_button: int = None): """Turn left 15 degrees; Optionally specify mouse button 0=left, 1=right, 2=middle to hold"""; mouse_move_deg(-15, 0, mouse_button)
     def game_turn_left_30(mouse_button: int = None): """Turn left 30 degrees; Optionally specify mouse button 0=left, 1=right, 2=middle to hold"""; mouse_move_deg(-30, 0, mouse_button)
     def game_turn_left_45(mouse_button: int = None): """Turn left 45 degrees; Optionally specify mouse button 0=left, 1=right, 2=middle to hold"""; mouse_move_deg(-45, 0, mouse_button)
@@ -172,6 +161,7 @@ class Actions:
     def game_look_down_75(mouse_button: int = None): """Look down 75 degrees"""; mouse_move_deg(0, 75)
     def game_look_down_90(mouse_button: int = None): """Look down 90 degrees"""; mouse_move_deg(0, 90)
     def game_look_down(deg: int = 20, mouse_button: int = None): """Look down y degrees"""; mouse_move_deg(0, deg, mouse_button)
+    def game_gear_set(gear_num: int): """Set gear for current/last action. For dynamic actions."""; game_gear_set(gear_num)
     def game_reset_center_y(mouse_button: int = None): """Reset the mouse to the center of the screen"""; mouse_reset_center_y()
     def game_state_switch_horizontal(): """Switch state value of horizontal"""; game_state_switch_horizontal()
     def game_calibrate_x_360(num: int, mouse_button: int = None): """Calibrate x by testing a 360"""; mouse_calibrate_x_360(num)

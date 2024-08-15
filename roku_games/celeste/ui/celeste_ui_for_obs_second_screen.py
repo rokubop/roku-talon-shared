@@ -4,6 +4,39 @@ ui_keys = None
 ui_live_text = None
 accent_color = "87ceeb"
 live_keys_timeout = None
+ui_commands = None
+
+def show_commands(parrot_config, options = {}):
+    global ui_commands
+    (commands, acts) = actions.user.parrot_config_format_display(parrot_config)
+    (div, text, screen) = actions.user.ui_elements(["div", "text", "screen"])
+    background_color = options.get("background_color") or "000000"
+
+    ui_commands = screen(1, align_items="flex_end", justify_content="flex_end")[
+        div(background_color=f"{background_color}66", margin=16, margin_right=220, margin_bottom=150, padding=16)[
+            div(flex_direction="row", gap=16)[
+                div(gap=8)[
+                    text("sound", font_weight="bold"),
+                    *(text(command) for command in commands),
+                ],
+                div(gap=8)[
+                    text("action", font_weight="bold", color=accent_color),
+                    *(text(action, color=accent_color) for action in acts),
+                ]
+            ],
+            div(margin_top=18, flex_direction="row", align_items="center")[
+                text("jump2:"),
+                text("120ms", id="jump2", color="c43dff", font_weight="bold"),
+                # text("dir:"),
+                # text("←", id="dir", color="c43dff", font_weight="bold", font_size=28),
+            ]
+        ],
+    ]
+    ui_commands.show()
+
+def hide_commands():
+    global ui_commands
+    ui_commands.hide()
 
 def reset_live_keys():
     global live_keys_timeout
@@ -14,7 +47,7 @@ def reset_live_keys():
 def on_noise(noise, command_name):
     global live_keys_timeout
     if command_name:
-        actions.user.ui_elements_set_text("noise", noise[:3])
+        actions.user.ui_elements_set_text("noise", noise)
         actions.user.ui_elements_set_text("command", command_name)
         if live_keys_timeout:
             cron.cancel(live_keys_timeout)
@@ -24,9 +57,9 @@ def show_live_text_ui():
     global ui_live_text
     (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
     ui_live_text = screen(1, align_items="flex_end", justify_content="flex_start")[
-        div(justify_content="center", align_items="center", padding=16, margin_right=400, margin_top=100)[
-            text("", id="noise", font_size=180, font_weight="bold", color="FFFFFF"),
-            text("", id="command", font_size=50, margin_top=35, color="FFFFFF")
+        div(justify_content="center", align_items="center", padding=16, margin_right=370, margin_top=100)[
+            text("", id="noise", font_size=70, font_weight="bold", color="FFFFFF"),
+            text("", id="command", font_size=40, margin_top=35, color="FFFFFF")
         ]
     ]
     ui_live_text.show()
@@ -99,7 +132,8 @@ def show_keys():
             col()[
                 row()[blank_key(), key("up", "↑"), blank_key()],
                 row()[key("left", "←"), key("down", "↓"), key("right", "→")],
-                key("foot_left", "foot1: grab (z)", 190),
+                # row()[key("z", "z"), key("x", "x"), key("c", "c")],
+                key("foot_left", "foot1: grab", 190),
                 key("foot_center", "foot2: move mode", 190)
             ],
         ]
@@ -112,10 +146,12 @@ def hide_keys():
     actions.user.game_event_unregister_on_key(on_key)
     ui_keys.hide()
 
-def show_obs_ui():
+def show_obs_ui(parrot_config):
     show_keys()
     show_live_text_ui()
+    # show_commands(parrot_config)
 
 def hide_obs_ui():
     hide_keys()
     hide_live_text_ui()
+    # hide_commands()

@@ -63,12 +63,12 @@ def use_move_mode():
         **default_config,
         **move_config
     }
-    refresh_ui("C70039")
+    refresh_ui(parrot_config, "C70039")
 
 def use_default_mode():
     global parrot_config
     parrot_config = default_config
-    refresh_ui("000000")
+    refresh_ui(parrot_config, "000000")
 
 def skip_scene():
     actions.user.game_stopper()
@@ -81,6 +81,21 @@ def return_map():
 def restart_chapter():
     actions.user.game_stopper()
     actions.key("escape up up c c")
+
+# step 1 simple
+# default_config = {
+#     "ah":         ("left", actions.user.game_move_dir_hold_left),
+#     "oh":         ("right", actions.user.game_move_dir_hold_right),
+#     "eh":         ("up", actions.user.game_move_dir_hold_up),
+#     "er":         ("down", actions.user.game_move_dir_hold_down),
+#     "t":          ("f-up", actions.user.game_move_dir_hold_up_horizontal),
+#     "ee":         ("stop", actions.user.game_stopper),
+#     "sh:th_100":  ("c", jump_primary),
+#     "sh_stop":    ("", lambda: None),
+#     "pop":        ("x", lambda: actions.user.game_key("x")),
+#     "guh":        ("toggle z", lambda: actions.user.game_key_toggle("z")),
+#     "tut tut":    ("", actions.user.game_mode_disable),
+# }
 
 default_config = {
     "sh:th_100":  ("jump 1", jump_primary),
@@ -143,7 +158,7 @@ def stop_move_mode():
 @ctx_game.action_class("user")
 class Actions:
     def on_game_mode_enabled():
-        show_ui()
+        show_ui(parrot_config)
 
     def on_game_mode_disabled():
         hide_ui()

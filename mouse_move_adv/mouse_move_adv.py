@@ -23,6 +23,7 @@ _mouse_continuous_stop_ts = None
 _mouse_continuous_dir = None
 _mouse_continuous_speed_default = 2
 _mouse_continuous_speed = _mouse_continuous_speed_default
+dir_change_event_subscribers = []
 
 @dataclass
 class UnitVector:
@@ -137,6 +138,7 @@ def mouse_move_delta_smooth(
     step_count = 0
     last_x, last_y = 0, 0
     _last_unit_vector = convert_to_unit_vector(dx_total, dy_total)
+    mouse_move_dir_change_event_trigger(_last_unit_vector.x, _last_unit_vector.y)
     convert_linear_to_curve = easing_types[easing_type]
     subpixel_adjuster = SubpixelAdjuster()
 
@@ -190,9 +192,11 @@ def mouse_stop(start_next_queue: bool = True):
         cron.cancel(_mouse_job)
         _mouse_job = None
         _last_mouse_job_type = None
+        _last_unit_vector = None
         _mouse_continuous_dir = None
         _mouse_continuous_start_ts = None
         _mouse_continuous_stop_ts = None
+        mouse_move_dir_change_event_trigger(0, 0)
     if start_next_queue and len(_mouse_movement_queue) > 0:
         print('start_next_queue')
         # log name of the function
@@ -241,6 +245,7 @@ def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float]
         global _mouse_continuous_speed, _last_unit_vector, _mouse_continuous_start_ts
         _mouse_continuous_speed = speed_initial if reset_speed else _mouse_continuous_speed
         _last_unit_vector = unit_vector
+        mouse_move_dir_change_event_trigger(_last_unit_vector.x, _last_unit_vector.y)
         _mouse_continuous_start_ts = time.perf_counter()
         subpixel_adjuster = SubpixelAdjuster()
 
@@ -317,6 +322,16 @@ def mouse_move_from_to(
     dy = y2 - y1
     actions.mouse_move(x1, y1)
     mouse_move_delta_smooth(dx, dy, duration_ms, callback_tick, callback_stop, mouse_api_type=mouse_api_type)
+
+def mouse_move_dir_change_event_register(on_event: callable):
+    dir_change_event_subscribers.append(on_event)
+
+def mouse_move_dir_change_event_unregister(on_event: callable):
+    dir_change_event_subscribers.remove(on_event)
+
+def mouse_move_dir_change_event_trigger(x: float, y: float):
+    for subscriber in dir_change_event_subscribers:
+        subscriber(x, y)
 
 @mod.action_class
 class Actions:
@@ -448,3 +463,29 @@ class Actions:
             "last_unit_vector": _last_unit_vector,
             "continuous_active": _mouse_continuous_start_ts,
         }
+
+    def mouse_move_dir_change_event_register(on_event: callable):
+        """
+        Register callback event for mouse_move_dir_change.
+        Will trigger when movement starts or stops.
+
+        ```py
+        def on_event(event):
+            print(event.type, event.dir)
+        actions.user.mouse_move_dir_change_event_register(on_event)
+        ```
+        """
+        mouse_move_dir_change_event_register(on_event)
+
+    def mouse_move_dir_change_event_unregister(on_event: callable):
+        """
+        Unregister event set by actions.user.mouse_move_dir_change_event_register
+        """
+        mouse_move_dir_change_event_unregister(on_event)
+
+    def mouse_move_event_unregister_all():
+        """
+        Unregister all dynamic actions events
+        """
+        global dir_change_event_subscribers
+        dir_change_event_subscribers = []

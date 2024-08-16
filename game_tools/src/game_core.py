@@ -664,6 +664,11 @@ class Actions:
             for callback in event_subscribers[EVENT_ON_MOUSE]:
                 callback(button, state)
 
+    def game_event_unregister_all():
+        """Unregister all game events"""
+        global event_subscribers
+        event_subscribers = {}
+
     def on_game_state_change(state: dict):
         """On game state change"""
         pass

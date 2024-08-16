@@ -1,6 +1,6 @@
 from talon import Module, Context, actions, noise, speech_system, ctrl
 from dataclasses import dataclass
-from typing import Optional, TypedDict
+from typing import Optional, TypedDict, Union, Literal
 
 mod = Module()
 ctx = Context()
@@ -8,6 +8,16 @@ ctx = Context()
 _talon_noise_pop_init = False
 _talon_noise_hiss_init = False
 _speech_capture_enabled = False
+event_subscribers = []
+EVENT_TYPE_CHANGE = "change"
+EVENT_TYPE_ACTION = "action"
+EVENT_TYPE_ACTION_STOP = "action_stop"
+
+@dataclass
+class DynamicActionEvent:
+    type: Literal["change", "action", "action_stop"]
+    name: str
+    action_name: str
 
 @dataclass
 class DynamicActionCallback:
@@ -52,7 +62,14 @@ class DynamicAction:
             self.history.append(self.current)
         self.history = self.history[-5:]
         self.current = dynamic_action_callback
-        actions.user.on_dynamic_action_change(self.name, dynamic_action_callback.name)
+
+        dynamic_actions_event_trigger(
+            DynamicActionEvent(
+                EVENT_TYPE_CHANGE,
+                self.name,
+                dynamic_action_callback.name,
+            )
+        )
 
     def set_default(self, dynamic_action_callback: DynamicActionCallback):
         self.default = dynamic_action_callback
@@ -60,12 +77,25 @@ class DynamicAction:
 
     def execute(self):
         if self.current and self.current.action:
-            print(self.current.name)
             self.current.action()
+            dynamic_actions_event_trigger(
+                DynamicActionEvent(
+                    EVENT_TYPE_ACTION,
+                    self.name,
+                    self.current.name,
+                )
+            )
 
     def execute_stop(self):
         if self.current and self.current.action_stop:
             self.current.action_stop()
+            dynamic_actions_event_trigger(
+                DynamicActionEvent(
+                    EVENT_TYPE_ACTION_STOP,
+                    self.name,
+                    self.current.name,
+                )
+            )
 
 _dynamic_actions: dict[str, DynamicAction] = {}
 _dynamic_actions_aliases: dict[str, str] = {}
@@ -92,7 +122,7 @@ def dynamic_action(name: str):
     if base_name in _dynamic_actions:
         if qualifier == "stop":
             _dynamic_actions[base_name].execute_stop()
-        if base_name in _dynamic_actions:
+        else:
             _dynamic_actions[base_name].execute()
     else:
         print(f"Dynamic action {name} not found")
@@ -103,7 +133,13 @@ def dynamic_action_set_default(name: str, dynamic_action_callback: DynamicAction
     if name not in _dynamic_actions:
         _dynamic_actions[name] = DynamicAction(name)
     _dynamic_actions[name].set_default(dynamic_action_callback)
-    actions.user.on_dynamic_action_change(name, dynamic_action_callback.name)
+    dynamic_actions_event_trigger(
+        DynamicActionEvent(
+            EVENT_TYPE_CHANGE,
+            name,
+            dynamic_action_callback.name,
+        )
+    )
 
 def dynamic_action_remove(name: str):
     """Remove a dynamic action"""
@@ -139,11 +175,9 @@ def dynamic_action_init(
     _dynamic_actions[name].set_default(cb)
 
 def noise_pop(_):
-    print("doing dynamic action pop")
     dynamic_action("pop")
 
 def noise_hiss(is_active):
-    print("doing dynamic action hiss")
     if is_active:
         dynamic_action("hiss")
     else:
@@ -184,6 +218,16 @@ def stop_speech_capture():
 def test():
     print("test")
     ctrl.mouse_click(button=0, hold=16000)
+
+def dynamic_actions_event_register(on_event: callable):
+    event_subscribers.append(on_event)
+
+def dynamic_actions_event_unregister(on_event: callable):
+    event_subscribers.remove(on_event)
+
+def dynamic_actions_event_trigger(event: DynamicActionEvent):
+    for subscriber in event_subscribers:
+        subscriber(event)
 
 @mod.action_class
 class Actions:
@@ -361,7 +405,28 @@ class Actions:
             actions.user.noise_register_dynamic_action_hiss("none", alias="wish")
             print("Dynamic noises enabled")
 
-    def on_dynamic_action_change(name: str, action_name: str):
-        """ctx callback on noise change"""
-        print(f"on dynamic action change {name} {action_name}")
-        actions.skip()
+    def dynamic_actions_event_register(on_event: callable):
+        """
+        Register callback event for dynamic_actions. Will trigger
+        when a dynamic action is changed or executed, or stopped.
+
+        ```py
+        def on_event(event):
+            print(event.type, event.name, event.action_name)
+        actions.user.dynamic_actions_event_register(on_event)
+        ```
+        """
+        dynamic_actions_event_register(on_event)
+
+    def dynamic_actions_event_unregister(on_event: callable):
+        """
+        Unregister event set by actions.user.dynamic_actions_event_register
+        """
+        dynamic_actions_event_unregister(on_event)
+
+    def dynamic_actions_event_unregister_all():
+        """
+        Unregister all dynamic actions events
+        """
+        global event_subscribers
+        event_subscribers = []

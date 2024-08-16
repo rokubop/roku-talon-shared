@@ -15,6 +15,16 @@ free <user.modifiers>: user.game_key_up(modifiers)
 long <user.key>: user.game_key_hold(user.key, 1000)
 touch | click: user.game_mouse_click()
 trick: user.game_mouse_click_right()
+gallop:
+    user.game_key("w")
+    sleep(100ms)
+    user.game_move_dir_hold_w()
+whoa there:
+    user.game_key("ctrl")
+    user.game_key("ctrl")
+mount | unmount: user.game_key("e")
+pick up: user.game_key_hold("r", 200)
+wheel: user.rdr2_wheel()
 
 # movement
 go: user.game_move_dir_toggle('up')

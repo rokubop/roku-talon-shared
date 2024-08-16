@@ -5,6 +5,7 @@
 - Add `roku_games/rdr2` - Free version of Talon (pop / hiss only) + controls for Red Dead Redemption 2
 - Add `actions.user.ui_elements_hide_all`
 - Rename `actions.user.rt_mouse_move_delta` to `actions.user.mouse_move_delta_smooth`
+- Add mouse move event
 
 ## Sun Aug 4, 2024
 ui_elements

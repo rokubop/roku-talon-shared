@@ -41,17 +41,17 @@ def cam_edges_ui(children):
     return div(flex_direction="row")[
         div(flex_direction="column")[
             div(width=5, height=5, margin=1)[text(" ", font_size=5)],
-            div(id="cam_left", background_color="33333355", width=5, height=KEY_SIZE*2+1, margin=1)[text(" ", font_size=5)],
+            div(id="cam_left", width=5, height=KEY_SIZE*2+1, margin=1)[text(" ", font_size=5)],
             div(width=5, height=5, margin=1)[text(" ", font_size=5)],
         ],
         div(flex_direction="column")[
-            div(id="cam_up", background_color="33333355", width=KEY_SIZE*3+3, height=5, margin=1)[text(" ", font_size=5)],
+            div(id="cam_up", width=KEY_SIZE*3+3, height=5, margin=1)[text(" ", font_size=5)],
             children,
-            div(id="cam_down", background_color="33333355", width=KEY_SIZE*3+3, height=5, margin=1)[text(" ", font_size=5)],
+            div(id="cam_down", width=KEY_SIZE*3+3, height=5, margin=1)[text(" ", font_size=5)],
         ],
         div(flex_direction="column")[
             div(width=5, height=5, margin=1)[text(" ", font_size=5)],
-            div(id="cam_right", background_color="33333355", width=5, height=KEY_SIZE*2+1, margin=1)[text(" ", font_size=5)],
+            div(id="cam_right", width=5, height=KEY_SIZE*2+1, margin=1)[text(" ", font_size=5)],
             div(width=5, height=5, margin=1)[text(" ", font_size=5)],
         ],
     ]

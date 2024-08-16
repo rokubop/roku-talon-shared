@@ -1,0 +1,57 @@
+action, alias
+game_move, go
+game_move_back, back
+game_cam_smooth, cam
+game_cam_center_y, cam mid
+game_cam_snap, look
+game_gear, gear
+game_cam_snap_180, round
+game_stopper, stop | halt
+key_mod_press, tap
+key_mod_hold, hold
+key_mod_release, free
+key_mod_toggle, toggle
+game_mouse_click, click | hit
+game_mouse_click_right, trick
+key_left, left
+key_right, right
+key_up, up
+key_down, down
+key_a,
+key_b,
+key_c,
+key_d,
+key_e, use | talk | grab
+key_f,
+key_g,
+key_h,
+key_i,
+key_j,
+key_k,
+key_l,
+key_m, map
+key_n,
+key_o,
+key_p,
+key_q,
+key_r,
+key_s,
+key_t,
+key_u,
+key_v,
+key_w,
+key_x,
+key_y,
+key_z,
+key_space, jump
+key_ctrl,
+key_ctrl_toggle, crouch
+key_alt,
+key_alt_toggle,
+key_shift, run
+key_shift_toggle,
+key_1,
+key_2,
+key_3,
+key_4,
+key_5,

@@ -31,6 +31,7 @@ mod.setting(
 # mod.setting("game_camera_dynamic_speed", desc="Dynamic camera speed", type=int, default=5)
 # mod.setting("game_camera_speed", desc="Camera speed", type=int, default=5)
 mod.list("game_actions", desc="Game actions")
+mod.list("game_words", desc="Game words")
 mod.list("game_key_actions", desc="Game actions")
 mod.list("game_action_values", desc="Game actions")
 mod.list("game_keys_mouse", desc="Game actions")

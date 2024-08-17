@@ -1,6 +1,5 @@
 from talon import Module, Context, actions
 from .rdr2_ui import show_ui, hide_ui, update_pop, update_hiss
-import csv
 import os
 
 mod, ctx, ctx_game = Module(), Context(), Context()
@@ -17,15 +16,9 @@ class Actions:
         actions.user.drag_mode_show()
         actions.user.dynamic_action_set_phrase("hiss", "tab")
 
-# def get_words():
-#     script_dir = os.path.dirname(__file__)
-#     relative_path = os.path.join(script_dir, 'game_words.csv')
-#     with open(relative_path, mode='r') as file:
-#         reader = csv.reader(file)
-#         for row in reader:
-#             key = row[0]
-#             alias = row[1] if len(row) > 1 else ''
-#             print(f"Key: {key}, Alias: {alias}")
+def stop_all():
+    actions.user.game_stopper()
+    actions.user.vgamepad_stopper()
 
 @ctx_game.action_class("user")
 class Actions:
@@ -34,6 +27,8 @@ class Actions:
 
     def on_game_mode_enabled():
         print("Game mode enabled")
+        game_words_path = os.path.join(os.path.dirname(__file__), 'game_words.csv')
+        actions.user.game_csv_game_words_setup(ctx_game, game_words_path)
         actions.user.vgamepad_enable()
         actions.user.noise_register_dynamic_action_pop(
             "A",
@@ -41,11 +36,10 @@ class Actions:
         )
         actions.user.noise_register_dynamic_action_hiss(
             "stop",
-            actions.user.game_stopper,
+            stop_all,
             alias="wish"
         )
         show_ui()
-        # get_words()
 
     def on_game_mode_disabled():
         actions.user.vgamepad_disable()

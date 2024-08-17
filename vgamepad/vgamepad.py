@@ -11,6 +11,7 @@ dpad_dir_change_event_subscribers = []
 left_joystick_dir = (0, 0)
 right_joystick_dir = (0, 0)
 held_buttons = set()
+button_up_pending_jobs = {}
 
 button_map = {
     "a": vg.XUSB_BUTTON.XUSB_GAMEPAD_A,
@@ -36,32 +37,35 @@ RIGHT_JOYSTICK = "right_joystick"
 def vgamepad_enable():
     global gamepad
     gamepad = vg.VX360Gamepad()
-    gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
-    gamepad.update()
-    gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
-    gamepad.update()
+    # gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
+    # gamepad.update()
+    # gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
+    # gamepad.update()
 
 def vgamepad_disable():
     global gamepad
     del gamepad
 
 def vgamepad_button_down(button: str):
-    button = button_map[button]
+    global gamepad, button_up_pending_jobs, held_buttons
+    if button_up_pending_jobs.get(button):
+        cron.cancel(button_up_pending_jobs[button])
     held_buttons.add(button)
-    gamepad.press_button(button=button)
+    gamepad.press_button(button_map[button])
     gamepad.update()
     vgamepad_event_trigger_on_button(button, EVENT_BUTTON_HOLD)
 
 def vgamepad_button_up(button: str):
-    button = button_map[button]
-    held_buttons.remove(button)
-    gamepad.release_button(button=button)
+    global button_up_pending_jobs
+    gamepad.release_button(button_map[button])
     gamepad.update()
     vgamepad_event_trigger_on_button(button, EVENT_BUTTON_RELEASE)
+    button_up_pending_jobs[button] = None
+    held_buttons.remove(button)
 
 def vgamepad_button_press(button: str):
     vgamepad_button_down(button)
-    cron.after(0.2, vgamepad_button_up, button)
+    button_up_pending_jobs[button] = cron.after("200ms", lambda: vgamepad_button_up(button))
 
 def vgamepad_button(button: str, hold: int = None, down: bool = None, up: bool = None):
     if down:
@@ -70,16 +74,37 @@ def vgamepad_button(button: str, hold: int = None, down: bool = None, up: bool =
         vgamepad_button_up(button)
     elif hold:
         vgamepad_button_down(button)
-        cron.after(hold, vgamepad_button_up, button)
+        button_up_pending_jobs[button] = cron.after(hold, lambda: vgamepad_button_up(button))
     else:
         vgamepad_button_press(button)
+
+def vgamepad_dpad(button: str):
+    directions = ["left", "right", "up", "down"]
+
+    for direction in directions:
+        if direction == button:
+            vgamepad_button_down(f"dpad_{direction}")
+        elif f"dpad_{direction}" in held_buttons:
+            vgamepad_button_up(f"dpad_{direction}")
+
+def vgamepad_stopper():
+    left_joystick(0, 0)
+    right_joystick(0, 0)
+    if "dpad_left" in held_buttons:
+        vgamepad_button_up("dpad_left")
+    if "dpad_right" in held_buttons:
+        vgamepad_button_up("dpad_right")
+    if "dpad_up" in held_buttons:
+        vgamepad_button_up("dpad_up")
+    if "dpad_down" in held_buttons:
+        vgamepad_button_up("dpad_down")
 
 def left_joystick(x: float, y: float):
     global left_joystick_dir
     gamepad.left_joystick_float(x, y)
     gamepad.update()
     if left_joystick_dir != (x, y):
-        vgamepad_event_trigger_on_dpad_dir_change(LEFT_JOYSTICK, (x, y))
+        vgamepad_event_trigger_joystick_dir_change(LEFT_JOYSTICK, (x, y))
     left_joystick_dir = (x, y)
 
 def right_joystick(x: float, y: float):
@@ -87,7 +112,7 @@ def right_joystick(x: float, y: float):
     gamepad.right_joystick_float(x, y)
     gamepad.update()
     if right_joystick_dir != (x, y):
-        vgamepad_event_trigger_on_dpad_dir_change(RIGHT_JOYSTICK, (x, y))
+        vgamepad_event_trigger_joystick_dir_change(RIGHT_JOYSTICK, (x, y))
     right_joystick_dir = (x, y)
 
 def vgamepad_event_register_on_button(on_button: callable):
@@ -97,16 +122,18 @@ def vgamepad_event_unregister_on_button(on_button: callable):
     button_event_subscribers.remove(on_button)
 
 def vgamepad_event_trigger_on_button(button: str, state: str):
+    print(f"button: {button}, state: {state}")
     for subscriber in button_event_subscribers:
         subscriber(button, state)
 
-def vgamepad_event_register_on_dpad_dir_change(on_dpad_dir_change: callable):
+def vgamepad_event_register_joystick_dir_change(on_dpad_dir_change: callable):
     dpad_dir_change_event_subscribers.append(on_dpad_dir_change)
 
-def vgamepad_event_unregister_on_dpad_dir_change(on_dpad_dir_change: callable):
+def vgamepad_event_unregister_joystick_dir_change(on_dpad_dir_change: callable):
     dpad_dir_change_event_subscribers.remove(on_dpad_dir_change)
 
-def vgamepad_event_trigger_on_dpad_dir_change(joystick: str, coords: tuple):
+def vgamepad_event_trigger_joystick_dir_change(joystick: str, coords: tuple):
+    print(f"joystick: {joystick}, coords: {coords}")
     for subscriber in dpad_dir_change_event_subscribers:
         subscriber(joystick, coords)
 
@@ -120,14 +147,17 @@ class Actions:
     def vgamepad_enable(): """vgamepad enable. Must be done before vgamepad inputs will work."""; vgamepad_enable()
     def vgamepad_disable(): """vgamepad disable"""; vgamepad_disable()
     def vgamepad_button(button: str, hold: int = None, down: bool = None, up: bool = None): """vgamepad button"""; vgamepad_button(button, hold, down, up)
+    def vgamepad_button_down(button: str): """vgamepad button down"""; vgamepad_button_down(button)
+    def vgamepad_button_up(button: str): """vgamepad button up"""; vgamepad_button_up(button)
+    def vgamepad_button_hold(button: str, hold: int): """vgamepad button hold"""; vgamepad_button(button, hold)
     def vgamepad_a(hold: int = None, down: bool = None, up: bool = None): """vgamepad a"""; vgamepad_button("a", hold, down, up)
     def vgamepad_b(hold: int = None, down: bool = None, up: bool = None): """vgamepad b"""; vgamepad_button("b", hold, down, up)
     def vgamepad_x(hold: int = None, down: bool = None, up: bool = None): """vgamepad x"""; vgamepad_button("x", hold, down, up)
     def vgamepad_y(hold: int = None, down: bool = None, up: bool = None): """vgamepad y"""; vgamepad_button("y", hold, down, up)
-    def vgamepad_dpad_up(hold: int = None, down: bool = None, up: bool = None): """vgamepad dpad up"""; vgamepad_button("dpad_up", hold, down, up)
-    def vgamepad_dpad_down(hold: int = None, down: bool = None, up: bool = None): """vgamepad dpad down"""; vgamepad_button("dpad_down", hold, down, up)
-    def vgamepad_dpad_left(hold: int = None, down: bool = None, up: bool = None): """vgamepad dpad left"""; vgamepad_button("dpad_left", hold, down, up)
-    def vgamepad_dpad_right(hold: int = None, down: bool = None, up: bool = None): """vgamepad dpad right"""; vgamepad_button("dpad_right", hold, down, up)
+    def vgamepad_dpad_dir_up(): """dpad mutually exclusive hold dir up"""; vgamepad_dpad("up")
+    def vgamepad_dpad_dir_down(): """dpad mutually exclusive hold dir down"""; vgamepad_dpad("down")
+    def vgamepad_dpad_dir_left(): """dpad mutually exclusive hold dir left"""; vgamepad_dpad("left")
+    def vgamepad_dpad_dir_right(): """dpad mutually exclusive hold dir right"""; vgamepad_dpad("right")
     def vgamepad_left_shoulder(hold: int = None, down: bool = None, up: bool = None): """vgamepad left shoulder"""; vgamepad_button("left_shoulder", hold, down, up)
     def vgamepad_right_shoulder(hold: int = None, down: bool = None, up: bool = None): """vgamepad right shoulder"""; vgamepad_button("right_shoulder", hold, down, up)
     def vgamepad_left_thumb(hold: int = None, down: bool = None, up: bool = None): """vgamepad left thumb"""; vgamepad_button("left_thumb", hold, down, up)
@@ -138,16 +168,16 @@ class Actions:
     def vgamepad_left_joystick(x: float, y: float): """left joystick"""; left_joystick(x, y)
     def vgamepad_left_joystick_dir_left(power: int = 1): """left joystick"""; left_joystick(-power, 0)
     def vgamepad_left_joystick_dir_right(power: int = 1): """left joystick"""; left_joystick(power, 0)
-    def vgamepad_left_joystick_dir_up(power: int = 1): """left joystick"""; left_joystick(0, -power)
-    def vgamepad_left_joystick_dir_down(power: int = 1): """left joystick"""; left_joystick(0, power)
+    def vgamepad_left_joystick_dir_up(power: int = 1): """left joystick"""; left_joystick(0, power)
+    def vgamepad_left_joystick_dir_down(power: int = 1): """left joystick"""; left_joystick(0, -power)
     def vgamepad_right_joystick(x: float, y: float): """right joystick"""; right_joystick(x, y)
-    def vgamepad_right_joystick_dir_left(power: int = 1): """right joystick"""; right_joystick(-power, 0)
-    def vgamepad_right_joystick_dir_right(power: int = 1): """right joystick"""; right_joystick(power, 0)
-    def vgamepad_right_joystick_dir_up(power: int = 1): """right joystick"""; right_joystick(0, -power)
-    def vgamepad_right_joystick_dir_down(power: int = 1): """right joystick"""; right_joystick(0, power)
-    def vgamepad_joystick_stop(): """joystick stop"""; left_joystick(0, 0); right_joystick(0, 0)
+    def vgamepad_right_joystick_dir_left(power: int = 0.5): """right joystick"""; right_joystick(-power, 0)
+    def vgamepad_right_joystick_dir_right(power: int = 0.5): """right joystick"""; right_joystick(power, 0)
+    def vgamepad_right_joystick_dir_up(power: int = 0.5): """right joystick"""; right_joystick(0, power)
+    def vgamepad_right_joystick_dir_down(power: int = 0.5): """right joystick"""; right_joystick(0, -power)
+    def vgamepad_stopper(): """stop movement"""; vgamepad_stopper()
     def vgamepad_event_register_on_button(on_button: callable): """vgamepad event register on button"""; vgamepad_event_register_on_button(on_button)
     def vgamepad_event_unregister_on_button(on_button: callable): """vgamepad event unregister on button"""; vgamepad_event_unregister_on_button(on_button)
-    def vgamepad_event_register_on_dpad_dir_change(on_dpad_dir_change: callable): """vgamepad event register on dpad dir change"""; vgamepad_event_register_on_dpad_dir_change(on_dpad_dir_change)
-    def vgamepad_event_unregister_on_dpad_dir_change(on_dpad_dir_change: callable): """vgamepad event unregister on dpad dir change"""; vgamepad_event_unregister_on_dpad_dir_change(on_dpad_dir_change)
+    def vgamepad_event_register_joystick_dir_change(on_dpad_dir_change: callable): """vgamepad event register on dpad dir change"""; vgamepad_event_register_joystick_dir_change(on_dpad_dir_change)
+    def vgamepad_event_unregister_joystick_dir_change(on_dpad_dir_change: callable): """vgamepad event unregister on dpad dir change"""; vgamepad_event_unregister_joystick_dir_change(on_dpad_dir_change)
     def vgamepad_event_unregister_all(): """vgamepad event unregister all"""; vgamepad_event_unregister_all()

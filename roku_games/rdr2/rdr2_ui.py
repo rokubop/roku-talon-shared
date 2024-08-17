@@ -79,8 +79,9 @@ def dpad_ui():
         return div(key_css, background_color="33333355")[text(" ")]
 
     return div(flex_direction="column")[
-        div(flex_direction="row")[blank_key(), key("w", "↑"), blank_key()],
-        div(flex_direction="row")[key("a", "←"), key("s", "↓"), key("d", "→")]
+        div(flex_direction="row")[blank_key(), key("gamepad_dpad_up", "↑"), blank_key()],
+        div(flex_direction="row")[key("gamepad_dpad_left", "←"), blank_key(), key("gamepad_dpad_right", "→")],
+        div(flex_direction="row")[blank_key(), key("gamepad_dpad_down", "↓"), blank_key()]
     ]
 
 def noises_ui():
@@ -117,7 +118,7 @@ def xbox_primary_buttons_ui():
 
     GREEN = "88d61a"
     RED = "d61a1a"
-    BLUE = "1a8bd6"
+    BLUE = "1a1ad6"
     YELLOW = "d6d61a"
 
     key_css = {
@@ -136,7 +137,7 @@ def xbox_primary_buttons_ui():
             id=key_name,
             width=width,
             highlight_color=color,
-            background_color=f"{color}dd",
+            background_color=f"{color}55",
             border_radius=KEY_SIZE
         )[
             text(text_content)
@@ -146,9 +147,9 @@ def xbox_primary_buttons_ui():
         return div(key_css)[text(" ")]
 
     return div(flex_direction="column")[
-        div(flex_direction="row")[blank_area(), button("xbox_y", "Y", YELLOW), blank_area()],
-        div(flex_direction="row")[button("xbox_x", "X", BLUE), blank_area(), button("xbox_b", "B", RED)],
-        div(flex_direction="row")[blank_area(), button("xbox_a", "A", GREEN), blank_area()]
+        div(flex_direction="row")[blank_area(), button("gamepad_y", "Y", YELLOW), blank_area()],
+        div(flex_direction="row")[button("gamepad_x", "X", BLUE), blank_area(), button("gamepad_b", "B", RED)],
+        div(flex_direction="row")[blank_area(), button("gamepad_a", "A", GREEN), blank_area()]
     ]
 
 def line_separator_ui():
@@ -261,9 +262,25 @@ def on_mouse_dir(x: float, y: float):
 
 def on_button(button, state):
     if state == "hold":
-        actions.user.ui_elements_highlight(button)
+        actions.user.ui_elements_highlight(f"gamepad_{button}")
     elif state == "release":
-        actions.user.ui_elements_unhighlight(button)
+        actions.user.ui_elements_unhighlight(f"gamepad_{button}")
+
+def on_joystick_dir(joystick, coords):
+    print(f"joystick: {joystick}, coords: {coords}")
+    if joystick == "left_joystick":
+        directions = {
+            (-1, 0): "cam_left",
+            (1, 0): "cam_right",
+            (0, -1): "cam_up",
+            (0, 1): "cam_down",
+        }
+
+        for direction in directions.values():
+            actions.user.ui_elements_unhighlight(direction)
+
+        if coords in directions:
+            actions.user.ui_elements_highlight(directions[coords])
 
 def show_ui():
     show_hud_ui()
@@ -272,9 +289,11 @@ def show_ui():
     actions.user.dynamic_actions_event_register(on_event)
     actions.user.mouse_move_dir_change_event_register(on_mouse_dir)
     actions.user.vgamepad_event_register_on_button(on_button)
+    actions.user.vgamepad_event_register_joystick_dir_change(on_joystick_dir)
 
 def hide_ui():
     actions.user.ui_elements_hide_all()
     actions.user.game_event_unregister_all()
     actions.user.dynamic_actions_event_unregister_all()
     actions.user.mouse_move_event_unregister_all()
+    actions.user.vgamepad_event_unregister_all()

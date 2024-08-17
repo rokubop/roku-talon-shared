@@ -1,4 +1,27 @@
 action, alias
+game_xbox_a, a | aye | green
+game_xbox_button_toggle:a, run
+game_xbox_b, b | bee | red | reload | punch
+game_xbox_x, check | blue | dodge | block | jump | climb
+game_xbox_y, why | yank | yell | yellow | grab | talk
+game_xbox_left_analog, go
+game_xbox_left_analog_up, go
+game_xbox_right_analog, cam
+game_xbox_dpad, pad
+game_xbox_dpad_up,
+game_xbox_dpad_right,
+game_xbox_dpad_left,
+game_xbox_dpad_down,
+game_xbox_lt, LT | aim
+game_xbox_rt, RT | shoot
+game_xbox_lb, LB | gear
+game_xbox_rb, RB | hide
+game_button_press, tap
+game_button_down, hold
+game_button_up, free
+game_button_hold:1000, long
+game_button_hold:4000, longer
+game_button_hold:8000, longest
 game_move, go
 game_move_back, back
 game_cam_smooth, cam

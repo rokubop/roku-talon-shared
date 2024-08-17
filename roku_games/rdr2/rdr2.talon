@@ -1,6 +1,49 @@
 app: rdr2
 mode: user.game
 -
+
+# gamepad(dpad_up):           "up"
+# gamepad(dpad_down):         "down"
+# gamepad(dpad_left):         "left"
+# gamepad(dpad_right):        "right"
+
+# gamepad(west:down):         "wd"
+# gamepad(west:up):           "wu"
+# gamepad(north:down):        "nd"
+# gamepad(north:up):          "nu"
+# gamepad(east:down):         "east"
+# gamepad(east:up):           "eastup"
+# gamepad(south:down):        "Southdown"
+# gamepad(south:up):          "Southup"
+
+green: user.vgamepad_a()
+blue: user.vgamepad_b()
+red: user.vgamepad_x()
+yell: user.vgamepad_y()
+left: user.vgamepad_left()
+right: user.vgamepad_right()
+up: user.vgamepad_up()
+down: user.vgamepad_down()
+go left: user.vgamepad_left()
+go right: user.vgamepad_right()
+go up: user.vgamepad_up()
+go down: user.vgamepad_down()
+
+# gamepad(select):            user.quick_pick_show()
+# gamepad(start):             user.command_dictation_mode_toggle()
+
+# gamepad(l1):                user.go_back()
+# gamepad(r1):                user.go_forward()
+
+# gamepad(l2:change):         user.gamepad_scroll(0, value*-1)
+# gamepad(r2:change):         user.gamepad_scroll(0, value)
+
+# gamepad(left_xy):           user.gamepad_scroll(x, y*-1)
+# gamepad(l3):                user.gamepad_scroll_slow_toggle()
+
+# gamepad(right_xy:repeat):   user.gamepad_mouse_move(x, y*-1)
+# gamepad(r3):
+
 # keys
 <user.letter>: user.game_key(letter)
 <user.modifiers>: user.game_key(modifiers)

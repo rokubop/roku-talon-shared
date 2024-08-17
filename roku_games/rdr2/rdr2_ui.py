@@ -112,6 +112,49 @@ def live_text_keys_ui():
         text("", id="live_text_keys", font_size=20, font_weight="bold")
     ]
 
+def xbox_primary_buttons_ui():
+    (div, text) = actions.user.ui_elements(["div", "text"])
+
+    GREEN = "88d61a"
+    RED = "d61a1a"
+    BLUE = "1a8bd6"
+    YELLOW = "d6d61a"
+
+    key_css = {
+        "padding": 8,
+        "flex_direction": "row",
+        "justify_content": "center",
+        "align_items": "center",
+        "margin": 1,
+        "width": KEY_SIZE,
+        "height": KEY_SIZE
+    }
+
+    def button(key_name, text_content, color, width=KEY_SIZE):
+        return div(
+            key_css,
+            id=key_name,
+            width=width,
+            highlight_color=color,
+            background_color=f"{color}dd",
+            border_radius=KEY_SIZE
+        )[
+            text(text_content)
+        ]
+
+    def blank_area():
+        return div(key_css)[text(" ")]
+
+    return div(flex_direction="column")[
+        div(flex_direction="row")[blank_area(), button("xbox_y", "Y", YELLOW), blank_area()],
+        div(flex_direction="row")[button("xbox_x", "X", BLUE), blank_area(), button("xbox_b", "B", RED)],
+        div(flex_direction="row")[blank_area(), button("xbox_a", "A", GREEN), blank_area()]
+    ]
+
+def line_separator_ui():
+    (div, text) = actions.user.ui_elements(["div", "text"])
+    return div(background_color="FFFFFF66", width=300, height=2)
+
 def show_hud_ui():
     (div, screen) = actions.user.ui_elements(["div", "screen"])
 
@@ -123,8 +166,11 @@ def show_hud_ui():
                 ],
                 div()[
                     cam_mode_ui(),
-                    div(background_color="FFFFFF66", width=300, height=2),
+                    line_separator_ui(),
                     noises_ui()
+                ],
+                div()[
+                    xbox_primary_buttons_ui(),
                 ]
             ],
             live_text_keys_ui()
@@ -213,6 +259,11 @@ def on_mouse_dir(x: float, y: float):
     elif y > 0:
         actions.user.ui_elements_highlight(directions[(0, 1)])
 
+def on_button(button, state):
+    if state == "hold":
+        actions.user.ui_elements_highlight(button)
+    elif state == "release":
+        actions.user.ui_elements_unhighlight(button)
 
 def show_ui():
     show_hud_ui()
@@ -220,6 +271,7 @@ def show_ui():
     actions.user.game_event_register_on_key(on_key)
     actions.user.dynamic_actions_event_register(on_event)
     actions.user.mouse_move_dir_change_event_register(on_mouse_dir)
+    actions.user.vgamepad_event_register_on_button(on_button)
 
 def hide_ui():
     actions.user.ui_elements_hide_all()

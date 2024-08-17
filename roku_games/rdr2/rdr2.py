@@ -34,9 +34,10 @@ class Actions:
 
     def on_game_mode_enabled():
         print("Game mode enabled")
+        actions.user.vgamepad_enable()
         actions.user.noise_register_dynamic_action_pop(
-            "click",
-            actions.user.game_mouse_click
+            "A",
+            actions.user.vgamepad_a,
         )
         actions.user.noise_register_dynamic_action_hiss(
             "stop",
@@ -44,9 +45,10 @@ class Actions:
             alias="wish"
         )
         show_ui()
-        get_words()
+        # get_words()
 
     def on_game_mode_disabled():
-        print("Game mode disabled")
+        actions.user.vgamepad_disable()
         actions.user.noise_unregister_dynamic_actions()
         hide_ui()
+        print("Game mode disabled")

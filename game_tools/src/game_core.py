@@ -30,12 +30,17 @@ mod.setting(
 
 # mod.setting("game_camera_dynamic_speed", desc="Dynamic camera speed", type=int, default=5)
 # mod.setting("game_camera_speed", desc="Camera speed", type=int, default=5)
-mod.list("game_actions", desc="Game actions")
-mod.list("game_words", desc="Game words")
-mod.list("game_key_actions", desc="Game actions")
-mod.list("game_action_values", desc="Game actions")
-mod.list("game_keys_mouse", desc="Game actions")
+# mod.list("game_actions", desc="Game actions")
+# mod.list("game_words", desc="Game words")
+# mod.list("game_key_actions", desc="Game actions")
+# mod.list("game_action_values", desc="Game actions")
+# mod.list("game_keys_mouse", desc="Game actions")
 mod.list("game_dir", desc="Game actions")
+mod.list("game_button", desc="Game actions")
+mod.list("game_modifier_button", desc="Game actions")
+mod.list("game_modifier_dir", desc="Game actions")
+mod.list("game_xbox_button", desc="Game actions")
+
 ctx.lists["user.game_dir"] = {
     "left",
     "right",
@@ -318,15 +323,15 @@ def stopper():
     if _held_mouse_buttons:
         mouse_release_all()
 
-@mod.capture(rule="{user.game_actions}")
-def game_action(m) -> str:
-    print(m)
-    return m.game_actions
+# @mod.capture(rule="{user.game_actions}")
+# def game_action(m) -> str:
+#     print(m)
+#     return m.game_actions
 
-@mod.capture(rule="{user.game_action_values}")
-def game_action_values(m) -> str:
-    print(m)
-    return m.game_action_values
+# @mod.capture(rule="{user.game_action_values}")
+# def game_action_values(m) -> str:
+#     print(m)
+#     return m.game_action_values
 
 @mod.action_class
 class Actions:
@@ -546,6 +551,55 @@ def game_gear_set(gear_num: int):
         angle = settings.get("user.game_camera_snap_gear_angles").split(" ").get(gear_num)
         camera_snap_dynamic_set_angle(angle)
 
+xbox_dir_hold_left_analog_dir_map = {
+    "up": lambda power: actions.user.vgamepad_left_joystick(0, power),
+    "down": lambda power: actions.user.vgamepad_left_joystick(0, -power),
+    "left": lambda power: actions.user.vgamepad_left_joystick(-power, 0),
+    "right": lambda power: actions.user.vgamepad_left_joystick(power, 0),
+}
+
+xbox_dir_hold_right_analog_dir_map = {
+    "up": lambda power: actions.user.vgamepad_right_joystick(0, power),
+    "down": lambda power: actions.user.vgamepad_right_joystick(0, -power),
+    "left": lambda power: actions.user.vgamepad_right_joystick(-power, 0),
+    "right": lambda power: actions.user.vgamepad_right_joystick(power, 0),
+}
+
+xbox_button_map = {
+    "a": "a",
+    "b": "b",
+    "x": "x",
+    "y": "y",
+    "dpad_up": "dpad_up",
+    "dpad_down": "dpad_down",
+    "dpad_left": "dpad_left",
+    "dpad_right": "dpad_right",
+    "lb": "left_shoulder",
+    "rb": "right_shoulder",
+    "lt": "left_trigger",
+    "rt": "right_trigger",
+    "l1": "left_shoulder",
+    "r1": "right_shoulder",
+    "l2": "left_trigger",
+    "r2": "right_trigger",
+    "l3": "left_thumb",
+    "r3": "right_thumb",
+    "left_shoulder": "left_shoulder",
+    "right_shoulder": "right_shoulder",
+    "left_thumb": "left_thumb",
+    "right_thumb": "right_thumb",
+    "start": "start",
+    "back": "back",
+    "guide": "guide",
+}
+
+def xbox_dir_hold_left_analog(dir: str, power: float = None):
+    """Hold a left analog direction"""
+    xbox_dir_hold_left_analog_dir_map[dir](power)
+
+def xbox_dir_hold_right_analog(dir: str, power: float = None):
+    """Hold a right analog direction"""
+    xbox_dir_hold_right_analog_dir_map[dir](power)
 
 @mod.action_class
 class Actions:

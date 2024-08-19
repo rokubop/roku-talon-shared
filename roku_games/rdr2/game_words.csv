@@ -1,80 +1,21 @@
-action, alias
-game_xbox_a, a | aye | green
-game_xbox_button_toggle:a, run
-game_xbox_b, b | bee | red | reload | punch
-game_xbox_x, check | blue | dodge | block | jump | climb
-game_xbox_y, why | yank | yell | yellow | grab | talk
-game_xbox_left_analog, go
-game_xbox_left_analog_up, go
-game_xbox_right_analog, cam
-game_xbox_dpad, pad
-game_xbox_dpad_up,
-game_xbox_dpad_right,
-game_xbox_dpad_left,
-game_xbox_dpad_down,
-game_xbox_lt, LT | aim
-game_xbox_rt, RT | shoot
-game_xbox_lb, LB | gear
-game_xbox_rb, RB | hide
-game_button_press, tap
-game_button_down, hold
-game_button_up, free
-game_button_hold:1000, long
-game_button_hold:4000, longer
-game_button_hold:8000, longest
-game_move, go
-game_move_back, back
-game_cam_smooth, cam
-game_cam_center_y, cam mid
-game_cam_snap, look
-game_gear, gear
-game_cam_snap_180, round
-game_stopper, stop | halt
-key_mod_press, tap
-key_mod_hold, hold
-key_mod_release, free
-key_mod_toggle, toggle
-game_mouse_click, click | hit
-game_mouse_click_right, trick
-key_left, left
-key_right, right
-key_up, up
-key_down, down
-key_a,
-key_b,
-key_c,
-key_d,
-key_e, use | talk | grab
-key_f,
-key_g,
-key_h,
-key_i,
-key_j,
-key_k,
-key_l,
-key_m, map
-key_n,
-key_o,
-key_p,
-key_q,
-key_r,
-key_s,
-key_t,
-key_u,
-key_v,
-key_w,
-key_x,
-key_y,
-key_z,
-key_space, jump
-key_ctrl,
-key_ctrl_toggle, crouch
-key_alt,
-key_alt_toggle,
-key_shift, run
-key_shift_toggle,
-key_1,
-key_2,
-key_3,
-key_4,
-key_5,
+list_value, Spoken form
+dir_left, left
+dir_right, right
+dir_up, up
+dir_down, down
+dir_forward, forth | ford | forward
+dir_backward, back
+xbox_button_a, a | aye | air
+xbox_button_b, b | bee | bat
+xbox_button_x, check | x | plex
+xbox_button_y, y | why | yank
+xbox_button_lt, look trap | elt | el tee | el tea | el t | el t
+xbox_button_rt, red trap | artie | or te | are tea
+xbox_button_lb, look bat | elbe | el be
+xbox_button_rb, red bat | arb | are be
+xbox_button_dpad_up, pad up
+xbox_button_dpad_down, pad down
+xbox_button_dpad_left, pad left
+xbox_button_dpad_right, pad right
+xbox_button_guide, guide
+xbox_button_menu, menu

@@ -4,7 +4,7 @@ accent_color = "87ceeb"
 live_text_keys_state = ""
 pressed_keys = []
 clear_pressed_keys_job = None
-KEY_SIZE = 30
+KEY_SIZE = 25
 
 def clear_pressed_keys():
     global pressed_keys, live_text_keys_state
@@ -61,41 +61,69 @@ def dpad_ui():
 
     key_css = {
         "padding": 8,
-        "background_color": "333333dd",
         "flex_direction": "row",
         "justify_content": "center",
         "align_items": "center",
-        "margin": 1,
         "width": KEY_SIZE,
         "height": KEY_SIZE
     }
 
     def key(key_name, text_content, width=KEY_SIZE):
-        return div(key_css, id=key_name, width=width)[
+        return div(key_css, id=key_name, width=width, background_color="333333dd")[
             text(text_content)
         ]
 
     def blank_key():
-        return div(key_css, background_color="33333355")[text(" ")]
+        return div(key_css)[text(" ")]
+
+    def blank_middle_key():
+        return div(key_css, background_color="333333dd")[text(" ")]
 
     return div(flex_direction="column")[
         div(flex_direction="row")[blank_key(), key("gamepad_dpad_up", "↑"), blank_key()],
-        div(flex_direction="row")[key("gamepad_dpad_left", "←"), blank_key(), key("gamepad_dpad_right", "→")],
+        div(flex_direction="row")[key("gamepad_dpad_left", "←"), blank_middle_key(), key("gamepad_dpad_right", "→")],
         div(flex_direction="row")[blank_key(), key("gamepad_dpad_down", "↓"), blank_key()]
     ]
 
 def noises_ui():
     (div, text) = actions.user.ui_elements(["div", "text"])
 
-    return div(flex_direction="row", gap=16, margin_top=12)[
-        div(gap=8, width=150)[
+    return div(flex_direction="column", gap=8, margin_top=12)[
+        div(id="pop", flex_direction="row", width=150, padding=8, border_width=1, border_color="FFFFFF33", border_radius=4)[
             text("pop"),
-            text("", id="pop", width=150, padding=8, font_size=20, font_weight="bold")
+            text("", id="pop_value", color=accent_color)
         ],
-        div(gap=8, width=150)[
-            text("hiss (wish)"),
-            text("", id="hiss", width=150, padding=8, font_size=20, font_weight="bold")
+        div(id="hiss", flex_direction="row", width=150, padding=8, border_width=1, border_color="FFFFFF33", border_radius=4)[
+            text("hiss"),
+            text("", id="hiss_value", color=accent_color)
         ]
+    ]
+
+def stick_ui(left_or_right : str):
+    (div, text) = actions.user.ui_elements(["div", "text"])
+
+    key_css = {
+        "padding": 8,
+        "flex_direction": "row",
+        "justify_content": "center",
+        "align_items": "center",
+        "border_radius": KEY_SIZE,
+        "width": KEY_SIZE,
+        "height": KEY_SIZE
+    }
+
+    def key(key_name, text_content, width=KEY_SIZE):
+        return div(key_css, id=key_name, width=width, background_color="333333cc")[
+            text(text_content)
+        ]
+
+    def blank_key():
+        return div(key_css)[text(" ")]
+
+    return div(flex_direction="column", background_color="333333dd", border_radius=100, padding=1)[
+        div(flex_direction="row")[blank_key(), key(f"{left_or_right}_stick_up", " "), blank_key()],
+        div(flex_direction="row")[key(f"{left_or_right}_stick_left", " "), blank_key(), key(f"{left_or_right}_stick_right", " ")],
+        div(flex_direction="row")[blank_key(), key(f"{left_or_right}_stick_down", " "), blank_key()]
     ]
 
 def cam_mode_ui():
@@ -157,22 +185,60 @@ def line_separator_ui():
     return div(background_color="FFFFFF66", width=300, height=2)
 
 def show_hud_ui():
-    (div, screen) = actions.user.ui_elements(["div", "screen"])
+    (div, screen, text) = actions.user.ui_elements(["div", "screen", "text"])
 
     ui_hud = screen(align_items="center", justify_content="flex_end")[
-        div(background_color="00000066", border_radius=16, margin=16, margin_bottom=300, padding=16)[
-            div(flex_direction="row", gap=16, justify_content="center", align_items="center")[
+        div(background_color="00000066", border_radius=16, margin=16, margin_bottom=300, padding=16, border_width=1, border_color="FF0000aa")[
+            div(flex_direction="row", gap=16)[
                 div()[
-                    cam_edges_ui(dpad_ui())
+                    text("pad", margin_bottom=16),
+                    dpad_ui()
                 ],
                 div()[
-                    cam_mode_ui(),
+                    div(flex_direction="row", margin_bottom=16, gap=8)[
+                        text("go"),
+                        text("5", color=accent_color),
+                    ],
+                    stick_ui("left"),
+                ],
+                div()[
+                    div(flex_direction="row", margin_bottom=16, gap=8)[
+                        text("cam"),
+                        text("5", color=accent_color),
+                    ],
+                    stick_ui("right"),
+                ],
+                div()[
+                    text("buttons", margin_bottom=16),
+                    xbox_primary_buttons_ui(),
+                ],
+                div()[
+                    text("triggers / bumpers", margin_bottom=16),
+                    div(flex_direction="row", gap=8)[
+                        div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, gap=8, justify_content="center")[
+                            text("LT"),
+                            text("5", color=accent_color),
+                        ],
+                        div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, gap=8, justify_content="center")[
+                            text("RT"),
+                            text("5", color=accent_color),
+                        ]
+                    ],
+                    div(flex_direction="row", gap=8, margin_top=16)[
+                        div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, justify_content="center")[
+                            text("LB")
+                        ],
+                        div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, justify_content="center")[
+                            text("RB"),
+                        ]
+                    ]
+                ],
+                div()[
+                    text("noises", margin_bottom=16),
+                    # cam_mode_ui(),
                     line_separator_ui(),
                     noises_ui()
                 ],
-                div()[
-                    xbox_primary_buttons_ui(),
-                ]
             ],
             live_text_keys_ui()
         ],
@@ -228,9 +294,9 @@ def update_hiss(new_action_name):
 def on_event(event):
     if event.type == "change":
         if event.name == "pop":
-            actions.user.ui_elements_set_text("pop", event.action_name)
+            actions.user.ui_elements_set_text("pop_value", event.action_name)
         elif event.name == "hiss" or event.name == "wish":
-            actions.user.ui_elements_set_text("hiss", event.action_name)
+            actions.user.ui_elements_set_text("hiss_value", event.action_name)
     elif event.type == "action":
         if event.name == "pop":
             actions.user.ui_elements_highlight_briefly("pop")
@@ -268,19 +334,24 @@ def on_button(button, state):
 
 def on_joystick_dir(joystick, coords):
     print(f"joystick: {joystick}, coords: {coords}")
-    if joystick == "left_joystick":
-        directions = {
-            (-1, 0): "cam_left",
-            (1, 0): "cam_right",
-            (0, -1): "cam_up",
-            (0, 1): "cam_down",
-        }
+    directions = {
+        (-1, 0): "stick_left",
+        (1, 0): "stick_right",
+        (0, -1): "stick_down",
+        (0, 1): "stick_up",
+    }
 
-        for direction in directions.values():
-            actions.user.ui_elements_unhighlight(direction)
+    for direction in directions.values():
+        if joystick == "left_joystick":
+            actions.user.ui_elements_unhighlight(f"left_{direction}")
+        elif joystick == "right_joystick":
+            actions.user.ui_elements_unhighlight(f"right_{direction}")
 
-        if coords in directions:
-            actions.user.ui_elements_highlight(directions[coords])
+    if coords in directions:
+        if joystick == "left_joystick":
+            actions.user.ui_elements_highlight(f"left_{directions[coords]}")
+        elif joystick == "right_joystick":
+            actions.user.ui_elements_highlight(f"right_{directions[coords]}")
 
 def show_ui():
     show_hud_ui()

@@ -1025,9 +1025,9 @@ def get_props(props, additional_props):
         expected_type = EXPECTED_TYPES[key]
         if expected_type is callable:
             if not callable(value):
-                type_errors.append(f"{key}: expected callable, got {type(value).__name__}")
+                type_errors.append(f"{key}: expected callable, got {type(value).__name__} {value}")
         elif not isinstance(value, expected_type):
-            type_errors.append(f"{key}: expected {expected_type.__name__}, got {type(value).__name__}")
+            type_errors.append(f"{key}: expected {expected_type.__name__}, got {type(value).__name__} {value}")
 
     if type_errors:
         raise ValueError(

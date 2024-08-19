@@ -28,7 +28,10 @@ from .src.game_core import (
     move_dir_toggle,
     move_dir_toggle_last_horizontal,
     step_dir,
-    stopper
+    stopper,
+    xbox_dir_hold_left_analog,
+    xbox_dir_hold_right_analog,
+    xbox_button_map
 )
 
 mod = Module()
@@ -166,3 +169,63 @@ class Actions:
     def game_state_switch_horizontal(): """Switch state value of horizontal"""; game_state_switch_horizontal()
     def game_calibrate_x_360(num: int, mouse_button: int = None): """Calibrate x by testing a 360"""; mouse_calibrate_x_360(num)
     def game_calibrate_y_90(num: int, mouse_button: int = None): """Calibrate y by testing ground to center"""; mouse_calibrate_90_y(num)
+    def game_xbox_gamepad_enable(): """Enable xbox gamepad actions. Enables vgamepad. Windows and Linux only."""; actions.user.vgamepad_enable()
+    def game_xbox_gamepad_disable(): """Disable xbox gamepad actions. Disables vgamepad."""; actions.user.vgamepad_disable()
+    def game_xbox_button(button: str):
+        """
+        Press an xbox button
+
+        **buttons**:  a, b, x, y, left_shoulder, right_shoulder, left_thumb, right_thumb, start, back, guide, dpad_up, dpad_down, dpad_left, dpad_right
+
+        **button aliases**: lb, rb, lt, rt, l1, r1, l2, r2, l3, r3
+
+        **modifiers**: down, up, hold, toggle
+
+        Example:
+        game_xbox_button("a")
+
+        game_xbox_button("a:down")
+
+        game_xbox_button("a:up")
+
+        game_xbox_button("a:hold_500")
+
+        game_xbox_button("a:toggle")
+        """
+        actions.user.vgamepad_button(xbox_button_map[button])
+    def game_xbox_button_down(button: str): """Start holding an xbox button"""; actions.user.vgamepad_button(xbox_button_map[button], down=True)
+    def game_xbox_button_up(button: str): """Release an xbox button"""; actions.user.vgamepad_button(xbox_button_map[button], up=True)
+    def game_xbox_button_hold(button: str, hold_ms: int = None): """Hold an xbox button indefinitely or for a fixed duration e.g. game_xbox_button_hold(\"a\", 500)"""; actions.user.vgamepad_button(xbox_button_map[button], hold=hold_ms) if hold_ms else actions.user.vgamepad_button(xbox_button_map[button], down=True)
+    def game_xbox_button_toggle(button: str): """Toggle holding an xbox button"""; actions.user.vgamepad_button(xbox_button_map[button], toggle=True)
+    def game_xbox_left_stick_hold_dir(dir: str, power: float = 1): """Hold left analog dir"""; xbox_dir_hold_left_analog(dir, power)
+    def game_xbox_left_stick_hold_dir_up(power: float = 1): """Hold left analog up"""; actions.user.vgamepad_left_joystick(0, power)
+    def game_xbox_left_stick_hold_dir_down(power: float = 1): """Hold left analog down"""; actions.user.vgamepad_left_joystick(0, -power)
+    def game_xbox_left_stick_hold_dir_left(power: float = 1): """Hold left analog left"""; actions.user.vgamepad_left_joystick(-power, 0)
+    def game_xbox_left_stick_hold_dir_right(power: float = 1): """Hold left analog right"""; actions.user.vgamepad_left_joystick(power, 0)
+    def game_xbox_left_stick_stop(): """Stop holding left analog"""; actions.user.vgamepad_left_joystick(0, 0)
+    def game_xbox_right_stick_hold_dir(dir: str, power: float = 1): """Hold right analog dir"""; xbox_dir_hold_right_analog(dir, power)
+    def game_xbox_right_stick_hold_dir_up(): """Hold right analog up"""; actions.user.vgamepad_right_joystick(0, 1)
+    def game_xbox_right_stick_hold_dir_down(): """Hold right analog down"""; actions.user.vgamepad_right_joystick(0, -1)
+    def game_xbox_right_stick_hold_dir_left(): """Hold right analog left"""; actions.user.vgamepad_right_joystick(-1, 0)
+    def game_xbox_right_stick_hold_dir_right(): """Hold right analog right"""; actions.user.vgamepad_right_joystick(1, 0)
+    def game_xbox_right_stick_stop(): """Stop holding right analog"""; actions.user.vgamepad_right_joystick(0, 0)
+    def game_xbox_dpad_press_dir(dir: str): """up, down, left, right"""; actions.user.vgamepad_button(f"dpad_{dir}")
+    def game_xbox_dpad_press_dir_up(): """Press dpad up"""; actions.user.vgamepad_button("dpad_up")
+    def game_xbox_dpad_press_dir_down(): """Press dpad down"""; actions.user.vgamepad_button("dpad_down")
+    def game_xbox_dpad_press_dir_left(): """Press dpad left"""; actions.user.vgamepad_button("dpad_left")
+    def game_xbox_dpad_press_dir_right(): """Press dpad right"""; actions.user.vgamepad_button("dpad_right")
+    # def game_xbox_dir_hold_dpad_up(): """Hold dpad up"""; actions.user.vgamepad_button("dpad_up")
+    # def game_xbox_dir_hold_dpad_down(): """Hold dpad down"""; actions.user.vgamepad_dpad_down()
+    # def game_xbox_dir_hold_dpad_left(): """Hold dpad left"""; actions.user.vgamepad_dpad_left()
+    # def game_xbox_dir_hold_dpad_right(): """Hold dpad right"""; actions.user.vgamepad_dpad_right()
+    # def game_xbox_button_dpad_up(): """Press dpad up"""; actions.user.vgamepad_button("dpad_up")
+    # def game_xbox_dpad_hold_dir(dir: str): """Hold dpad dir"""; actions.user.vgamepad_button(dir)
+    # def game_xbox_dpad_hold_dir_up(): """Hold dpad up"""; actions.user.vgamepad_button("dpad_up")
+    # def game_xbox_dpad_hold_dir_down(): """Hold dpad down"""; actions.user.vgamepad_button("dpad_down")
+    # def game_xbox_dpad_hold_dir_left(): """Hold dpad left"""; actions.user.vgamepad_button("dpad_left")
+    # def game_xbox_dpad_hold_dir_right(): """Hold dpad right"""; actions.user.vgamepad_button("dpad_right")
+    # def game_xbox_dpad_
+    # def game_xbox_dpad_press_up(): """Press dpad up"""; actions.user.vgamepad_button("dpad_up")
+    # def game_xbox_dpad_press_down(): """Press dpad down"""; actions.user.vgamepad_button("dpad_down")
+    # def game_xbox_dpad_press_left(): """Press dpad left"""; actions.user.vgamepad_button("dpad_left")
+    # def game_xbox_dpad_press_right(): """Press dpad right"""; actions.user.vgamepad_button("dpad_right")

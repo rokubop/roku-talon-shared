@@ -30,10 +30,14 @@ from .src.game_core import (
     move_dir_toggle_last_horizontal,
     step_dir,
     stopper,
+)
+from .src.game_xbox import (
     xbox_dir_hold_left_analog,
     xbox_dir_hold_right_analog,
     xbox_dir_hold_dpad,
     xbox_set_power,
+    xbox_button,
+    xbox_button_hold,
     xbox_power,
     xbox_button_map,
 )
@@ -176,7 +180,7 @@ class Actions:
     # xbox gamepad actions
     def game_xbox_gamepad_enable(): """Enable xbox gamepad actions. Enables vgamepad. Windows and Linux only."""; actions.user.vgamepad_enable()
     def game_xbox_gamepad_disable(): """Disable xbox gamepad actions. Disables vgamepad."""; actions.user.vgamepad_disable()
-    def game_xbox_button(button: str):
+    def game_xbox_button(button: str, hold: int = None, down: bool = None, up: bool = None):
         """
         Press an xbox button
 
@@ -184,14 +188,10 @@ class Actions:
 
         **button aliases**: lb, rb, lt, rt, l1, r1, l2, r2, l3, r3
         """
-        button = xbox_button_map[button]
-        if button in ["left_trigger", "right_trigger"]:
-            getattr(actions.user, f"game_xbox_{button}")()
-        else:
-            actions.user.vgamepad_button(button)
-    def game_xbox_button_release(button: str): """Release an xbox button"""; actions.user.vgamepad_button(xbox_button_map[button], up=True)
-    def game_xbox_button_hold(button: str, hold_ms: int = None): """Hold an xbox button indefinitely or for a fixed duration e.g. game_xbox_button_hold(\"a\", 500)"""; actions.user.vgamepad_button(xbox_button_map[button], hold=hold_ms) if hold_ms else actions.user.vgamepad_button(xbox_button_map[button], down=True)
-    def game_xbox_button_toggle(button: str): """Toggle holding an xbox button"""; actions.user.vgamepad_button(xbox_button_map[button], toggle=True)
+        xbox_button(button, hold, down, up)
+    def game_xbox_button_release(button: str): """Release an xbox button"""; xbox_button(button, up=True)
+    def game_xbox_button_hold(button: str, hold_ms: int = None): """Hold an xbox button indefinitely or for a fixed duration e.g. game_xbox_button_hold(\"a\", 500)"""; xbox_button_hold(button, hold_ms)
+    def game_xbox_button_toggle(button: str): """Toggle holding an xbox button"""; xbox_button(button, toggle=True)
     def game_xbox_left_stick_hold_dir(dir: str, power: float = None): """Hold left stick dir up down left right"""; xbox_dir_hold_left_analog(dir, power)
     def game_xbox_left_stick_set_power(power: Any): """Set left stick power from 0 to 1.0"""; xbox_set_power("left_stick", power)
     def game_xbox_left_stick_stop(): """Stop holding left stick"""; actions.user.vgamepad_left_joystick(0, 0)

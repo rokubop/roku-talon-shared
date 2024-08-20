@@ -13,6 +13,11 @@ right_joystick_dir = (0, 0)
 held_buttons = set()
 button_up_pending_jobs = {}
 
+# goal: refactor this to be pure
+# pure is:
+#
+
+# pure
 button_map = {
     "a": vg.XUSB_BUTTON.XUSB_GAMEPAD_A,
     "b": vg.XUSB_BUTTON.XUSB_GAMEPAD_B,
@@ -34,6 +39,7 @@ button_map = {
 LEFT_JOYSTICK = "left_joystick"
 RIGHT_JOYSTICK = "right_joystick"
 
+# pure
 def vgamepad_enable():
     global gamepad
     gamepad = vg.VX360Gamepad()
@@ -42,10 +48,14 @@ def vgamepad_enable():
     # gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
     # gamepad.update()
 
+# pure
 def vgamepad_disable():
     global gamepad
     del gamepad
 
+# managing timers
+# managing held buttons
+# firing events
 def vgamepad_button_down(button: str):
     global gamepad, button_up_pending_jobs, held_buttons
     if button_up_pending_jobs.get(button):
@@ -64,9 +74,10 @@ def vgamepad_button_up(button: str):
     if button in held_buttons:
         held_buttons.remove(button)
 
-def vgamepad_button_press(button: str):
+# impure
+def vgamepad_button_press(button: str, hold: int = 50):
     vgamepad_button_down(button)
-    button_up_pending_jobs[button] = cron.after("200ms", lambda: vgamepad_button_up(button))
+    button_up_pending_jobs[button] = cron.after(f"{hold}ms", lambda: vgamepad_button_up(button))
 
 def vgamepad_button(button: str, hold: int = None, down: bool = None, up: bool = None):
     if "trigger" in button:
@@ -208,10 +219,12 @@ class Actions:
         Does not include triggers or analog sticks.
         """
         vgamepad_button(button, hold, down, up)
-    def vgamepad_left_trigger(power: int = 1, hold: int = None, down: bool = None, up: bool = None): """left trigger"""; trigger("left", hold, down, up, power)
-    def vgamepad_right_trigger(power: int = 1, hold: int = None, down: bool = None, up: bool = None): """right trigger"""; trigger("right", hold, down, up, power)
+    def vgamepad_left_trigger(power: float = 1, hold: int = None, down: bool = None, up: bool = None): """left trigger"""; trigger("left", hold, down, up, power)
+    def vgamepad_right_trigger(power: float = 1, hold: int = None, down: bool = None, up: bool = None): """right trigger"""; trigger("right", hold, down, up, power)
     def vgamepad_left_joystick(x: float, y: float): """left joystick"""; left_joystick(x, y)
     def vgamepad_right_joystick(x: float, y: float): """right joystick"""; right_joystick(x, y)
+
+
     def vgamepad_stopper(): """stop movement"""; vgamepad_stopper()
     def vgamepad_event_register_on_button(on_button: callable): """vgamepad event register on button"""; vgamepad_event_register_on_button(on_button)
     def vgamepad_event_unregister_on_button(on_button: callable): """vgamepad event unregister on button"""; vgamepad_event_unregister_on_button(on_button)

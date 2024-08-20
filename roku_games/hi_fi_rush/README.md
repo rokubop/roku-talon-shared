@@ -1,5 +1,6 @@
-# Dependencies
+# Hi Fi Rush
 
+## Dependencies
 - Talon beta
 - Your own trained parrot model. The more noises the better. I use 14 noises.
 - `roku-talon-shared` in your `[TALON_HOME]/user` directory

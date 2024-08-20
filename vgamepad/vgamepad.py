@@ -61,7 +61,8 @@ def vgamepad_button_up(button: str):
     gamepad.update()
     vgamepad_event_trigger_on_button(button, EVENT_BUTTON_RELEASE)
     button_up_pending_jobs[button] = None
-    held_buttons.remove(button)
+    if button in held_buttons:
+        held_buttons.remove(button)
 
 def vgamepad_button_press(button: str):
     vgamepad_button_down(button)
@@ -121,6 +122,15 @@ def right_joystick(x: float, y: float):
         vgamepad_event_trigger_joystick_dir_change(RIGHT_JOYSTICK, (x, y))
     right_joystick_dir = (x, y)
 
+def vgamepad_dpad_mutually_exclusive(button: str, hold, down):
+    directions = ["left", "right", "up", "down"]
+
+    for direction in directions:
+        if direction == button:
+            vgamepad_button_down(f"dpad_{direction}")
+        elif f"dpad_{direction}" in held_buttons:
+            vgamepad_button_up(f"dpad_{direction}")
+
 def trigger_down(left_or_right: str, power: float = 1):
     global gamepad, button_up_pending_jobs, held_buttons
     button = f"{left_or_right}_trigger"
@@ -164,7 +174,7 @@ def vgamepad_event_unregister_on_button(on_button: callable):
     button_event_subscribers.remove(on_button)
 
 def vgamepad_event_trigger_on_button(button: str, state: str):
-    print(f"button: {button}, state: {state}")
+    # print(f"button: {button}, state: {state}")
     for subscriber in button_event_subscribers:
         subscriber(button, state)
 
@@ -175,7 +185,7 @@ def vgamepad_event_unregister_joystick_dir_change(on_dpad_dir_change: callable):
     dpad_dir_change_event_subscribers.remove(on_dpad_dir_change)
 
 def vgamepad_event_trigger_joystick_dir_change(joystick: str, coords: tuple):
-    print(f"joystick: {joystick}, coords: {coords}")
+    # print(f"joystick: {joystick}, coords: {coords}")
     for subscriber in dpad_dir_change_event_subscribers:
         subscriber(joystick, coords)
 
@@ -194,11 +204,10 @@ class Actions:
 
         **values:** a, b, x, y, dpad_up, dpad_down, dpad_left, dpad_right,
         left_shoulder, right_shoulder, left_thumb, right_thumb, start, back, guide
+
+        Does not include triggers or analog sticks.
         """
         vgamepad_button(button, hold, down, up)
-    def vgamepad_button_down(button: str): """vgamepad button down"""; vgamepad_button_down(button)
-    def vgamepad_button_up(button: str): """vgamepad button up"""; vgamepad_button_up(button)
-    def vgamepad_button_hold(button: str, hold: int): """vgamepad button hold"""; vgamepad_button(button, hold)
     def vgamepad_left_trigger(power: int = 1, hold: int = None, down: bool = None, up: bool = None): """left trigger"""; trigger("left", hold, down, up, power)
     def vgamepad_right_trigger(power: int = 1, hold: int = None, down: bool = None, up: bool = None): """right trigger"""; trigger("right", hold, down, up, power)
     def vgamepad_left_joystick(x: float, y: float): """left joystick"""; left_joystick(x, y)

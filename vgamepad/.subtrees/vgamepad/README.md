@@ -18,12 +18,20 @@ __Development status:__
 
 
 ## Quick links
-- [Installation](#installation)
-- [Getting started](#getting-started)
-  - [XBox360 gamepad](#xbox360-gamepad)
-  - [DualShock4 gamepad](#dualshock4-gamepad)
-  - [Rumble and LEDs](#rumble-and-leds)
-- [Contribute](#authors)
+- [Virtual Gamepad](#virtual-gamepad)
+  - [Quick links](#quick-links)
+  - [Installation](#installation)
+    - [Windows:](#windows)
+    - [Linux:](#linux)
+  - [Getting started](#getting-started)
+    - [XBox360 gamepad](#xbox360-gamepad)
+    - [DualShock4 gamepad](#dualshock4-gamepad)
+    - [Rumble and LEDs:](#rumble-and-leds)
+    - [Advanced users:](#advanced-users)
+  - [Contribute](#contribute)
+  - [Authors](#authors)
+    - [Maintainer:](#maintainer)
+    - [Contributors:](#contributors)
 
 ---
 

@@ -1,5 +1,6 @@
 from talon import Module, Context, actions, cron, ctrl, clip, settings
-from typing import Any
+from typing import Any, Union
+from dataclasses import dataclass
 
 mod = Module()
 ctx = Context()
@@ -40,6 +41,7 @@ mod.list("game_button", desc="Game actions")
 mod.list("game_modifier_button", desc="Game actions")
 mod.list("game_modifier_dir", desc="Game actions")
 mod.list("game_xbox_button", desc="Game actions")
+mod.list("game_power", desc="Game power which maps to 0 to 1.0")
 
 ctx.lists["user.game_dir"] = {
     "left",
@@ -52,6 +54,13 @@ arrow_to_wasd = {
     "right": "d",
     "up": "w",
     "down": "s",
+}
+ctx.lists["user.game_power"] = {
+    "one": "0.4",
+    "two": "0.55",
+    "three": "0.67",
+    "four": "0.80",
+    "five": "1.0",
 }
 
 _move_dir = None
@@ -70,6 +79,16 @@ _key_up_pending_jobs = {}
 _camera_speed = None
 _camera_snap_angle = None
 _game_use_awsd_for_arrows = False
+xbox_power = {
+    "left_stick": 1,
+    "right_stick": 1,
+    "left_trigger": 1,
+    "right_trigger": 1,
+}
+# _xbox_left_analog_power = 1
+# _xbox_right_analog_power = 1
+# _xbox_left_trigger_power = 1
+# _xbox_right_trigger_power = 1
 
 DIR_MODE_CAM_CONTINUOUS = "continuous"
 DIR_MODE_CAM_SNAP = "snap"
@@ -92,6 +111,12 @@ EVENT_MOUSE_CLICK = "click"
 EVENT_MOUSE_HOLD = "hold"
 EVENT_MOUSE_RELEASE = "release"
 
+@dataclass
+class GameXboxEvent:
+    subject: str
+    type: str
+    value: Any
+
 def no_op():
     pass
 
@@ -106,6 +131,7 @@ def queue_action(action, number):
     #     queue_action(action, number)
 
 def release_dir(keys):
+    keys = map_arrows_to_wasd(keys)
     curve_dir_stop()
     if isinstance(keys, tuple):
         for k in keys:
@@ -120,6 +146,7 @@ def release_dir(keys):
                 _held_keys.remove(keys)
 
 def hold_dir(keys):
+    keys = map_arrows_to_wasd(keys)
     if isinstance(keys, tuple):
         for k in keys:
             actions.key(f"{k}:down")
@@ -130,15 +157,18 @@ def hold_dir(keys):
         actions.user.game_event_trigger_on_key(keys, EVENT_KEY_HOLD)
         _held_keys.add(keys)
 
+def map_arrows_to_wasd(keys):
+    if _game_use_awsd_for_arrows:
+        if isinstance(keys, tuple):
+            return tuple(arrow_to_wasd.get(k, k) for k in keys)
+        else:
+            return arrow_to_wasd.get(keys, keys)
+    return keys
+
 def move_dir(keys: str | tuple[str, str]):
     """Hold a direction key"""
     global _move_dir, _move_dir_last_horizontal
-
-    if _game_use_awsd_for_arrows:
-        if isinstance(keys, tuple):
-            keys = tuple(arrow_to_wasd.get(k, k) for k in keys)
-        else:
-            keys = arrow_to_wasd.get(keys, keys)
+    keys = map_arrows_to_wasd(keys)
 
     if _move_dir:
         release_dir(_move_dir)
@@ -588,6 +618,8 @@ xbox_button_map = {
     "right_shoulder": "right_shoulder",
     "left_thumb": "left_thumb",
     "right_thumb": "right_thumb",
+    "left_trigger": "left_trigger",
+    "right_trigger": "right_trigger",
     "start": "start",
     "back": "back",
     "guide": "guide",
@@ -595,11 +627,28 @@ xbox_button_map = {
 
 def xbox_dir_hold_left_analog(dir: str, power: float = None):
     """Hold a left analog direction"""
-    xbox_dir_hold_left_analog_dir_map[dir](power)
+    xbox_dir_hold_left_analog_dir_map[dir](power or xbox_power["left_stick"])
 
 def xbox_dir_hold_right_analog(dir: str, power: float = None):
     """Hold a right analog direction"""
-    xbox_dir_hold_right_analog_dir_map[dir](power)
+    xbox_dir_hold_right_analog_dir_map[dir](power or xbox_power["right_stick"])
+
+def xbox_dir_hold_dpad(dir: str):
+    """Hold a dpad direction"""
+    actions.user.vgamepad_button("dpad_up", up=True)
+    actions.user.vgamepad_button("dpad_down", up=True)
+    actions.user.vgamepad_button("dpad_left", up=True)
+    actions.user.vgamepad_button("dpad_right", up=True)
+    actions.user.vgamepad_button(f"dpad_{dir}", down=True)
+
+def xbox_set_power(subject: str, power: Union[str, int, float]):
+    power = float(power)
+    if subject not in xbox_power:
+        raise ValueError(f"xbox_set_power subject must be one of {xbox_power.keys()}. Got {subject}")
+    if power < 0 or power > 1:
+        raise ValueError(f"xbox_set_power power must be between 0 and 1.0. Got {power}")
+    xbox_power[subject] = power
+    actions.user.game_event_trigger_on_xbox_gamepad_event(subject, "power", power)
 
 @mod.action_class
 class Actions:
@@ -718,6 +767,39 @@ class Actions:
         if EVENT_ON_MOUSE in event_subscribers:
             for callback in event_subscribers[EVENT_ON_MOUSE]:
                 callback(button, state)
+
+    def game_event_register_on_xbox_gamepad_event(callback: callable):
+        """
+        ```
+        def on_gamepad_event(event: Any):
+            print(event.subject, event.event_type, event.value)
+
+        actions.user.game_event_register_on_xbox_gamepad_event(on_gamepad_event)
+        ```
+        """
+        global event_subscribers
+        if "on_xbox" not in event_subscribers:
+            event_subscribers["on_xbox"] = []
+        event_subscribers["on_xbox"].append(callback)
+
+    def game_event_unregister_on_xbox_gamepad_event(callback: callable):
+        """
+        Unregister a callback for a specific game event.
+        """
+        global event_subscribers
+        if "on_xbox" in event_subscribers:
+            event_subscribers["on_xbox"].remove(callback)
+            if not event_subscribers["on_xbox"]:
+                del event_subscribers["on_xbox"]
+
+    def game_event_trigger_on_xbox_gamepad_event(subject: str, type: str, value: Any):
+        """
+        Trigger an event and call all registered callbacks.
+        """
+        global event_subscribers
+        if "on_xbox" in event_subscribers:
+            for callback in event_subscribers["on_xbox"]:
+                callback(GameXboxEvent(subject, type, value))
 
     def game_event_unregister_all():
         """Unregister all game events"""

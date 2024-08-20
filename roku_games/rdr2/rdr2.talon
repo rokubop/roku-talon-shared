@@ -4,16 +4,21 @@ mode: user.game
 
 # directions
 {user.game_dir}: user.game_xbox_right_stick_hold_dir(game_dir)
-go: user.game_xbox_left_stick_hold_dir_up()
+go: user.game_xbox_left_stick_hold_dir("up")
 go {user.game_dir}: user.game_xbox_left_stick_hold_dir(game_dir)
+go {user.game_power}: user.game_xbox_left_stick_set_power(game_power)
 cam {user.game_dir}: user.game_xbox_right_stick_hold_dir(game_dir)
+cam {user.game_power}: user.game_xbox_right_stick_set_power(game_power)
 
 # buttons
 [tap] {user.game_xbox_button}: user.game_xbox_button(game_xbox_button)
 long {user.game_xbox_button}: user.game_xbox_button_hold(game_xbox_button, 1000)
 longer {user.game_xbox_button}: user.game_xbox_button_hold(game_xbox_button, 4000)
 hold {user.game_xbox_button}: user.game_xbox_button_hold(game_xbox_button)
-free {user.game_xbox_button}: user.game_xbox_button_up(game_xbox_button)
+free {user.game_xbox_button}: user.game_xbox_button_release(game_xbox_button)
+
+latch {user.game_power}: user.game_xbox_left_trigger_set_power(game_power)
+ratch {user.game_power}: user.game_xbox_right_trigger_set_power(game_power)
 
 # actions
 weapon: user.game_xbox_button('lb')
@@ -29,7 +34,7 @@ cam mid: user.game_reset_center_y()
 look {user.game_dir}: user.game_camera_snap_dynamic(game_dir)
 round: user.game_turn_180()
 
-gear <number_small>: user.game_gear_for_last_action(number_small)
+# gear <number_small>: user.game_gear_for_last_action(number_small)
 halt | stop: user.game_stopper()
 
 # [{user.game_modifier_button}] (dodge | block | jump | climb): user.vgamepad_x()

@@ -88,7 +88,7 @@ def dpad_ui():
 def noises_ui():
     (div, text) = actions.user.ui_elements(["div", "text"])
 
-    return div(flex_direction="column", gap=8, margin_top=12)[
+    return div(flex_direction="column", gap=8)[
         div(id="pop", flex_direction="row", width=150, padding=8, border_width=1, border_color="FFFFFF33", border_radius=4)[
             text("pop"),
             text("", id="pop_value", color=accent_color)
@@ -182,7 +182,7 @@ def xbox_primary_buttons_ui():
 
 def line_separator_ui():
     (div, text) = actions.user.ui_elements(["div", "text"])
-    return div(background_color="FFFFFF66", width=300, height=2)
+    return div(background_color="FFFFFF66", width=120, height=2)
 
 def show_hud_ui():
     (div, screen, text) = actions.user.ui_elements(["div", "screen", "text"])
@@ -197,14 +197,14 @@ def show_hud_ui():
                 div()[
                     div(flex_direction="row", margin_bottom=16, gap=8)[
                         text("go"),
-                        text("5", color=accent_color),
+                        text("5", id="go_power", color=accent_color),
                     ],
                     stick_ui("left"),
                 ],
                 div()[
                     div(flex_direction="row", margin_bottom=16, gap=8)[
                         text("cam"),
-                        text("5", color=accent_color),
+                        text("5", id="cam_power", color=accent_color),
                     ],
                     stick_ui("right"),
                 ],
@@ -214,29 +214,31 @@ def show_hud_ui():
                 ],
                 div()[
                     text("triggers / bumpers", margin_bottom=16),
-                    div(flex_direction="row", gap=8)[
-                        div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, gap=8, justify_content="center")[
-                            text("LT"),
-                            text("5", color=accent_color),
+                    div(flex_direction="column", gap=8)[
+                        div(flex_direction="row", gap=8)[
+                            div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, gap=8, justify_content="center")[
+                                text("LT"),
+                                text("5", id="lt_power", color=accent_color),
+                            ],
+                            div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, gap=8, justify_content="center")[
+                                text("RT"),
+                                text("5", id="rt_power", color=accent_color),
+                            ]
                         ],
-                        div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, gap=8, justify_content="center")[
-                            text("RT"),
-                            text("5", color=accent_color),
-                        ]
-                    ],
-                    div(flex_direction="row", gap=8, margin_top=16)[
-                        div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, justify_content="center")[
-                            text("LB")
-                        ],
-                        div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, justify_content="center")[
-                            text("RB"),
+                        div(flex_direction="row", gap=8)[
+                            div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, justify_content="center")[
+                                text("LB")
+                            ],
+                            div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, justify_content="center")[
+                                text("RB"),
+                            ]
                         ]
                     ]
                 ],
                 div()[
                     text("noises", margin_bottom=16),
                     # cam_mode_ui(),
-                    line_separator_ui(),
+                    # line_separator_ui(),
                     noises_ui()
                 ],
             ],
@@ -353,10 +355,26 @@ def on_joystick_dir(joystick, coords):
         elif joystick == "right_joystick":
             actions.user.ui_elements_highlight(f"right_{directions[coords]}")
 
+def on_xbox_event(event):
+    print(f"on_xbox_event: {event}")
+    if event.subject == "right_stick":
+        if event.type == "power":
+            actions.user.ui_elements_set_text("cam_power", event.value)
+    elif event.subject == "left_stick":
+        if event.type == "power":
+            actions.user.ui_elements_set_text("go_power", event.value)
+    elif event.subject == "left_trigger":
+        if event.type == "power":
+            actions.user.ui_elements_set_text("lt_power", event.value)
+    elif event.subject == "right_trigger":
+        if event.type == "power":
+            actions.user.ui_elements_set_text("rt_power", event.value)
+
 def show_ui():
     show_hud_ui()
     show_commands_ui()
     actions.user.game_event_register_on_key(on_key)
+    actions.user.game_event_register_on_xbox_gamepad_event(on_xbox_event)
     actions.user.dynamic_actions_event_register(on_event)
     actions.user.mouse_move_dir_change_event_register(on_mouse_dir)
     actions.user.vgamepad_event_register_on_button(on_button)

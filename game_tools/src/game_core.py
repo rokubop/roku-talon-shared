@@ -41,7 +41,7 @@ mod.list("game_button", desc="Game actions")
 mod.list("game_modifier_button", desc="Game actions")
 mod.list("game_modifier_dir", desc="Game actions")
 mod.list("game_xbox_button", desc="Game actions")
-mod.list("game_power", desc="Game power which maps to 0 to 1.0")
+mod.list("game_gear", desc="Game gear for various dynamic values, spoken form 1 to 5")
 
 ctx.lists["user.game_dir"] = {
     "left",
@@ -55,12 +55,12 @@ arrow_to_wasd = {
     "up": "w",
     "down": "s",
 }
-ctx.lists["user.game_power"] = {
-    "one": "0.4",
-    "two": "0.55",
-    "three": "0.67",
-    "four": "0.80",
-    "five": "1.0",
+ctx.lists["user.game_gear"] = {
+    "one": "1",
+    "two": "2",
+    "three": "3",
+    "four": "4",
+    "five": "5",
 }
 
 _move_dir = None

@@ -4,8 +4,8 @@ import os
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 # mod.apps.rdr2 = "os: windows"
-# mod.apps.rdr2 = "os: windows\nand app.exe: /code.exe/i"
-mod.apps.rdr2 = "os: windows\nand app.exe: /rdr2.exe/i"
+mod.apps.rdr2 = "os: windows\nand app.exe: /code.exe/i"
+# mod.apps.rdr2 = "os: windows\nand app.exe: /rdr2.exe/i"
 ctx.matches = "os: windows\napp: rdr2"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 
@@ -40,7 +40,7 @@ class Actions:
         actions.sleep("1000ms")
         actions.user.noise_register_dynamic_action_pop(
             "A",
-            lambda: actions.user.game_xbox_button('a')
+            lambda: actions.user.game_xbox_button_press('a')
         )
         actions.user.noise_register_dynamic_action_hiss(
             "stop",

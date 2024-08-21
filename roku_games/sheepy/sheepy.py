@@ -22,7 +22,7 @@ def xbox_x():
     # actions.key("f7")
     #
     # Option 3: use xbox gamepad emulation
-    actions.user.game_xbox_button("x")
+    actions.user.game_xbox_button_press("x")
     actions.user.ui_elements_highlight_briefly("shift")
 
 parrot_config = {

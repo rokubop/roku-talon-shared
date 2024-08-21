@@ -6,28 +6,28 @@ mode: user.game
 {user.game_dir}: user.game_xbox_right_stick_hold_dir(game_dir)
 go: user.game_xbox_left_stick_hold_dir("up")
 go {user.game_dir}: user.game_xbox_left_stick_hold_dir(game_dir)
-go {user.game_power}: user.game_xbox_left_stick_set_power(game_power)
+go {user.game_gear}: user.game_xbox_left_stick_set_gear(game_gear)
 cam {user.game_dir}: user.game_xbox_right_stick_hold_dir(game_dir)
-cam {user.game_power}: user.game_xbox_right_stick_set_power(game_power)
+cam {user.game_gear}: user.game_xbox_right_stick_set_gear(game_gear)
 
 # buttons
-[tap] {user.game_xbox_button}: user.game_xbox_button(game_xbox_button)
+[tap] {user.game_xbox_button}: user.game_xbox_button_press(game_xbox_button)
 long {user.game_xbox_button}: user.game_xbox_button_hold(game_xbox_button, 1000)
 longer {user.game_xbox_button}: user.game_xbox_button_hold(game_xbox_button, 4000)
 hold {user.game_xbox_button}: user.game_xbox_button_hold(game_xbox_button)
 free {user.game_xbox_button}: user.game_xbox_button_release(game_xbox_button)
 
-latch {user.game_power}: user.game_xbox_left_trigger_set_power(game_power)
-ratch {user.game_power}: user.game_xbox_right_trigger_set_power(game_power)
+latch {user.game_gear}: user.game_xbox_left_trigger_set_gear(game_gear)
+ratch {user.game_gear}: user.game_xbox_right_trigger_set_gear(game_gear)
 
 # actions
-weapon: user.game_xbox_button('lb')
+weapon: user.game_xbox_button_press('lb')
 wheel: user.rdr2_wheel()
-reload | punch: user.game_xbox_button('x', 200)
+reload | punch: user.game_xbox_button_press('x', 200)
 aim: user.game_xbox_button_hold('lt')
 shoot: user.game_xbox_button_hold('rt', 200)
 pick: user.game_xbox_button_hold('lb')
-call: user.game_xbox_button('dpad_up')
+call: user.game_xbox_button_press('dpad_up')
 run: user.game_xbox_button_hold('a')
 
 cam mid: user.game_reset_center_y()

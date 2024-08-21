@@ -216,20 +216,20 @@ def show_hud_ui():
                     text("triggers / bumpers", margin_bottom=16),
                     div(flex_direction="column", gap=8)[
                         div(flex_direction="row", gap=8)[
-                            div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, gap=8, justify_content="center")[
+                            div(id="left_trigger", flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, gap=8, justify_content="center")[
                                 text("LT"),
-                                text("5", id="lt_power", color=accent_color),
+                                text("5", id="left_trigger_power", color=accent_color),
                             ],
-                            div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, gap=8, justify_content="center")[
+                            div(id="right_trigger", flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, gap=8, justify_content="center")[
                                 text("RT"),
-                                text("5", id="rt_power", color=accent_color),
+                                text("5", id="right_trigger_power", color=accent_color),
                             ]
                         ],
                         div(flex_direction="row", gap=8)[
-                            div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, justify_content="center")[
+                            div(id="gamepad_left_shoulder", flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, justify_content="center")[
                                 text("LB")
                             ],
-                            div(flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, justify_content="center")[
+                            div(id="gamepad_right_shoulder", flex_direction="row", padding=8, border_radius=4, background_color="333333dd", width=60, justify_content="center")[
                                 text("RB"),
                             ]
                         ]
@@ -334,8 +334,8 @@ def on_button(button, state):
     elif state == "release":
         actions.user.ui_elements_unhighlight(f"gamepad_{button}")
 
-def on_joystick_dir(joystick, coords):
-    print(f"joystick: {joystick}, coords: {coords}")
+def on_joystick_dir(subject, coords):
+    print(f"subject: {subject}, coords: {coords}")
     directions = {
         (-1, 0): "stick_left",
         (1, 0): "stick_right",
@@ -344,31 +344,47 @@ def on_joystick_dir(joystick, coords):
     }
 
     for direction in directions.values():
-        if joystick == "left_joystick":
+        if subject == "left_stick":
             actions.user.ui_elements_unhighlight(f"left_{direction}")
-        elif joystick == "right_joystick":
+        elif subject == "right_stick":
             actions.user.ui_elements_unhighlight(f"right_{direction}")
 
     if coords in directions:
-        if joystick == "left_joystick":
+        if subject == "left_stick":
             actions.user.ui_elements_highlight(f"left_{directions[coords]}")
-        elif joystick == "right_joystick":
+        elif subject == "right_stick":
             actions.user.ui_elements_highlight(f"right_{directions[coords]}")
+
+def on_stick(event):
+    if event.type == "gear_change":
+        gear_state = event.value
+        if event.subject == "right_stick":
+            actions.user.ui_elements_set_text("cam_power", gear_state.gear)
+        elif event.subject == "left_stick":
+            actions.user.ui_elements_set_text("go_power", gear_state.gear)
+    elif event.type == "dir_change":
+        on_joystick_dir(event.subject, event.value)
+
+def on_trigger(event):
+    if event.type == "hold":
+        actions.user.ui_elements_highlight(event.subject)
+    elif event.type == "release":
+        actions.user.ui_elements_unhighlight(event.subject)
+    elif event.type == "gear_change":
+        gear_state = event.value
+        actions.user.ui_elements_set_text(f"{event.subject}_power", gear_state.gear)
 
 def on_xbox_event(event):
     print(f"on_xbox_event: {event}")
-    if event.subject == "right_stick":
-        if event.type == "power":
-            actions.user.ui_elements_set_text("cam_power", event.value)
-    elif event.subject == "left_stick":
-        if event.type == "power":
-            actions.user.ui_elements_set_text("go_power", event.value)
-    elif event.subject == "left_trigger":
-        if event.type == "power":
-            actions.user.ui_elements_set_text("lt_power", event.value)
-    elif event.subject == "right_trigger":
-        if event.type == "power":
-            actions.user.ui_elements_set_text("rt_power", event.value)
+    if event.subject == "right_stick" or event.subject == "left_stick":
+        on_stick(event)
+    elif event.subject == "left_trigger" or event.subject == "right_trigger":
+        on_trigger(event)
+    else:
+        if event.type == "hold":
+            actions.user.ui_elements_highlight(f"gamepad_{event.subject}")
+        elif event.type == "release":
+            actions.user.ui_elements_unhighlight(f"gamepad_{event.subject}")
 
 def show_ui():
     show_hud_ui()
@@ -376,13 +392,8 @@ def show_ui():
     actions.user.game_event_register_on_key(on_key)
     actions.user.game_event_register_on_xbox_gamepad_event(on_xbox_event)
     actions.user.dynamic_actions_event_register(on_event)
-    actions.user.mouse_move_dir_change_event_register(on_mouse_dir)
-    actions.user.vgamepad_event_register_on_button(on_button)
-    actions.user.vgamepad_event_register_joystick_dir_change(on_joystick_dir)
 
 def hide_ui():
     actions.user.ui_elements_hide_all()
     actions.user.game_event_unregister_all()
     actions.user.dynamic_actions_event_unregister_all()
-    actions.user.mouse_move_event_unregister_all()
-    actions.user.vgamepad_event_unregister_all()

@@ -11,7 +11,7 @@ gamepad = None
 if sys.platform != "darwin":
     import vgamepad as vg
 
-    button_map = {
+    xbox_button_map = {
         "a": vg.XUSB_BUTTON.XUSB_GAMEPAD_A,
         "b": vg.XUSB_BUTTON.XUSB_GAMEPAD_B,
         "x": vg.XUSB_BUTTON.XUSB_GAMEPAD_X,
@@ -29,46 +29,61 @@ if sys.platform != "darwin":
         "guide": vg.XUSB_BUTTON.XUSB_GAMEPAD_GUIDE,
     }
 
+    button_map = xbox_button_map
+
 def vgamepad_enable():
     global gamepad
     if not gamepad:
-        gamepad = vg.VX360Gamepad()
+        try:
+            gamepad = vg.VX360Gamepad()
+        except:
+            print("""
+                Failed to enable vgamepad. Make sure vgamepad is installed.
+                See the README in roku-talon-shared/vgamepad for more information.
+            """)
 
 def vgamepad_disable():
     global gamepad
     gamepad = None
 
 def vgamepad_button_hold(button: str):
-    gamepad.press_button(button_map[button])
-    gamepad.update()
+    if gamepad:
+        gamepad.press_button(button_map[button])
+        gamepad.update()
 
 def vgamepad_button_release(button: str):
-    gamepad.release_button(button_map[button])
-    gamepad.update()
+    if gamepad:
+        gamepad.release_button(button_map[button])
+        gamepad.update()
 
-def left_joystick(x: float, y: float):
-    gamepad.left_joystick_float(x, y)
-    gamepad.update()
+def left_stick(x: float, y: float):
+    if gamepad:
+        gamepad.left_joystick_float(x, y)
+        gamepad.update()
 
-def right_joystick(x: float, y: float):
-    gamepad.right_joystick_float(x, y)
-    gamepad.update()
+def right_stick(x: float, y: float):
+    if gamepad:
+        gamepad.right_joystick_float(x, y)
+        gamepad.update()
 
 def left_trigger(power: float):
-    gamepad.left_trigger_float(power)
-    gamepad.update()
+    if gamepad:
+        gamepad.left_trigger_float(power)
+        gamepad.update()
 
 def right_trigger(power: float):
-    gamepad.right_trigger_float(power)
-    gamepad.update()
+    if gamepad:
+        gamepad.right_trigger_float(power)
+        gamepad.update()
 
 def dpad_dir_hold(dir: str):
-    for direction in ["dpad_left", "dpad_right", "dpad_up", "dpad_down"]:
-        if direction == dir:
-            gamepad.press_button(direction)
-        else:
-            gamepad.release_button(direction)
-    gamepad.update()
+    if gamepad:
+        for direction in ["dpad_left", "dpad_right", "dpad_up", "dpad_down"]:
+            if direction == dir:
+                gamepad.press_button(direction)
+            else:
+                gamepad.release_button(direction)
+        gamepad.update()
 
 def not_supported():
     print("vgamepad is not supported on macOS.")
@@ -90,8 +105,8 @@ class Actions:
     def vgamepad_dpad_dir_hold(dir: str): """vgamepad dpad hold dir mutually exclusive - up, down, left, right"""; dpad_dir_hold(dir)
     def vgamepad_left_trigger(power: float): """left trigger"""; left_trigger(power)
     def vgamepad_right_trigger(power: float): """right trigger"""; right_trigger(power)
-    def vgamepad_left_stick(x: float, y: float): """left analog stick"""; left_joystick(x, y)
-    def vgamepad_right_stick(x: float, y: float): """right analog joystick"""; right_joystick(x, y)
+    def vgamepad_left_stick(x: float, y: float): """left analog stick"""; left_stick(x, y)
+    def vgamepad_right_stick(x: float, y: float): """right analog joystick"""; right_stick(x, y)
 
 @ctx_mac.action_class("user")
 class MacActions:

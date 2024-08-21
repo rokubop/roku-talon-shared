@@ -830,7 +830,7 @@ class UIBuilder(UIBox):
                 blockable_canvas.register("mouse", self.on_mouse)
                 blockable_canvas.freeze()
 
-    def show(self):
+    def show(self, on_mount: callable = None):
         global state, debug_current_step, render_step, debug_start_step, debug_draw_step_by_step
         screen = get_screen(self.screen)
 
@@ -866,7 +866,7 @@ class UIBuilder(UIBox):
             # is there a way to do this without a hard coded delay?
             # we need to wait for everything to render so we have
             # all the dimensions to calculate the blockable canvas
-            cron.after("500ms", lambda: self.init_blockable_canvases())
+            cron.after("1000ms", lambda: self.init_blockable_canvases())
 
     def on_mouse(self, e):
         if e.event == "mousemove":

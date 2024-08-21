@@ -25,22 +25,65 @@ mod.setting(
 mod.setting(
     "game_mouse_click_hold",
     desc="Hold time for a click.",
-    type=float,
+    type=Union[int, float],
     default=16.0
 )
-
-# mod.setting("game_camera_dynamic_speed", desc="Dynamic camera speed", type=int, default=5)
-# mod.setting("game_camera_speed", desc="Camera speed", type=int, default=5)
-# mod.list("game_actions", desc="Game actions")
-# mod.list("game_words", desc="Game words")
-# mod.list("game_key_actions", desc="Game actions")
-# mod.list("game_action_values", desc="Game actions")
-# mod.list("game_keys_mouse", desc="Game actions")
-mod.list("game_dir", desc="Game actions")
-mod.list("game_button", desc="Game actions")
-mod.list("game_modifier_button", desc="Game actions")
-mod.list("game_modifier_dir", desc="Game actions")
-mod.list("game_xbox_button", desc="Game actions")
+mod.setting(
+    "game_mode_disables_command_mode",
+    desc="Disable command mode when game mode is enabled.",
+    type=bool,
+    default=True
+)
+mod.setting(
+    "game_xbox_left_stick_default_gear",
+    desc="Default gear for the left stick",
+    type=int,
+    default=5
+)
+mod.setting(
+    "game_xbox_left_stick_gears",
+    desc="Gears for the left stick",
+    type=str,
+    default=".2 .4 .6 .8 1"
+)
+mod.setting(
+    "game_xbox_right_stick_default_gear",
+    desc="Default gear for the right stick",
+    type=int,
+    default=5
+)
+mod.setting(
+    "game_xbox_right_stick_gears",
+    desc="Gears for the right stick",
+    type=str,
+    default=".2 .4 .6 .8 1"
+)
+mod.setting(
+    "game_xbox_left_trigger_default_gear",
+    desc="Default gear for the left trigger",
+    type=int,
+    default=5
+)
+mod.setting(
+    "game_xbox_left_trigger_gears",
+    desc="Gears for the left trigger",
+    type=str,
+    default=".2 .4 .6 .8 1"
+)
+mod.setting(
+    "game_xbox_right_trigger_default_gear",
+    desc="Default gear for the right trigger",
+    type=int,
+    default=5
+)
+mod.setting(
+    "game_xbox_right_trigger_gears",
+    desc="Gears for the right trigger",
+    type=str,
+    default=".2 .4 .6 .8 1"
+)
+mod.list("game_dir", desc="Game dir e.g. left right up down back forward")
+mod.list("game_xbox_button", desc="xbox spoken form buttons")
 mod.list("game_gear", desc="Game gear for various dynamic values, spoken form 1 to 5")
 
 ctx.lists["user.game_dir"] = {
@@ -79,6 +122,7 @@ _key_up_pending_jobs = {}
 _camera_speed = None
 _camera_snap_angle = None
 _game_use_awsd_for_arrows = False
+event_subscribers = {}
 
 DIR_MODE_CAM_CONTINUOUS = "continuous"
 DIR_MODE_CAM_SNAP = "snap"
@@ -337,16 +381,6 @@ def stopper():
     if _held_mouse_buttons:
         mouse_release_all()
 
-# @mod.capture(rule="{user.game_actions}")
-# def game_action(m) -> str:
-#     print(m)
-#     return m.game_actions
-
-# @mod.capture(rule="{user.game_action_values}")
-# def game_action_values(m) -> str:
-#     print(m)
-#     return m.game_action_values
-
 @mod.action_class
 class Actions:
     def game_action_test(a: str):
@@ -380,12 +414,11 @@ class Actions:
         """Enable play mode"""
         global _game_use_awsd_for_arrows
         actions.mode.enable("user.game")
-        actions.mode.disable("command")
+        if settings.get("user.game_mode_disables_command_mode"):
+            actions.mode.disable("command")
         print("game_mode_enable")
         if settings.get("user.game_use_awsd_for_arrows"):
             _game_use_awsd_for_arrows = True
-        # print(actions.user.game_actions)
-        # print(mod.lists["user.game_actions"])
         actions.user.on_game_mode_enabled()
 
     def game_nav_mode_enable():
@@ -687,21 +720,3 @@ class Actions:
         """Unregister all game events"""
         global event_subscribers
         event_subscribers = {}
-
-    def on_game_state_change(state: dict):
-        """On game state change"""
-        pass
-
-event_subscribers = {}
-
-    # def on_game_key_press(key: str):
-    #     """On game key press"""
-    #     pass
-
-    # def on_game_key_hold(key: str):
-    #     """On game key hold"""
-    #     pass
-
-    # def on_game_key_release(key: str):
-    #     """On game key release"""
-    #     pass

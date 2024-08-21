@@ -11,40 +11,38 @@ mod.setting(
     desc="The amount of time to hold a button before releasing it."
 )
 
-gear_values = {
-    "left_stick": ".2 .4 .6 .8 1",
-    "right_stick": ".3 .55 .65 .73 .85",
-    "left_trigger": ".2 .4 .6 .8 1",
-    "right_trigger": ".2 .4 .6 .8 1",
-}
-
-def get_gear_values(subject: str, gear: str = 5):
+def get_gear_value(subject: str, gear: int = 5):
+    gears = settings.get(f"user.game_xbox_{subject}_gears")
+    print("subject", subject)
+    print("gears", gears)
     try:
-        return float(gear_values[subject].split(" ")[gear - 1])
+        return float(gears.split(" ")[gear - 1])
     except KeyError:
         return 1
 
 class GearState:
     gear: int
     value: float
+    subject: str
 
-    def __init__(self, subject: str, gear: Union[int, str]):
-        self.gear = int(gear)
-        self.value = get_gear_values(subject, gear)
+    def __init__(self, subject: str):
+        gear = int(settings.get(f"user.game_xbox_{subject}_default_gear"))
+        self.subject = subject
+        self.set_gear(gear)
 
     def set_gear(self, gear: Union[int, str]):
-        self.gear = int(gear)
-        self.value = get_gear_values(gear)
+        self.gear = gear
+        self.value = get_gear_value(self.subject, int(gear))
 
 button_event_subscribers = []
 dpad_hold_dir = None
 left_stick_dir = (0, 0)
 right_stick_dir = (0, 0)
 gear_state = {
-    "left_stick": GearState("left_stick", 5),
-    "right_stick": GearState("right_stick", 3),
-    "left_trigger": GearState("left_trigger", 5),
-    "right_trigger": GearState("right_trigger", 5),
+    "left_stick": GearState("left_stick"),
+    "right_stick": GearState("right_stick"),
+    "left_trigger": GearState("left_trigger"),
+    "right_trigger": GearState("right_trigger"),
 }
 held_buttons = set()
 button_up_pending_jobs = {}

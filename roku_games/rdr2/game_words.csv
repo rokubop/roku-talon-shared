@@ -3,19 +3,19 @@ dir_left, left
 dir_right, right
 dir_up, up
 dir_down, down
-dir_forward, forth | ford | forward
+dir_forward, forth | forward
 dir_backward, back
-xbox_button_a, a | aye | air
-xbox_button_b, b | bee | bat
-xbox_button_x, check | x | plex
-xbox_button_y, y | why | yank
-xbox_button_lt, latch | look trap | elt | el tee | el tea | el t | el t
-xbox_button_rt, ratch | red trap | artie | or te | are tea
-xbox_button_lb, lob | look bat | elbe | el be
-xbox_button_rb, rob | red bat | arb | are be
+xbox_button_a, air | a | ay
+xbox_button_b, bat | b | bee
+xbox_button_x, check | plex | x | ex
+xbox_button_y, yank | y | why
 xbox_button_dpad_up, pad up
 xbox_button_dpad_down, pad down
 xbox_button_dpad_left, pad left
 xbox_button_dpad_right, pad right
+xbox_button_lb, lob
+xbox_button_rb, rob
+xbox_trigger_lt, latch
+xbox_trigger_rt, ratch
 xbox_button_guide, guide
 xbox_button_menu, menu

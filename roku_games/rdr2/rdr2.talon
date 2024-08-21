@@ -17,6 +17,7 @@ longer {user.game_xbox_button}: user.game_xbox_button_hold(game_xbox_button, 400
 hold {user.game_xbox_button}: user.game_xbox_button_hold(game_xbox_button)
 free {user.game_xbox_button}: user.game_xbox_button_release(game_xbox_button)
 
+# triggers
 latch {user.game_gear}: user.game_xbox_left_trigger_set_gear(game_gear)
 ratch {user.game_gear}: user.game_xbox_right_trigger_set_gear(game_gear)
 

@@ -1,19 +1,11 @@
-from talon import Module, actions
+from talon import Module
 from typing import Any
 import csv
+import os
 
 mod = Module()
 
-# {user.game_modifier_dir} {user.game_dir}: user.game_dir_with_modifier(game_dir_modifier, game_dir)
-# {user.game_modifier_button} {user.game_buttons}: user.game_button_with_modifier(game_key_actions, game_words)
-# {user.game_modifier_power} <number_small>: user.game_power_with_modifier(game_power_modifier, game_power)
-# {user.game_dir}: user.game_dir_preferred_mode(game_dir)
-
 def get_words(ctx_game, game_words_csv_path):
-    # word_list = {}
-    # game_key_actions = {}
-    # game_modifier_dir = {}
-    # game_modifier_button = {}
     game_dir = {}
     game_xbox_button = {}
 
@@ -37,12 +29,25 @@ def get_words(ctx_game, game_words_csv_path):
                         value = "down"
                     for command in commands:
                         game_dir[command] = value
+                else:
+                    print(f"Unknown prefix while parsing game_words.csv: {list_value}")
 
         ctx_game.lists["self.game_dir"] = game_dir
         ctx_game.lists["self.game_xbox_button"] = game_xbox_button
 
 @mod.action_class
 class Actions:
-    def game_csv_game_words_setup(ctx_game: Any, game_words_csv_path: str):
-        """setup csv game words"""
-        get_words(ctx_game, game_words_csv_path)
+    def game_csv_game_words_setup(ctx_game: Any, current_file_path: str):
+        """
+        Parses `game_words.csv` file in you current directory, and will set up lists based on the values.
+
+        Supported prefixes:
+        `xbox_button_`, `dir_`
+
+        Usage:
+
+        `actions.user.game_csv_game_words_setup(ctx_game, __file__)`
+        """
+        game_words_path = os.path.join(os.path.dirname(current_file_path), 'game_words.csv')
+        print(game_words_path)
+        get_words(ctx_game, game_words_path)

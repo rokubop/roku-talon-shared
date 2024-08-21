@@ -1,11 +1,10 @@
 from talon import Module, Context, actions
-from .rdr2_ui import show_ui, hide_ui, update_pop, update_hiss
-import os
+from .rdr2_ui import show_ui, hide_ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 # mod.apps.rdr2 = "os: windows"
-mod.apps.rdr2 = "os: windows\nand app.exe: /code.exe/i"
-# mod.apps.rdr2 = "os: windows\nand app.exe: /rdr2.exe/i"
+# mod.apps.rdr2 = "os: windows\nand app.exe: /code.exe/i"
+mod.apps.rdr2 = "os: windows\nand app.exe: /rdr2.exe/i"
 ctx.matches = "os: windows\napp: rdr2"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 
@@ -26,27 +25,26 @@ def stop_all():
     actions.user.game_stopper()
     actions.user.game_xbox_stop_all_dir()
 
+def register_dynamic_noises():
+    actions.user.noise_register_dynamic_action_pop(
+        action_name = "A",
+        action = lambda: actions.user.game_xbox_button_press('a')
+    )
+    actions.user.noise_register_dynamic_action_hiss(
+        action_name="stop",
+        action = stop_all,
+        alias = "wish"
+    )
+
 @ctx_game.action_class("user")
 class Actions:
-    def on_game_state_change(state: dict):
-        print("Game state change", state)
-
     def on_game_mode_enabled():
         print("Game mode enabled")
-        game_words_path = os.path.join(os.path.dirname(__file__), 'game_words.csv')
-        actions.user.game_csv_game_words_setup(ctx_game, game_words_path)
+        actions.user.game_csv_game_words_setup(ctx_game, __file__)
         actions.user.game_xbox_gamepad_enable()
         show_ui()
         actions.sleep("1000ms")
-        actions.user.noise_register_dynamic_action_pop(
-            "A",
-            lambda: actions.user.game_xbox_button_press('a')
-        )
-        actions.user.noise_register_dynamic_action_hiss(
-            "stop",
-            stop_all,
-            alias="wish"
-        )
+        register_dynamic_noises()
 
     def on_game_mode_disabled():
         actions.user.game_xbox_gamepad_disable()

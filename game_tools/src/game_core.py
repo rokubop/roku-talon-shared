@@ -1,6 +1,5 @@
 from talon import Module, Context, actions, cron, ctrl, clip, settings
 from .game_events import (
-    event_unregister_all,
     event_on_game_mode,
     event_on_key,
     event_on_mouse,
@@ -572,37 +571,3 @@ class Actions:
     def on_game_mode_disabled():
         """Triggered on game mode disabled"""
         no_op()
-
-    def game_event_register_on_key(callback: callable):
-        """
-        events:
-        ```py
-        "on_key", lambda key, state: # press/hold/release
-        ```
-        """
-        event_on_key.register(callback)
-
-    def game_event_unregister_on_key(callback: callable):
-        """
-        Unregister a callback for a specific game event.
-        """
-        event_on_key.unregister(callback)
-
-    def game_event_register_on_mouse(callback: callable):
-        """
-        events:
-        ```py
-        "on_mouse", lambda mouse, state: # click/hold/release
-        ```
-        """
-        event_on_mouse.register(callback)
-
-    def game_event_unregister_on_mouse(callback: callable):
-        """
-        Unregister a callback for a specific game event.
-        """
-        event_on_mouse.unregister(callback)
-
-    def game_event_unregister_all():
-        """Unregister all game events"""
-        event_unregister_all()

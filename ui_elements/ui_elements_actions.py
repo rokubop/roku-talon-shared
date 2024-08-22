@@ -1,10 +1,21 @@
 from talon import Module
-from .ui_elements import UIBuilder, div, text, screen, css, button, input_text, ids, state, inputs, builders_core
-from typing import Literal, List, Dict
+from typing import List, Dict
+from .ui_elements import (
+    UIBuilder,
+    div,
+    text,
+    screen,
+    css,
+    button,
+    input_text,
+    inputs,
+    builders_core,
+    builder_child_id_action,
+    event_register_on_lifecycle,
+    event_unregister_on_lifecycle
+)
 
 mod = Module()
-
-builders = {}
 
 @mod.action_class
 class Actions:
@@ -12,10 +23,7 @@ class Actions:
         """
         Usage:
         ```py
-        global ui
-
         # def show
-        global ui
         (div, text, screen, button, input_text) = actions.user.ui_elements(["div", "text", "screen", "button", "input_text"])
         ui = screen(align_items="flex_end", justify_content="center")[
             div(id="box", padding=16, background_color="FF000088")[
@@ -27,6 +35,9 @@ class Actions:
         ]
         ui.show()
 
+        # def hide and destroy
+        actions.user.ui_elements_hide_all()
+
         # trigger update text
         actions.user.ui_elements_set_text("test", "Updated")
 
@@ -37,10 +48,6 @@ class Actions:
 
         # trigger get value
         actions.user.ui_elements_get_value("the_input")
-
-        # def hide
-        global ui
-        ui.hide()
         ```
         """
         element_mapping: Dict[str, callable] = {
@@ -55,92 +62,44 @@ class Actions:
         }
         return tuple(element_mapping[element] for element in elements)
 
-    def ui_elements_screen(
-        align: Literal["left", "center", "right", "top", "bottom"] = "center",
-        justify_content: str = "center",
-        align_items: str = "center",
-        id: str = None,
-        background_color: str = None,
-        flex_direction: str = "column",
-        highlight_color: str = None) -> UIBuilder:
-        """
-        DEPRECATED - use ui_elements instead
-        Create a new UIBuilder instance with specific layout settings.
-
-        Args:
-            justify_content (str): How to justify content within the UI.
-            align_items (str): How items should be aligned within the UI.
-        """
-        global builders
-
-        if align == "left":
-            align_items = "flex_start"
-        elif align == "right":
-            align_items = "flex_end"
-        elif align == "top":
-            justify_content = "flex_start"
-        elif align == "bottom":
-            justify_content = "flex_end"
-
-        builders[id] = UIBuilder(
-            justify_content=justify_content,
-            align_items=align_items,
-            width=1920,
-            height=1080,
-            background_color=background_color,
-            flex_direction=flex_direction,
-            highlight_color=highlight_color
-        )
-
-        return builders[id]
-
-    def ui_builder_hide(id: str):
-        """
-        Hide the UI builder with the given ID.
-        """
-        global builders
-        if id in builders:
-            builders[id].hide()
-        else:
-            print(f"UI builder with ID {id} not found.")
+    def ui_elements_hide(id: str):
+        """Hide and destroys a ui_element based on the id assigned to the screen ui_element"""
+        global builders_core
+        if id in builders_core:
+            builders_core[id].hide()
 
     def ui_elements_hide_all():
-        """Hide/close all currently active ui_elements"""
+        """Hide and destroys all currently active ui_elements"""
         for id in builders_core:
             builders_core[id].hide()
 
-    def ui_builder_show(id: str):
-        """
-        Show the UI builder with the given ID.
-        """
-        global builders, builders_core
-        if id in builders:
-            builders[id].show()
-        elif id in builders_core:
-            builders_core[id].show()
-        else:
-            print(f"UI builder with ID {id} not found.")
+    def ui_elements_set_text(id: str, value: str):
+        """set text based on id"""
+        builder_child_id_action(id, "set_text", value)
+
+    def ui_elements_highlight(id: str):
+        """highlight based on id"""
+        builder_child_id_action(id, "highlight")
+
+    def ui_elements_unhighlight(id: str):
+        """unhighlight based on id"""
+        builder_child_id_action(id, "unhighlight")
+
+    def ui_elements_highlight_briefly(id: str):
+        """highlight briefly based on id"""
+        builder_child_id_action(id, "highlight_briefly")
 
     def ui_builder_get(id: str) -> UIBuilder:
         """
-        Get the UI builder with the given ID.
+        Get the UI builder with the given ID. Only for
+        informational purposes. Not for mutation.
         """
-        global builders, builders_core
-        if id in builders:
-            return builders[id]
-        elif id in builders_core:
+        global builders_core
+        if id in builders_core:
             return builders_core[id]
         else:
             print(f"UI builder with ID {id} not found.")
             return None
-
-    def ui_builder_get_id(id: str):
-        """Get by ID"""
-        return ids[id]
-
-    def ui_builder_get_ids():
-        """Get by ID"""
-        return ids
 
     def ui_elements_get_value(id: str) -> str:
         """Get value of an input based on id"""
@@ -149,34 +108,10 @@ class Actions:
             return input.value
         return None
 
-    def ui_elements_set_text(id: str, value: str):
-        """set text based on id"""
-        global builders_core, ids, state
-        if id in ids:
-            for builder_id, builder in builders_core.items():
-                if ids[id]["builder_id"] == builder_id:
-                    builder.set_text(id, value)
+    def ui_elements_register_on_lifecycle(callback: callable):
+        """Register a callback to be called on mount or unmount"""
+        event_register_on_lifecycle(callback)
 
-    def ui_elements_highlight(id: str):
-        """highlight based on id"""
-        global builders_core, ids, state
-        if id in ids:
-            for builder_id, builder in builders_core.items():
-                if ids[id]["builder_id"] == builder_id:
-                    builder.highlight(id)
-
-    def ui_elements_unhighlight(id: str):
-        """unhighlight based on id"""
-        global builders_core, ids, state
-        if id in ids:
-            for builder_id, builder in builders_core.items():
-                if ids[id]["builder_id"] == builder_id:
-                    builder.unhighlight(id)
-
-    def ui_elements_highlight_briefly(id: str):
-        """highlight briefly based on id"""
-        global builders_core, ids, state
-        if id in ids:
-            for builder_id, builder in builders_core.items():
-                if ids[id]["builder_id"] == builder_id:
-                    builder.highlight_briefly(id)
+    def ui_elements_unregister_on_lifecycle(callback: callable):
+        """Unregister a lifecycle callback"""
+        event_unregister_on_lifecycle(callback)

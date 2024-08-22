@@ -6,8 +6,6 @@ mod = Module()
 
 def get_gear_value(subject: str, gear: int = 5):
     gears = settings.get(f"user.game_xbox_{subject}_gears")
-    print("subject", subject)
-    print("gears", gears)
     if not gears:
         return 5
     try:
@@ -51,9 +49,6 @@ def init_gear_states():
         LEFT_TRIGGER: GearState(LEFT_TRIGGER),
         RIGHT_TRIGGER: GearState(RIGHT_TRIGGER),
     }
-    print("gear_state", gear_state["right_trigger"].value)
-    print("gear_state", gear_state["right_trigger"].gear)
-    print("gear_state", settings.get(f"user.game_xbox_right_trigger_gears"))
 
 dir_to_xy = {
     "up": (0, 1),
@@ -261,8 +256,8 @@ def on_game_mode(state):
         game_mode_setup()
 
 def on_ready():
-    # only if xbox
+    # TODO: only if xbox
     game_mode_setup()
-    event_on_game_mode.register(on_game_mode)
+    event_on_game_mode.register_locked(on_game_mode)
 
 app.register("ready", on_ready)

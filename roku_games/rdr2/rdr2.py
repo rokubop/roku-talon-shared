@@ -2,9 +2,8 @@ from talon import Module, Context, actions
 from .rdr2_ui import show_ui, hide_ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
-# mod.apps.rdr2 = "os: windows"
-# mod.apps.rdr2 = "os: windows\nand app.exe: /code.exe/i"
-mod.apps.rdr2 = "os: windows\nand app.exe: /rdr2.exe/i"
+mod.apps.rdr2 = "os: windows\nand app.exe: /code.exe/i"
+# mod.apps.rdr2 = "os: windows\nand app.exe: /rdr2.exe/i"
 ctx.matches = "os: windows\napp: rdr2"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 

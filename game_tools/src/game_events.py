@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 from typing import Any, Optional
+from talon import Module
+
+mod = Module()
 
 EVENT_ON_KEY = "on_key"
 EVENT_KEY_PRESS = "press"
@@ -43,13 +46,17 @@ class GameEventOnGameMode(GameEvent):
     def __init__(self):
         super().__init__()
         self.event_name = EVENT_ON_GAME_MODE
+        self.locked_subscribers = []
+
+    def register_locked(self, callback):
+        self.locked_subscribers.append(callback)
 
     def fire_enabled(self):
-        for callback in self.subscribers:
+        for callback in self.subscribers + self.locked_subscribers:
             callback(EVENT_GAME_MODE_ENABLED)
 
     def fire_disabled(self):
-        for callback in self.subscribers:
+        for callback in self.subscribers + self.locked_subscribers:
             callback(EVENT_GAME_MODE_DISABLED)
 
 class GameEventOnKey(GameEvent):
@@ -131,3 +138,57 @@ def event_unregister_all():
     event_on_key.unregister_all()
     event_on_game_mode.unregister_all()
     event_on_xbox.unregister_all()
+
+@mod.action_class
+class Actions:
+    def game_event_register_on_game_mode(callback: callable, locked: bool = False):
+        """
+        events:
+        ```py
+        "on_game_mode", lambda state: # enabled/disabled
+        ```
+        """
+        if locked:
+            event_on_game_mode.register_locked(callback)
+        else:
+            event_on_game_mode.register(callback)
+
+    def game_event_unregister_on_game_mode(callback: callable):
+        """
+        Unregister a callback for a specific game event.
+        """
+        event_on_game_mode.unregister(callback)
+
+    def game_event_register_on_key(callback: callable):
+        """
+        events:
+        ```py
+        "on_key", lambda key, state: # press/hold/release
+        ```
+        """
+        event_on_key.register(callback)
+
+    def game_event_unregister_on_key(callback: callable):
+        """
+        Unregister a callback for a specific game event.
+        """
+        event_on_key.unregister(callback)
+
+    def game_event_register_on_mouse(callback: callable):
+        """
+        events:
+        ```py
+        "on_mouse", lambda mouse, state: # click/hold/release
+        ```
+        """
+        event_on_mouse.register(callback)
+
+    def game_event_unregister_on_mouse(callback: callable):
+        """
+        Unregister a callback for a specific game event.
+        """
+        event_on_mouse.unregister(callback)
+
+    def game_event_unregister_all():
+        """Unregister all game events"""
+        event_unregister_all()

@@ -21,22 +21,30 @@ free {user.game_xbox_button}: user.game_xbox_button_release(game_xbox_button)
 latch {user.game_gear}: user.game_xbox_left_trigger_set_gear(game_gear)
 ratch {user.game_gear}: user.game_xbox_right_trigger_set_gear(game_gear)
 
+# add noise actions to vocabulary
+pop {user.game_xbox_button}: skip()
+wish {user.game_xbox_button}: skip()
+
 # actions
 weapon: user.game_xbox_button_press('lb')
 wheel: user.rdr2_wheel()
+jump: user.game_xbox_button_press('x')
 reload | punch: user.game_xbox_button_press('x', 200)
 aim: user.game_xbox_button_hold('lt')
 shoot: user.game_xbox_button_hold('rt', 200)
 pick: user.game_xbox_button_hold('lb')
 call: user.game_xbox_button_press('dpad_up')
 run: user.game_xbox_button_hold('a')
+hide: user.game_xbox_button_press('rb')
 
 cam mid: user.game_reset_center_y()
 look {user.game_dir}: user.game_camera_snap_dynamic(game_dir)
 round: user.game_turn_180()
 
 # gear <number_small>: user.game_gear_for_last_action(number_small)
-halt | stop: user.game_stopper()
+halt | stop:
+    user.game_stopper()
+    user.game_xbox_stopper()
 
 # [{user.game_modifier_button}] (dodge | block | jump | climb): user.vgamepad_x()
 

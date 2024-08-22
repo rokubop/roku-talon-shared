@@ -228,4 +228,4 @@ class Actions:
     def game_xbox_right_trigger_hold(power: float = None): """Hold the right trigger (LT)"""; xbox_trigger_hold("right_trigger", power)
     def game_xbox_right_trigger_release(): """Release the right trigger (LT)"""; xbox_trigger_release("right_trigger")
     def game_xbox_left_trigger_set_gear(gear: Union[int, str]): """Set left trigger gear from 1 to 5"""; xbox_set_gear("left_trigger", gear)
-    def game_xbox_stop_all_dir(): """Stop all xbox dir actions"""; xbox_stopper()
+    def game_xbox_stopper(): """General stopper based on priority for xbox actions"""; xbox_stopper()

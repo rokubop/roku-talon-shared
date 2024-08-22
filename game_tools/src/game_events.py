@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from typing import Any, Optional
+
 EVENT_ON_KEY = "on_key"
 EVENT_KEY_PRESS = "press"
 EVENT_KEY_HOLD = "hold"
@@ -12,65 +15,119 @@ EVENT_ON_GAME_MODE = "on_game_mode_changed"
 EVENT_GAME_MODE_DISABLED = "disabled"
 EVENT_GAME_MODE_ENABLED = "enabled"
 
-default_event_subscribers = {
-    EVENT_ON_GAME_MODE: [],
-    EVENT_ON_KEY: [],
-    EVENT_ON_MOUSE: []
-}
+EVENT_XBOX_HOLD = "hold"
+EVENT_XBOX_RELEASE = "release"
+EVENT_XBOX_DIR_CHANGE = "dir_change"
+EVENT_XBOX_GEAR_CHANGE = "gear_change"
 
-event_subscribers = default_event_subscribers
+SUBJECT_LEFT_STICK = "left_stick"
+SUBJECT_RIGHT_STICK = "right_stick"
+SUBJECT_LEFT_TRIGGER = "left_trigger"
+SUBJECT_RIGHT_TRIGGER = "right_trigger"
+SUBJECT_DPAD = "dpad"
 
-def event_register_on_game_mode(callback):
-    global event_subscribers
-    event_subscribers[EVENT_ON_GAME_MODE].append(callback)
+class GameEvent:
+    def __init__(self):
+        self.subscribers = []
 
-def event_unregister_on_game_mode(callback):
-    global event_subscribers
-    event_subscribers[EVENT_ON_GAME_MODE].remove(callback)
+    def register(self, callback):
+        self.subscribers.append(callback)
 
-def event_trigger_on_game_mode():
-    global event_subscribers
-    for callback in event_subscribers[EVENT_ON_GAME_MODE]:
-        callback()
+    def unregister(self, callback):
+        self.subscribers.remove(callback)
 
-def event_register_on_key(callback: callable):
-    global event_subscribers
-    if EVENT_ON_KEY not in event_subscribers:
-        event_subscribers[EVENT_ON_KEY] = []
-    event_subscribers[EVENT_ON_KEY].append(callback)
+    def unregister_all(self):
+        self.subscribers = []
 
-def event_unregister_on_key(callback: callable):
-    global event_subscribers
-    if EVENT_ON_KEY in event_subscribers:
-        event_subscribers[EVENT_ON_KEY].remove(callback)
-        if not event_subscribers[EVENT_ON_KEY]:
-            del event_subscribers[EVENT_ON_KEY]
+class GameEventOnGameMode(GameEvent):
+    def __init__(self):
+        super().__init__()
+        self.event_name = EVENT_ON_GAME_MODE
 
-def event_trigger_on_key(key: str, state: str):
-    global event_subscribers
-    if EVENT_ON_KEY in event_subscribers:
-        for callback in event_subscribers[EVENT_ON_KEY]:
-            callback(key, state)
+    def fire_enabled(self):
+        for callback in self.subscribers:
+            callback(EVENT_GAME_MODE_ENABLED)
 
-def event_register_on_mouse(callback: callable):
-    global event_subscribers
-    if EVENT_ON_MOUSE not in event_subscribers:
-        event_subscribers[EVENT_ON_MOUSE] = []
-    event_subscribers[EVENT_ON_MOUSE].append(callback)
+    def fire_disabled(self):
+        for callback in self.subscribers:
+            callback(EVENT_GAME_MODE_DISABLED)
 
-def event_unregister_on_mouse(callback: callable):
-    global event_subscribers
-    if EVENT_ON_MOUSE in event_subscribers:
-        event_subscribers[EVENT_ON_MOUSE].remove(callback)
-        if not event_subscribers[EVENT_ON_MOUSE]:
-            del event_subscribers[EVENT_ON_MOUSE]
+class GameEventOnKey(GameEvent):
+    def __init__(self):
+        super().__init__()
+        self.event_name = EVENT_ON_KEY
 
-def event_trigger_on_mouse(button: str, state: str):
-    global event_subscribers
-    if EVENT_ON_MOUSE in event_subscribers:
-        for callback in event_subscribers[EVENT_ON_MOUSE]:
-            callback(button, state)
+    def _fire(self, key: str, event_type: str):
+        for callback in self.subscribers:
+            callback(key, event_type)
+
+    def fire_press(self, key: str): self._fire(key, EVENT_KEY_PRESS)
+    def fire_hold(self, key: str): self._fire(key, EVENT_KEY_HOLD)
+    def fire_release(self, key: str): self._fire(key, EVENT_KEY_RELEASE)
+
+class GameEventOnMouse(GameEvent):
+    def __init__(self):
+        super().__init__()
+        self.event_name = EVENT_ON_MOUSE
+
+    def _fire(self, button: str, event_type: str):
+        for callback in self.subscribers:
+            callback(button, event_type)
+
+    def fire_click(self, button): self._fire(button, EVENT_MOUSE_CLICK)
+    def fire_hold(self, button): self._fire(button, EVENT_MOUSE_HOLD)
+    def fire_release(self, button): self._fire(button, EVENT_MOUSE_RELEASE)
+
+@dataclass
+class GameXboxEvent:
+    subject: str # specific button or left_stick, right_stick, left_trigger, right_trigger
+    type: str
+    value: Optional[Any]
+
+class GameEventOnXbox(GameEvent):
+    def __init__(self):
+        super().__init__()
+        self.event_name = "on_xbox"
+
+    def _fire(self, subject: str, type: str, value: Any = None):
+        """
+        Subject: the specific button or left_stick, right_stick, left_trigger, right_trigger
+        Event type: hold, release, dir_change, gear_change
+        Value: Optional value for the event
+        """
+        print("a triggering event", subject, type, value)
+        print(self.subscribers)
+        for callback in self.subscribers:
+            callback(GameXboxEvent(subject, type, value))
+
+    def fire_left_stick_dir_change(self, xy: tuple[int, int]):
+        self._fire(SUBJECT_LEFT_STICK, EVENT_XBOX_DIR_CHANGE, xy)
+
+    def fire_right_stick_dir_change(self, xy: tuple[int, int]):
+        self._fire(SUBJECT_RIGHT_STICK, EVENT_XBOX_DIR_CHANGE, xy)
+
+    def fire_dpad_dir_hold_change(self, dir: str):
+        self._fire(SUBJECT_DPAD, EVENT_XBOX_DIR_CHANGE, dir)
+
+    def fire_trigger_hold(self, subject: str, gear: dict):
+        self._fire(subject, EVENT_XBOX_HOLD, gear)
+
+    def fire_trigger_gear_change(self, subject: str, gear: dict):
+        self._fire(subject, EVENT_XBOX_GEAR_CHANGE, gear)
+
+    def fire_button_hold(self, button: str):
+        self._fire(button, EVENT_XBOX_HOLD)
+
+    def fire_button_release(self, button: str):
+        self._fire(button, EVENT_XBOX_RELEASE)
+
+event_on_mouse = GameEventOnMouse()
+event_on_key = GameEventOnKey()
+event_on_game_mode = GameEventOnGameMode()
+event_on_xbox = GameEventOnXbox()
 
 def event_unregister_all():
-    global event_subscribers
-    event_subscribers = default_event_subscribers
+    event_on_mouse.unregister_all()
+    event_on_key.unregister_all()
+    event_on_game_mode.unregister_all()
+    event_on_xbox.unregister_all()

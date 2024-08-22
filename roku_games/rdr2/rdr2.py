@@ -23,7 +23,7 @@ class Actions:
 
 def stop_all():
     actions.user.game_stopper()
-    actions.user.game_xbox_stop_all_dir()
+    actions.user.game_xbox_stopper()
 
 def register_dynamic_noises():
     actions.user.noise_register_dynamic_action_pop(

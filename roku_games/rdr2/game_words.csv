@@ -15,7 +15,7 @@ xbox_button_dpad_left, pad left
 xbox_button_dpad_right, pad right
 xbox_button_lb, lob
 xbox_button_rb, rob
-xbox_trigger_lt, latch
-xbox_trigger_rt, ratch
+xbox_button_lt, latch
+xbox_button_rt, ratch
 xbox_button_guide, guide
 xbox_button_menu, menu

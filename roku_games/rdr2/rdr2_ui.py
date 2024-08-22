@@ -390,7 +390,7 @@ def show_ui():
     show_hud_ui()
     show_commands_ui()
     actions.user.game_event_register_on_key(on_key)
-    actions.user.game_event_register_on_xbox_gamepad_event(on_xbox_event)
+    actions.user.game_event_register_on_xbox_event(on_xbox_event)
     actions.user.dynamic_actions_event_register(on_event)
 
 def hide_ui():

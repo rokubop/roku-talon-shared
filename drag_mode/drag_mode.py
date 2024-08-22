@@ -8,20 +8,33 @@ from pathlib import Path
 from itertools import islice
 import re
 
-ctx = Context()
+mod, ctx = Module(), Context()
+mod.mode("drag_mode", "Drag mode. Defaults to LMB drag")
+mod.tag("pan_mode", desc="Default to MMB drag")
+mod.tag("roll_mode", desc="Default to RMB drag")
 ctx.matches = r"""
 mode: user.drag_mode
 """
+
+mod.setting(
+    "drag_mode_exclude_chars",
+    type=str,
+    default="",
+    desc="Excluded characters from the drag mode grid e.g. 'ijl'",
+)
 
 canvas_grid = None
 def generate_char_combo():
     ord_a = ord('a')
     ord_z = ord('z')
     colors = ["", "g", "r", "b", "p", "y"]
+    excluded_chars = settings.get("user.drag_mode_exclude_chars")
+    valid_chars = [chr(i) for i in range(ord_a, ord_z + 1) if chr(i) not in excluded_chars]
+    print(valid_chars)
     for color in colors:
-        for letter_one in range(ord_a, ord_z + 1):
-            for letter_two in range(ord_a, ord_z + 1):
-                yield chr(letter_one) + chr(letter_two) + color
+        for letter_one in valid_chars:
+            for letter_two in valid_chars:
+                yield letter_one + letter_two + color
 
 def draw_center_text(c: SkiaCanvas, text: str, x: int, y: int):
     text_rect = c.paint.measure_text(text)[1]
@@ -99,11 +112,6 @@ def drag_mode_hide():
         canvas_grid.close()
         canvas_grid = None
         grid_pos_map = {}
-
-mod = Module()
-mod.mode("drag_mode", "Drag mode. Defaults to LMB drag")
-mod.tag("pan_mode", desc="Default to MMB drag")
-mod.tag("roll_mode", desc="Default to RMB drag")
 
 def get_pos_for_target(target: str) -> Point2d:
     screen: Screen = ui.main_screen()

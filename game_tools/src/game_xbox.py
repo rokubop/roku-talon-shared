@@ -1,24 +1,20 @@
-from talon import actions, Module, cron, settings
+from talon import actions, Module, cron, settings, app
 from typing import Union, Any, Optional
 from dataclasses import dataclass
-from .game_core import event_subscribers
+from .game_events import event_subscribers, event_register_on_game_mode, EVENT_GAME_MODE_ENABLED
 
 mod = Module()
-mod.setting(
-    "game_xbox_button_hold",
-    type=int,
-    default=50,
-    desc="The amount of time to hold a button before releasing it."
-)
 
 def get_gear_value(subject: str, gear: int = 5):
     gears = settings.get(f"user.game_xbox_{subject}_gears")
     print("subject", subject)
     print("gears", gears)
+    if not gears:
+        return 5
     try:
         return float(gears.split(" ")[gear - 1])
     except KeyError:
-        return 1
+        return 5
 
 class GearState:
     gear: int
@@ -26,9 +22,9 @@ class GearState:
     subject: str
 
     def __init__(self, subject: str):
-        gear = int(settings.get(f"user.game_xbox_{subject}_default_gear"))
+        gear = settings.get(f"user.game_xbox_{subject}_default_gear")
         self.subject = subject
-        self.set_gear(gear)
+        self.set_gear(int(gear) if gear else 5)
 
     def set_gear(self, gear: Union[int, str]):
         self.gear = gear
@@ -38,16 +34,10 @@ button_event_subscribers = []
 dpad_hold_dir = None
 left_stick_dir = (0, 0)
 right_stick_dir = (0, 0)
-gear_state = {
-    "left_stick": GearState("left_stick"),
-    "right_stick": GearState("right_stick"),
-    "left_trigger": GearState("left_trigger"),
-    "right_trigger": GearState("right_trigger"),
-}
+gear_state = {}
 held_buttons = set()
 button_up_pending_jobs = {}
-button_hold_time = 50
-# button_hold_time = settings.get("user.game_xbox_button_hold")
+button_hold_time = None
 
 @dataclass
 class GameXboxEvent:
@@ -64,6 +54,15 @@ LEFT_STICK = "left_stick"
 RIGHT_STICK = "right_stick"
 LEFT_TRIGGER = "left_trigger"
 RIGHT_TRIGGER = "right_trigger"
+
+def init_gear_states():
+    global gear_state
+    gear_state = {
+        "left_stick": GearState("left_stick"),
+        "right_stick": GearState("right_stick"),
+        "left_trigger": GearState("left_trigger"),
+        "right_trigger": GearState("right_trigger"),
+    }
 
 dir_to_xy = {
     "up": (0, 1),
@@ -258,10 +257,6 @@ def event_trigger(subject: str, type: str, value: Any = None):
         for callback in event_subscribers["on_xbox"]:
             callback(GameXboxEvent(subject, type, value))
 
-# def on_xbox_gamepad_enable():
-#     global button_hold_time
-#     button_hold_time = settings.get("user.game_xbox_button_hold")
-
 @mod.action_class
 class Actions:
     def game_event_register_on_xbox_gamepad_event(callback: callable):
@@ -280,3 +275,18 @@ class Actions:
         Unregister a callback for a specific game event.
         """
         event_unregister(callback)
+
+def game_mode_setup():
+    global button_hold_time
+    init_gear_states()
+    button_hold_time = settings.get("user.game_xbox_button_hold")
+
+def on_game_mode(state):
+    if state == EVENT_GAME_MODE_ENABLED:
+        game_mode_setup()
+
+def on_ready():
+    game_mode_setup()
+    event_register_on_game_mode(on_game_mode)
+
+app.register("ready", on_ready)

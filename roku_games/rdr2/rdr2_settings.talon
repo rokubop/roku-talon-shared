@@ -17,4 +17,7 @@ settings():
     user.game_calibrate_x_360 = 6000
     user.game_calibrate_y_90 = 1500
 
+    # exclude chars that have "hiss" sounds
+    user.drag_mode_exclude_chars = "giosvxz"
+
 ^game [mode]$:                user.game_mode_enable()

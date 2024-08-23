@@ -7,10 +7,14 @@
 - Added `user.game_xbox_` actions for xbox gamepad emulation
 - Added `roku_games/rdr2` for Red Dead Redemption 2 using virtual xbox gamepad
 - Added `actions.user.ui_elements_hide_all`
+- Added `actions.user.game_ui_elements_`
 
 ### Breaking Changes
 - Rename `actions.user.rt_mouse_move_delta` to `actions.user.mouse_move_delta_smooth`
-- Remove
+- Removed `actions.user.ui_elements_screen`. Use `actions.user.ui_elements` instead.
+- Removed `actions.user.ui_builder_show`. Use `.show()` instead.
+- Removed `ui_builder_get_id` and `ui_builder_get_ids`. Use `ui_builder_get` instead.
+-
 
 ## Sun Aug 4, 2024
 ui_elements

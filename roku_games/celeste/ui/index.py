@@ -8,17 +8,17 @@ from .celeste_ui_for_obs_second_screen import show_obs_ui, hide_obs_ui
 # ui = "full"
 # ui = "big_text"
 # ui = "minimal"
-ui = "obs"
+ui = "minimal"
 
-def show_ui():
+def show_ui(parrot_config):
     if ui == "full":
-        show_full_ui()
+        show_full_ui(parrot_config)
     elif ui == "big_text":
         show_big_text_ui()
     elif ui == "minimal":
         show_minimal_ui()
     elif ui == "obs":
-        show_obs_ui()
+        show_obs_ui(parrot_config)
 
 def hide_ui():
     if ui == "full":
@@ -30,9 +30,9 @@ def hide_ui():
     elif ui == "obs":
         hide_obs_ui()
 
-def refresh_ui(bg_color: str):
+def refresh_ui(parrot_config, bg_color: str):
     if ui == "full":
-        refresh_full_ui({"background_color": bg_color})
+        refresh_full_ui(parrot_config, {"background_color": bg_color})
     elif ui == "big_text":
         refresh_big_text_ui()
     else:

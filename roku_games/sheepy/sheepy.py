@@ -9,7 +9,8 @@ ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 
 def shift_key():
     # f7 is mapped to actual X button in playability app
-    # in order to get the speed boost
+    # alternatively, just do actions.key("shift"), but you
+    # won't get the extra speed boost
     actions.key("f7")
     actions.user.ui_elements_highlight_briefly("shift")
 

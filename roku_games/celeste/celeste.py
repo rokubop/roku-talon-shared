@@ -63,12 +63,12 @@ def use_move_mode():
         **default_config,
         **move_config
     }
-    refresh_ui("C70039")
+    refresh_ui(parrot_config, "C70039")
 
 def use_default_mode():
     global parrot_config
     parrot_config = default_config
-    refresh_ui("000000")
+    refresh_ui(parrot_config, "000000")
 
 def skip_scene():
     actions.user.game_stopper()
@@ -143,7 +143,7 @@ def stop_move_mode():
 @ctx_game.action_class("user")
 class Actions:
     def on_game_mode_enabled():
-        show_ui()
+        show_ui(parrot_config)
 
     def on_game_mode_disabled():
         hide_ui()

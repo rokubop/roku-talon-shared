@@ -35,10 +35,7 @@ my_ui = screen(align_items="flex_end", justify_content="center")[
 
 Now we just need to show it:
 ```py
-global my_ui
-
 def show_ui():
-    global my_ui
     my_ui = screen()[
         div()[
             text("Hello world")
@@ -47,16 +44,12 @@ def show_ui():
     my_ui.show()
 
 def hide_ui():
-    global my_ui
-    my_ui.hide()
+    actions.user.ui_elements_hide_all()
 ```
 
 ## Full example
 ```py
-global my_ui
-
 def show_ui():
-    global my_ui
     (div, text, screen, button) = actions.user.ui_elements(["div", "text", "screen", "button"])
     my_ui = screen(align_items="flex_end", justify_content="center")[
         div(id="box", padding=16, background_color="FF000088")[
@@ -67,8 +60,7 @@ def show_ui():
     my_ui.show()
 
 def hide_ui():
-    global my_ui
-    my_ui.hide()
+    actions.user.ui_elements_hide_all()
 ```
 
 ## Alignment

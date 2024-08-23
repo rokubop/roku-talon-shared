@@ -28,3 +28,27 @@ This is an experimental repository. WIP. Likely will change in the future. Allow
 | tick up | Tick mouse up |
 | tick left | Tick mouse left |
 | tick right | Tick mouse right |
+
+## Includes
+Modes:
+```
+user.drag_mode
+```
+
+Tags:
+```
+user.pan_mode
+user.roll_mode
+```
+
+Settings:
+```
+user.drag_mode_exclude_chars
+```
+
+Commands:
+```
+drag (mode | grid)
+pan (mode | grid)
+roll (mode | grid)
+```

@@ -105,6 +105,34 @@ def canvas_from_screen(screen: Screen) -> Canvas:
     """ui_main_screen"""
     return Canvas.from_screen(screen)
 
+_event_subscribers = {
+    "lifecycle": []
+}
+
+class LifecycleEvent:
+    def __init__(self, event_type: str, builder_id: str):
+        self.type = event_type
+        self.builder_id = builder_id
+        self.children_ids = []
+        if builder_id and event_type == "mount":
+            self.children_ids = [id for id in ids if ids[id]["builder_id"] == builder_id]
+
+def event_register_on_lifecycle(callback):
+    _event_subscribers["lifecycle"].append(callback)
+
+def _event_fire_on_lifecycle(event: LifecycleEvent):
+    for callback in _event_subscribers["lifecycle"]:
+        callback(event)
+
+def event_fire_on_mount(builder_id):
+    _event_fire_on_lifecycle(LifecycleEvent("mount", builder_id))
+
+def event_fire_on_unmount(builder_id = None):
+    _event_fire_on_lifecycle(LifecycleEvent("unmount", builder_id))
+
+def event_unregister_on_lifecycle(callback):
+    _event_subscribers["lifecycle"].remove(callback)
+
 def grow_rect(orig_rect: Rect, new_rect: Rect):
     if new_rect.x < orig_rect.x:
         orig_rect.width += orig_rect.x - new_rect.x
@@ -516,7 +544,7 @@ class UIText:
     def __init__(self, text: str, options: UITextOptions = None):
         self.options = options
         self.id = self.options.id
-        self.text = text
+        self.text = str(text)
         self.type = options.type or "text"
         self.text_width = None
         self.text_height = None
@@ -830,7 +858,7 @@ class UIBuilder(UIBox):
                 blockable_canvas.register("mouse", self.on_mouse)
                 blockable_canvas.freeze()
 
-    def show(self):
+    def show(self, on_mount: callable = None):
         global state, debug_current_step, render_step, debug_start_step, debug_draw_step_by_step
         screen = get_screen(self.screen)
 
@@ -851,6 +879,11 @@ class UIBuilder(UIBox):
             for canvas in self.blockable_canvases:
                 canvas.freeze()
         else:
+            def on_rendered():
+                if on_mount:
+                    on_mount()
+                event_fire_on_mount(self.id)
+
             self.static_canvas = canvas_from_screen(screen)
             self.static_canvas.register("draw", self.on_draw_static)
             self.static_canvas.freeze()
@@ -867,6 +900,7 @@ class UIBuilder(UIBox):
             # we need to wait for everything to render so we have
             # all the dimensions to calculate the blockable canvas
             cron.after("300ms", lambda: self.init_blockable_canvases())
+            cron.after("1000ms", on_rendered)
 
     def on_mouse(self, e):
         if e.event == "mousemove":
@@ -950,6 +984,7 @@ class UIBuilder(UIBox):
         for id in inputs:
             inputs[id].hide()
         inputs = {}
+        event_fire_on_unmount()
 
         # state["text"] = {}
         # ids = {}
@@ -1025,9 +1060,9 @@ def get_props(props, additional_props):
         expected_type = EXPECTED_TYPES[key]
         if expected_type is callable:
             if not callable(value):
-                type_errors.append(f"{key}: expected callable, got {type(value).__name__}")
+                type_errors.append(f"{key}: expected callable, got {type(value).__name__} {value}")
         elif not isinstance(value, expected_type):
-            type_errors.append(f"{key}: expected {expected_type.__name__}, got {type(value).__name__}")
+            type_errors.append(f"{key}: expected {expected_type.__name__}, got {type(value).__name__} {value}")
 
     if type_errors:
         raise ValueError(
@@ -1036,6 +1071,15 @@ def get_props(props, additional_props):
         )
 
     return all_props
+
+def builder_child_id_action(id: str, action: str, *args):
+    """Perform an action on the builder associated with the given id."""
+    global builders_core, ids, state
+    if id in ids:
+        builder_id = ids[id].get("builder_id")
+        builder = builders_core.get(builder_id)
+        if builder:
+            getattr(builder, action)(id, *args)
 
 class UIElementsProxy:
     def __init__(self, func):

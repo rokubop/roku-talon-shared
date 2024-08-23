@@ -26,8 +26,8 @@ def show_big_text_ui():
     ui_big_text = screen(align_items="center", justify_content="flex_start")[
         div(width=1920, background_color="00000066", justify_content="center", align_items="center")[
             div(justify_content="center", align_items="center", padding=40, margin_right=200)[
-                text("", id="noise", font_size=170, font_weight="bold", color="FFFFFF"),
-                text("", id="command", font_size=50, margin_top=32, color="FFFFFF")
+                text("", id="noise", font_size=100, font_weight="bold", color="FFFFFF"),
+                text("", id="command", font_size=30, margin_top=32, color="FFFFFF")
             ]
         ]
     ]

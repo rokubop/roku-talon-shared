@@ -7,7 +7,15 @@ mod = Module()
 
 def get_words(ctx_game, game_words_csv_path):
     game_dir = {}
+    has_xbox_button = False
     game_xbox_button = {}
+    game_xbox_stick = {}
+    game_xbox_left_stick = {}
+    game_xbox_right_stick = {}
+    game_xbox_trigger = {}
+    game_xbox_left_trigger = {}
+    game_xbox_right_trigger = {}
+    game_xbox_dpad = {}
 
     with open(game_words_csv_path, mode='r') as file:
         reader = csv.reader(file)
@@ -17,23 +25,57 @@ def get_words(ctx_game, game_words_csv_path):
             if commands_str:
                 commands = [command.strip() for command in commands_str.split('|')]
 
-                if "xbox_button_" in list_value:
-                    value = list_value.replace("xbox_button_", "")
+                def add_to_list(list, value):
                     for command in commands:
-                        game_xbox_button[command] = value
+                        list[command] = value
+
+                if "xbox_" in list_value:
+                    has_xbox_button = True
+
+                    if "xbox_button_" in list_value:
+                        value = list_value.replace("xbox_button_", "")
+                        add_to_list(game_xbox_button, value)
+                    elif "xbox_left_stick" in list_value:
+                        value = list_value.replace("xbox_", "")
+                        add_to_list(game_xbox_stick, "left")
+                        add_to_list(game_xbox_left_stick, value)
+                    elif "xbox_right_stick" in list_value:
+                        value = list_value.replace("xbox_", "")
+                        add_to_list(game_xbox_stick, "right")
+                        add_to_list(game_xbox_right_stick, value)
+                    elif "xbox_left_trigger" in list_value:
+                        value = list_value.replace("xbox_", "")
+                        add_to_list(game_xbox_trigger, "left")
+                        add_to_list(game_xbox_button, value)
+                        add_to_list(game_xbox_left_trigger, value)
+                    elif "xbox_right_trigger" in list_value:
+                        value = list_value.replace("xbox_", "")
+                        add_to_list(game_xbox_trigger, "right")
+                        add_to_list(game_xbox_button, value)
+                        add_to_list(game_xbox_right_trigger, value)
+                    elif "xbox_dpad" in list_value:
+                        value = list_value.replace("xbox_", "")
+                        add_to_list(game_xbox_dpad, value)
                 elif "dir_" in list_value:
                     value = list_value.replace("dir_", "")
                     if value == "forward":
                         value = "up"
                     elif value == "backward":
                         value = "down"
-                    for command in commands:
-                        game_dir[command] = value
+                    add_to_list(game_dir, value)
                 else:
                     print(f"Unknown prefix while parsing game_words.csv: {list_value}")
 
         ctx_game.lists["self.game_dir"] = game_dir
-        ctx_game.lists["self.game_xbox_button"] = game_xbox_button
+        if has_xbox_button:
+            ctx_game.lists["self.game_xbox_button"] = game_xbox_button
+            ctx_game.lists["self.game_xbox_stick"] = game_xbox_stick
+            ctx_game.lists["self.game_xbox_left_stick"] = game_xbox_left_stick
+            ctx_game.lists["self.game_xbox_right_stick"] = game_xbox_right_stick
+            ctx_game.lists["self.game_xbox_trigger"] = game_xbox_trigger
+            ctx_game.lists["self.game_xbox_left_trigger"] = game_xbox_left_trigger
+            ctx_game.lists["self.game_xbox_right_trigger"] = game_xbox_right_trigger
+            ctx_game.lists["self.game_xbox_dpad"] = game_xbox_dpad
 
 @mod.action_class
 class Actions:

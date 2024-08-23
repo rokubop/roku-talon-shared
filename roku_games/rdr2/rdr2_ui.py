@@ -39,26 +39,26 @@ def line_separator_ui():
     (div) = actions.user.ui_elements(["div", "text"])
     return div(background_color="FFFFFF66", width=120, height=2)
 
-def show_hud_ui():
+def show_hud_ui(on_mount):
     (div, screen, text) = actions.user.ui_elements(["div", "screen", "text"])
 
     ui_hud = screen(align_items="center", justify_content="flex_end")[
         div(background_color="00000066", border_radius=16, margin=16, margin_bottom=300, padding=16, border_width=1, border_color="FF0000aa")[
             div(flex_direction="row", gap=16)[
-                actions.user.game_ui_element_xbox_dpad("pad"),
-                actions.user.game_ui_element_xbox_left_stick("go"),
-                actions.user.game_ui_element_xbox_right_stick("cam"),
-                actions.user.game_ui_element_xbox_primary_buttons("buttons"),
+                actions.user.game_ui_element_xbox_dpad(),
+                actions.user.game_ui_element_xbox_left_stick(),
+                actions.user.game_ui_element_xbox_right_stick(),
+                actions.user.game_ui_element_xbox_primary_buttons(),
                 div()[
                     text("triggers / bumpers", margin_bottom=16),
                     div(flex_direction="column", gap=8)[
                         div(flex_direction="row", gap=8)[
-                            actions.user.game_ui_element_xbox_left_trigger("LT"),
-                            actions.user.game_ui_element_xbox_right_trigger("RT"),
+                            actions.user.game_ui_element_xbox_left_trigger(),
+                            actions.user.game_ui_element_xbox_right_trigger(),
                         ],
                         div(flex_direction="row", gap=8)[
-                            actions.user.game_ui_element_xbox_left_bumper("LB"),
-                            actions.user.game_ui_element_xbox_right_bumper("RB"),
+                            actions.user.game_ui_element_xbox_left_bumper(),
+                            actions.user.game_ui_element_xbox_right_bumper(),
                         ]
                     ]
                 ],
@@ -71,7 +71,7 @@ def show_hud_ui():
         ],
     ]
 
-    ui_hud.show()
+    ui_hud.show(on_mount)
 
 commands = [
     "<key>",
@@ -132,25 +132,11 @@ def on_event(event):
     elif event.type == "action_stop" and event.name == "hiss":
         actions.user.ui_elements_unhighlight("hiss")
 
-# def on_xbox_event(event):
-#     print(f"on_xbox_event: {event}")
-#     if event.subject == "right_stick" or event.subject == "left_stick":
-#         on_stick(event)
-#     elif event.subject == "left_trigger" or event.subject == "right_trigger":
-#         on_trigger(event)
-#     else:
-#         if event.type == "hold":
-#             actions.user.ui_elements_highlight(f"gamepad_{event.subject}")
-#         elif event.type == "release":
-#             actions.user.ui_elements_unhighlight(f"gamepad_{event.subject}")
-
-def show_ui():
-    show_hud_ui()
+def show_ui(on_mount):
     show_commands_ui()
-    # actions.user.game_event_register_on_xbox_event(on_xbox_event)
+    show_hud_ui(on_mount)
     actions.user.dynamic_actions_event_register(on_event)
 
 def hide_ui():
     actions.user.ui_elements_hide_all()
-    # actions.user.game_event_unregister_all()
     actions.user.dynamic_actions_event_unregister_all()

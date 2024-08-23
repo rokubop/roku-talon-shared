@@ -9,13 +9,12 @@ xbox_button_a, air | a | ay
 xbox_button_b, bat | b | bee
 xbox_button_x, check | plex | x | ex
 xbox_button_y, yank | y | why
-xbox_button_dpad_up, pad up
-xbox_button_dpad_down, pad down
-xbox_button_dpad_left, pad left
-xbox_button_dpad_right, pad right
 xbox_button_lb, lob
 xbox_button_rb, rob
-xbox_button_lt, latch
-xbox_button_rt, ratch
 xbox_button_guide, guide
 xbox_button_menu, menu
+xbox_left_trigger, gross
+xbox_right_trigger, trouble
+xbox_dpad, fight
+xbox_left_stick, purple
+xbox_right_stick, coke

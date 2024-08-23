@@ -35,15 +35,16 @@ def register_dynamic_noises():
         alias = "wish"
     )
 
+def on_mount():
+    register_dynamic_noises()
+
 @ctx_game.action_class("user")
 class Actions:
     def on_game_mode_enabled():
         print("Game mode enabled")
         actions.user.game_csv_game_words_setup(ctx_game, __file__)
         actions.user.game_xbox_gamepad_enable()
-        show_ui()
-        actions.sleep("1000ms")
-        register_dynamic_noises()
+        show_ui(on_mount)
 
     def on_game_mode_disabled():
         actions.user.game_xbox_gamepad_disable()

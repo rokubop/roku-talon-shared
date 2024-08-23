@@ -7,34 +7,6 @@ from .game_events import (
 
 mod = Module()
 ctx = Context()
-ctx_game = Context()
-ctx_game.matches = "mode: user.game"
-mod.mode("game", "game play mode")
-mod.mode("game_calibrating_x", "calibrating x")
-mod.mode("game_calibrating_y", "calibrating y")
-mod.list("game_dir", desc="Game dir e.g. left right up down back forward")
-mod.list("game_xbox_button", desc="xbox spoken form buttons")
-mod.list("game_gear", desc="Game gear for various dynamic values, spoken form 1 to 5")
-
-ctx.lists["user.game_dir"] = {
-    "left",
-    "right",
-    "up",
-    "down",
-}
-arrow_to_wasd = {
-    "left": "a",
-    "right": "d",
-    "up": "w",
-    "down": "s",
-}
-ctx.lists["user.game_gear"] = {
-    "one": "1",
-    "two": "2",
-    "three": "3",
-    "four": "4",
-    "five": "5",
-}
 
 _move_dir = None
 _move_dir_last_horizontal = "d"
@@ -64,6 +36,13 @@ _dir_mode = None
 _last_snap_dir = SNAP_DIR_X
 
 queue = []
+
+arrow_to_wasd = {
+    "left": "a",
+    "right": "d",
+    "up": "w",
+    "down": "s",
+}
 
 def no_op():
     pass

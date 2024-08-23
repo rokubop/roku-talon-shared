@@ -14,7 +14,7 @@ settings():
     user.game_xbox_left_trigger_gears = ".2 .4 .6 .8 1"
     user.game_xbox_right_trigger_default_gear = 5
     user.game_xbox_right_trigger_gears = ".2 .4 .6 .8 1"
-    user.game_xbox_button_hold = 200
+    user.game_xbox_button_hold = 100
 
     # mouse movement for quick direction snaps
     user.mouse_move_api = "windows"

@@ -55,6 +55,8 @@ dir_to_xy = {
     "down": (0, -1),
     "left": (-1, 0),
     "right": (1, 0),
+    "back": (0, -1),
+    "forward": (0, 1),
 }
 
 xbox_trigger_map = {
@@ -91,21 +93,45 @@ xbox_button_map = {
     **xbox_trigger_map,
 }
 
-def xbox_left_analog_hold_dir(dir: str, power: float = None):
+def xbox_left_analog_hold_dir(dir: str | tuple, power: float = None):
     """Hold a left analog direction"""
     global left_stick_dir
     power = power or gear_state["left_stick"].value
-    xy_dir = dir_to_xy[dir]
+
+    xy_dir = None
+
+    if isinstance(dir, tuple):
+        xy_dir = [0, 0]
+        for single_dir in dir:
+            single_xy = dir_to_xy[single_dir]
+            xy_dir[0] += single_xy[0]
+            xy_dir[1] += single_xy[1]
+        xy_dir = tuple(xy_dir)
+    else:
+        xy_dir = dir_to_xy[dir]
+
     actions.user.vgamepad_left_stick(xy_dir[0] * power, xy_dir[1] * power)
     if left_stick_dir != xy_dir:
         event_on_xbox.fire_left_stick_dir_change(xy_dir)
     left_stick_dir = xy_dir
 
-def xbox_right_analog_hold_dir(dir: str, power: float = None):
+def xbox_right_analog_hold_dir(dir: str | tuple, power: float = None):
     """Hold a right analog direction"""
     global right_stick_dir
     power = power or gear_state["right_stick"].value
-    xy_dir = dir_to_xy[dir]
+
+    xy_dir = None
+
+    if isinstance(dir, tuple):
+        xy_dir = [0, 0]
+        for single_dir in dir:
+            single_xy = dir_to_xy[single_dir]
+            xy_dir[0] += single_xy[0]
+            xy_dir[1] += single_xy[1]
+        xy_dir = tuple(xy_dir)
+    else:
+        xy_dir = dir_to_xy[dir]
+
     actions.user.vgamepad_right_stick(xy_dir[0] * power, xy_dir[1] * power)
     if right_stick_dir != xy_dir:
         event_on_xbox.fire_right_stick_dir_change(xy_dir)

@@ -8,6 +8,7 @@ _settings = {
     "game_calibrate_y_90": (500, int, "y amount that is equivalent to 90 degrees"),
     "game_camera_continuous_default_speed": (5, int, "Default speed for continuous camera movement."),
     "game_camera_continuous_gear_speeds": ("1 2 5 10 20", str, "Speeds for the camera gears."),
+    "game_camera_snap_default_angle": (90, int, "Default angle for snapping the camera."),
     "game_camera_snap_speed_ms": (200, int, "Speed for snapping the camera."),
     "game_mode_disables_command_mode": (True, bool, "Disable command mode when game mode is enabled."),
     "game_mouse_click_hold": (16.0, Union[int, float], "Hold time for a click."),

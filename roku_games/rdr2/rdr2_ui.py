@@ -105,28 +105,6 @@ def show_right_hud_ui(on_mount: callable = None):
 
     ui_hud.show(on_mount)
 
-commands = [
-    "<key>",
-    "hold <key>",
-    "free <key>",
-    "long <key>",
-    "go",
-    "go <dir>",
-    "<dir>",
-    "back",
-    "cam <dir>",
-    "cam mid",
-    "look <dir>",
-    "round",
-    "gear <num>",
-    "click",
-    "trick",
-    "run",
-    "halt",
-    "stop",
-    "game exit"
-]
-
 def show_commands_ui():
     global ui_commands
     (div, text, screen) = actions.user.ui_elements(["div", "text", "screen"])
@@ -135,8 +113,46 @@ def show_commands_ui():
         div(background_color="00000066", margin=16, margin_right=32, padding=16)[
             div(flex_direction="row", gap=16)[
                 div(gap=8)[
-                    text("commands", font_weight="bold"),
-                    *(text(command) for command in commands),
+                    text("camera", font_weight="bold", color=accent_color),
+                    text("<dir>"),
+                    text("cam <dir>"),
+                    text("cam <dir> <dir>"),
+                    text("cam mid"),
+                    text("look <dir>"),
+                    text("cam 1-5"),
+                    text("round"),
+                    text("movement", font_weight="bold", color=accent_color),
+                    text("go"),
+                    text("go <dir>"),
+                    text("go <dir> <dir>"),
+                    text("go 1-5"),
+                    text("back"),
+                    text("stop/halt"),
+                    text("hiss noise"),
+                    text("commands", font_weight="bold", color=accent_color),
+                    text("<button>"),
+                    text("<button> ee/er"),
+                    text("pad <dir>"),
+                    text("hold <button>"),
+                    text("free <button>"),
+                    text("long <button>"),
+                    text("run"),
+                    text("jump"),
+                    text("halt"),
+                    text("reload"),
+                    text("aim"),
+                    text("hide"),
+                    text("call"),
+                    text("wheel"),
+                    text("Noise modes", font_weight="bold", color=accent_color),
+                    text("default"),
+                    text("mover"),
+                    text("fighter"),
+                    text("wheel"),
+                    text("pop <phrase>"),
+                    text("hiss <phrase>"),
+                    text("Game", font_weight="bold", color=accent_color),
+                    text("game exit"),
                 ],
             ]
         ],

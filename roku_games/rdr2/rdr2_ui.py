@@ -148,6 +148,7 @@ def show_commands_ui():
                     text("default"),
                     text("mover"),
                     text("fighter"),
+                    text("repeater"),
                     text("wheel"),
                     text("pop <phrase>"),
                     text("hiss <phrase>"),

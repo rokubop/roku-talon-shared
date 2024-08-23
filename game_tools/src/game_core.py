@@ -272,7 +272,6 @@ def stopper():
         return
 
     curve_dir_stop()
-    actions.user.mouse_move_stop()
     if _move_dir:
         move_dir_stop()
     if _step_job:

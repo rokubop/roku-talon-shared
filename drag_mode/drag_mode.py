@@ -184,7 +184,6 @@ class Actions:
         """Hide the grid"""
         drag_mode_hide()
         actions.user.mouse_move_continuous_stop()
-        actions.user.mouse_move_stop()
         actions.user.drag_mode_hide_commands()
         actions.mode.disable("user.drag_mode")
 
@@ -336,14 +335,12 @@ class Actions:
         grid_exclude_regions = []
         grid_include_regions = []
         actions.user.mouse_move_continuous_stop()
-        actions.user.mouse_move_stop()
         if canvas_grid:
             canvas_grid.freeze()
 
     def drag_mode_stop():
         """Reset the grid"""
         actions.user.mouse_move_continuous_stop()
-        actions.user.mouse_move_stop()
 
     def drag_mode_show_commands():
         """Show the grid commands"""

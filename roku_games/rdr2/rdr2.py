@@ -1,17 +1,47 @@
 from talon import Module, Context, actions
 from .rdr2_ui import show_ui, hide_ui
-from .rdr2_noise_modes import noises_default, noises_wheel, noises_fighter
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 # for testing in vscode instead of rdr2
-# mod.apps.rdr2 = "os: windows\nand app.exe /code.exe/i"
+# mod.apps.rdr2 = "os: windows\nand app.exe: /code.exe/i"
 mod.apps.rdr2 = "os: windows\nand app.exe: /rdr2.exe/i"
 ctx.matches = "os: windows\napp: rdr2"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 
-def wheel_stop():
+def set_noises(mode):
+    noises = dynamic_noises[mode]
+    for noise, (action, action_handler) in noises.items():
+        actions.user.dynamic_action_set(noise, action, action_handler)
+
+def wheel_stop(click = False):
+    if click:
+        actions.user.game_mouse_click()
     actions.user.game_xbox_button_release("lb")
     actions.user.drag_mode_hide()
+    set_noises("default")
+
+def stop():
+    actions.user.game_stopper()
+    actions.user.game_xbox_stopper()
+
+dynamic_noises = {
+    "default": {
+        "hiss": ("stop", stop),
+        "pop": ("A", lambda: actions.user.game_xbox_button_press('a')),
+    },
+    "mover": {
+        "hiss": ("stop", stop),
+        "pop": ("A", lambda: actions.user.game_xbox_button_press('a')),
+    },
+    "wheel": {
+        "hiss": ("close", lambda: wheel_stop(click = False)),
+        "pop": ("pick and close", lambda: wheel_stop(click = True)),
+    },
+    "fighter": {
+        "hiss": ("stop", stop),
+        "pop": ("RT", lambda: actions.user.game_xbox_button_press('rt')),
+    }
+}
 
 @mod.action_class
 class Actions:
@@ -19,16 +49,11 @@ class Actions:
         """wheel"""
         actions.user.game_xbox_button_hold("lb")
         actions.user.drag_mode_show()
-        noises_wheel()
+        set_noises("wheel")
 
     def rdr2_noise_mode(mode: str):
         """Change noise mode"""
-        if mode == "default":
-            noises_default()
-        elif mode == "wheel":
-            noises_wheel()
-        elif mode == "fighter":
-            noises_fighter()
+        set_noises(mode)
 
 def stop_all():
     actions.user.game_stopper()

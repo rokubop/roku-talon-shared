@@ -28,7 +28,7 @@ Erie | airy | error: user.game_xbox_button_hold("a")
 # other camera actions
 round: user.game_turn_180()
 cam mid: user.game_reset_center_y()
-look {user.game_dir}: user.game_camera_snap_dynamic(game_dir)
+look <user.game_dir>: user.game_camera_snap_dynamic(game_dir)
 
 # add noise actions to vocabulary
 pop {user.game_xbox_button}: skip()

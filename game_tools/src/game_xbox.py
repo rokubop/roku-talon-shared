@@ -83,6 +83,8 @@ xbox_button_map = {
     "r1": "right_shoulder",
     "l3": "left_thumb",
     "r3": "right_thumb",
+    "rt": "right_trigger",
+    "lt": "left_trigger",
     "left_shoulder": "left_shoulder",
     "right_shoulder": "right_shoulder",
     "left_thumb": "left_thumb",
@@ -146,6 +148,7 @@ def xbox_dpad_hold_dir(dir: str):
     dpad_hold_dir = dir
 
 def xbox_set_gear(subject: str, gear: Union[str, int]):
+    print("set gear", subject, gear)
     gear_state[subject].set_gear(gear)
     event_on_xbox.fire_trigger_gear_change(subject, gear_state[subject])
 

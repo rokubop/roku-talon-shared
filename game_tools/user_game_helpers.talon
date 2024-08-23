@@ -7,6 +7,9 @@ game calibrate why: user.game_mode_calibrate_y_enable()
 calibrate close: user.ui_hide_game_modal_large()
 
 game mode: user.game_mode_enable()
-game exit: user.game_mode_disable()
+game [mode] [exit]: user.game_mode_disable()
+game mode stop: user.game_mode_disable()
+(stop | exit) game mode: user.game_mode_disable()
+command mode: user.game_mode_disable()
 
 # <user.game_action>: user.game_action_test(game_action)

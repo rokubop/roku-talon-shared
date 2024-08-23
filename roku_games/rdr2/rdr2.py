@@ -3,9 +3,9 @@ from .rdr2_ui import show_ui, hide_ui
 from .rdr2_noise_modes import noises_default, noises_wheel, noises_fighter
 
 mod, ctx, ctx_game = Module(), Context(), Context()
-# for testing outside of rdr2
-mod.apps.rdr2 = "os: windows"
-# mod.apps.rdr2 = "os: windows\nand app.exe: /rdr2.exe/i"
+# for testing in vscode instead of rdr2
+# mod.apps.rdr2 = "os: windows\nand app.exe /code.exe/i"
+mod.apps.rdr2 = "os: windows\nand app.exe: /rdr2.exe/i"
 ctx.matches = "os: windows\napp: rdr2"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 

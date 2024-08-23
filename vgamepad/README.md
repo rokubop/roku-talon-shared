@@ -4,16 +4,33 @@ This will allow us to emulate Xbox360 gamepad actions with Talon. Only Windows a
 Used by the `game_tools` folder for `game_xbox_` actions.
 
 ## Setup
-1. Locate your `TALON_HOME` dir.
-    - Windows: `~/AppData/Roaming/talon`
-    - Linux: ?
-2. Put this repo inside your `[TALON_HOME]/user` folder. The [vgamepad repo](https://github.com/yannbouteiller/vgamepad) is already included in the `.subtrees` folder, but we also must install the `vgamepad` package into our Talon environment.
-3. Using your terminal of choice, install the package using Talon's pip.
-    - Windows: `[TALON_HOME]/venv/3.11/Scripts/pip.bat install vgamepad`
-    - Linux: `[TALON_HOME]/bin/pip install vgamepad`
-4. If using Linux, there is an additional step. See the README in the `vgamepad/.subtrees/vgamepad` folder.
+1. Locate your `TALON_HOME` dir, on windows this is `~/AppData/Roaming/talon`. You can say "talon home" to get the path.
+2. Clone `roku-talon-shared` into your `[TALON_HOME]/user` folder. If you already have it, then you are done with this step.
 
-Done! Now the `user.game_xbox_` actions should work from `game_tools` folder.
+    From your terminal of choice, navigate to your `[TALON_HOME]/user` folder and run the following command:
+    ```
+    git clone https://github.com/rokubop/roku-talon-shared.git
+    ```
+    Or if you don't want to use git, you can copy the files manually.
+3. In addition to cloning the files, we must also install `vgamepad` with Talon's `pip` (package installer for python). Using your terminal of choice...
+
+    Windows (If your TALON_HOME is `~/AppData/Roaming/talon`)
+    ```
+    ~/AppData/Roaming/talon/venv/3.11/Scripts/pip.bat install vgamepad
+    ```
+
+    Linux:
+    ```
+    [TALON_HOME]/bin/pip install vgamepad
+    ```
+
+   ### Windows only
+   It will  prompt you to install ViGEmBus by Nefarius Software Solutions. Install ViGEmBus. vgamepad is a wrapper around Nefarius' Virtual Gamepad Emulation framework which you can read about here (https://github.com/nefarius/ViGEmBus)
+
+   ### Linux only
+    Additional setup is required for Linux. See the [README](https://github.com/rokubop/roku-talon-shared/tree/main/vgamepad/.subtrees/vgamepad/README.md) in the `vgamepad/.subtrees/vgamepad` folder.
+
+4. Done! Now the `user.game_xbox_` actions should work from `game_tools` folder.
 
 The below low level actions are available, but it is recommended to use the `game_xbox_` actions instead.
 

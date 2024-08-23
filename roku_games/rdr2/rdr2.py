@@ -1,8 +1,10 @@
 from talon import Module, Context, actions
 from .rdr2_ui import show_ui, hide_ui
+from .rdr2_noise_modes import noises_default, noises_wheel, noises_fighter
 
 mod, ctx, ctx_game = Module(), Context(), Context()
-mod.apps.rdr2 = "os: windows\nand app.exe: /code.exe/i"
+# for testing outside of rdr2
+mod.apps.rdr2 = "os: windows"
 # mod.apps.rdr2 = "os: windows\nand app.exe: /rdr2.exe/i"
 ctx.matches = "os: windows\napp: rdr2"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
@@ -17,8 +19,16 @@ class Actions:
         """wheel"""
         actions.user.game_xbox_button_hold("lb")
         actions.user.drag_mode_show()
-        actions.user.dynamic_action_set("hiss", "lb", wheel_stop)
-        actions.user.dynamic_action_set("pop", "lb", wheel_stop)
+        noises_wheel()
+
+    def rdr2_noise_mode(mode: str):
+        """Change noise mode"""
+        if mode == "default":
+            noises_default()
+        elif mode == "wheel":
+            noises_wheel()
+        elif mode == "fighter":
+            noises_fighter()
 
 def stop_all():
     actions.user.game_stopper()

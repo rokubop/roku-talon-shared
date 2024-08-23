@@ -9,7 +9,7 @@ settings():
     user.game_xbox_left_stick_default_gear = 5
     user.game_xbox_left_stick_gears = ".2 .4 .6 .8 1"
     user.game_xbox_right_stick_default_gear = 3
-    user.game_xbox_right_stick_gears = ".3 .5 .7 .9 1"
+    user.game_xbox_right_stick_gears = ".4 .5 .6 .7 1"
     user.game_xbox_left_trigger_default_gear = 5
     user.game_xbox_left_trigger_gears = ".2 .4 .6 .8 1"
     user.game_xbox_right_trigger_default_gear = 5

@@ -39,16 +39,49 @@ def line_separator_ui():
     (div) = actions.user.ui_elements(["div", "text"])
     return div(background_color="FFFFFF66", width=120, height=2)
 
-def show_hud_ui(on_mount):
+def show_left_hud_ui(on_mount: callable = None):
     (div, screen, text) = actions.user.ui_elements(["div", "screen", "text"])
 
-    ui_hud = screen(align_items="center", justify_content="flex_end")[
-        div(background_color="00000066", border_radius=16, margin=16, margin_bottom=300, padding=16, border_width=1, border_color="FF0000aa")[
+    css = {
+        "background_color": "00000066",
+        "border_radius": 16,
+        "padding": 16,
+        "border_width": 1,
+        "border_color": "FF0000aa",
+        "margin_bottom": 250,
+        "margin_left": 250
+    }
+
+    ui_hud = screen(align_items="flex_start", justify_content="flex_end")[
+        div(css)[
             div(flex_direction="row", gap=16)[
                 actions.user.game_ui_element_xbox_dpad(),
                 actions.user.game_ui_element_xbox_left_stick(),
                 actions.user.game_ui_element_xbox_right_stick(),
-                actions.user.game_ui_element_xbox_primary_buttons(),
+            ]
+        ]
+    ]
+
+    ui_hud.show(on_mount)
+
+def show_right_hud_ui(on_mount: callable = None):
+    (div, screen, text) = actions.user.ui_elements(["div", "screen", "text"])
+
+    css = {
+        "background_color": "00000066",
+        "border_radius": 16,
+        "margin": 16,
+        "padding": 16,
+        "border_width": 1,
+        "border_color": "FF0000aa",
+        "margin_bottom": 250,
+        "margin_right": 250
+    }
+
+    ui_hud = screen(align_items="flex_end", justify_content="flex_end")[
+        div(css)[
+            div(flex_direction="row", gap=16)[
+                actions.user.game_ui_element_xbox_primary_buttons(size=30),
                 div()[
                     text("triggers / bumpers", margin_bottom=16),
                     div(flex_direction="column", gap=8)[
@@ -60,15 +93,14 @@ def show_hud_ui(on_mount):
                             actions.user.game_ui_element_xbox_left_bumper(),
                             actions.user.game_ui_element_xbox_right_bumper(),
                         ]
-                    ]
+                    ],
                 ],
                 div()[
                     text("noises", margin_bottom=16),
                     noises_ui()
                 ],
             ],
-            live_text_keys_ui()
-        ],
+        ]
     ]
 
     ui_hud.show(on_mount)
@@ -134,7 +166,8 @@ def on_event(event):
 
 def show_ui(on_mount):
     show_commands_ui()
-    show_hud_ui(on_mount)
+    show_right_hud_ui()
+    show_left_hud_ui(on_mount)
     actions.user.dynamic_actions_event_register(on_event)
 
 def hide_ui():

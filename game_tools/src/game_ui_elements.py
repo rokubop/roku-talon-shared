@@ -1,4 +1,4 @@
-from talon import Module, actions, Context, registry
+from talon import Module, actions, Context, registry, settings
 
 mod = Module()
 ctx = Context()
@@ -66,6 +66,7 @@ def xbox_stick_ui(
     (div, text) = actions.user.ui_elements(["div", "text"])
     accent_color = accent_color or accent_color_default
     label = label or list_names[subject]
+    gear = settings.get(f"user.game_xbox_{subject}_default_gear") or 5
 
     key_css = {
         "padding": 8,
@@ -79,7 +80,7 @@ def xbox_stick_ui(
 
     def key(key_name, text_content, width=size):
         return div(key_css, id=key_name, width=width, background_color="333333cc")[
-            text(text_content)
+            text(text_content, font_size=size//2)
         ]
 
     def blank_key():
@@ -88,7 +89,7 @@ def xbox_stick_ui(
     return div()[
         div(flex_direction="row", margin_bottom=16, gap=8)[
             text(label),
-            text("5", id=f"{subject}_gear", color=accent_color),
+            text(gear, id=f"{subject}_gear", color=accent_color),
         ],
         div(flex_direction="column", background_color="333333dd", border_radius=100, padding=1)[
             div(flex_direction="row")[
@@ -130,7 +131,7 @@ def xbox_primary_buttons_ui(label: str, size : int = 30):
             background_color=f"{color}55",
             border_radius=size
         )[
-            text(text_content)
+            text(text_content, font_size=size//2)
         ]
 
     def blank_area():
@@ -195,6 +196,7 @@ def xbox_dpad_ui(label: str, size : int = 30):
 def xbox_trigger_ui(subject: str, label: str, size : int = 30, accent_color: str = None):
     (div, text) = actions.user.ui_elements(["div", "text"])
     accent_color = accent_color or accent_color_default
+    gear = settings.get(f"user.game_xbox_{subject}_default_gear") or 5
 
     return div(
         id=subject,
@@ -207,7 +209,7 @@ def xbox_trigger_ui(subject: str, label: str, size : int = 30, accent_color: str
         justify_content="center"
     )[
         text(label),
-        text("5", id=f"{subject}_gear", color=accent_color),
+        text(gear, id=f"{subject}_gear", color=accent_color),
     ]
 
 def xbox_bumper_ui(subject: str, label: str, size : int = 30):
@@ -304,8 +306,6 @@ def events_init(type: str):
         include_xbox_events = True
         list_names["left_stick"] = get_first_list_key("user.game_xbox_left_stick")
         list_names["right_stick"] = get_first_list_key("user.game_xbox_right_stick")
-        list_names["left_trigger"] = get_first_list_key("user.game_xbox_left_trigger")
-        list_names["right_trigger"] = get_first_list_key("user.game_xbox_right_trigger")
         list_names["dpad"] = get_first_list_key("user.game_xbox_dpad")
 
     if not ui_elements_register_on_lifecycle_init:
@@ -314,7 +314,7 @@ def events_init(type: str):
 
 @mod.action_class
 class Actions:
-    def game_ui_element_arrows_dpad(size: int = 30):
+    def game_ui_element_arrows_dpad(size: int = 30, props: dict = None):
         """game ui element arrows dpad"""
         events_init("keys")
         return game_ui_elements_keys_dpad(wasd=False, size=size)

@@ -5,16 +5,16 @@ dir_up, up
 dir_down, down
 dir_forward, forth | forward
 dir_backward, back
-xbox_button_a, air | a | ay
-xbox_button_b, bat | b | bee
-xbox_button_x, check | plex | x | ex
-xbox_button_y, yank | y | why
+xbox_button_a, air | ay
+xbox_button_b, bat | bee
+xbox_button_x, check | plex | ex
+xbox_button_y, yank | why
 xbox_button_lb, lob
 xbox_button_rb, rob
 xbox_button_guide, guide
 xbox_button_menu, menu
-xbox_left_trigger, gross
-xbox_right_trigger, trouble
-xbox_dpad, fight
-xbox_left_stick, purple
-xbox_right_stick, coke
+xbox_left_trigger, latch
+xbox_right_trigger, ratch
+xbox_dpad, pad
+xbox_left_stick, go
+xbox_right_stick, cam

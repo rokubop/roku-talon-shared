@@ -544,7 +544,7 @@ class UIText:
     def __init__(self, text: str, options: UITextOptions = None):
         self.options = options
         self.id = self.options.id
-        self.text = text
+        self.text = str(text)
         self.type = options.type or "text"
         self.text_width = None
         self.text_height = None

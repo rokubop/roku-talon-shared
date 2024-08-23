@@ -1,11 +1,16 @@
 # Changelog
 
 ## Next
-- Add `dynamic_actions` experimental folder for dynamic "pop" and "hiss"
-- Add `roku_games/rdr2` - Free version of Talon (pop / hiss only) + controls for Red Dead Redemption 2
-- Add `actions.user.ui_elements_hide_all`
+### New Features
+- Added `dynamic_actions` experimental folder for dynamic "pop" and "hiss"
+- Added `vgamepad` integration for virtual xbox gamepad
+- Added `user.game_xbox_` actions for xbox gamepad emulation
+- Added `roku_games/rdr2` for Red Dead Redemption 2 using virtual xbox gamepad
+- Added `actions.user.ui_elements_hide_all`
+
+### Breaking Changes
 - Rename `actions.user.rt_mouse_move_delta` to `actions.user.mouse_move_delta_smooth`
-- Add mouse move event
+- Remove
 
 ## Sun Aug 4, 2024
 ui_elements

@@ -18,6 +18,13 @@ longer {user.game_xbox_button}: user.game_xbox_button_hold(game_xbox_button, 400
 hold {user.game_xbox_button}: user.game_xbox_button_hold(game_xbox_button)
 free {user.game_xbox_button}: user.game_xbox_button_release(game_xbox_button)
 
+# append a postfix to hold the button
+# e.g. instead of "yank" say "yankee"
+# e.g. instead of "bat" say "batter"
+# e.g. instead of "ratch" say "ratcher"
+{user.game_xbox_button} (ye | he | her | er | at): user.game_xbox_button_hold(game_xbox_button)
+Erie | airy | error: user.game_xbox_button_hold("a")
+
 # other camera actions
 round: user.game_turn_180()
 cam mid: user.game_reset_center_y()
@@ -26,6 +33,10 @@ look {user.game_dir}: user.game_camera_snap_dynamic(game_dir)
 # add noise actions to vocabulary
 pop {user.game_xbox_button}: skip()
 wish {user.game_xbox_button}: skip()
+
+# noise modes
+fighter: user.rdr2_noise_mode("fighter")
+mover | default: user.rdr2_noise_mode("default")
 
 # actions
 weapon: user.game_xbox_button_press('lb')

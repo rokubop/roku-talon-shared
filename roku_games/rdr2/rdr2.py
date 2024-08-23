@@ -1,4 +1,4 @@
-from talon import Module, Context, actions
+from talon import Module, Context, actions, core
 from .rdr2_ui import show_ui, hide_ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
@@ -10,8 +10,8 @@ ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 
 def set_noises(mode):
     noises = dynamic_noises[mode]
-    for noise, (action, action_handler) in noises.items():
-        actions.user.dynamic_action_set(noise, action, action_handler)
+    for noise, (action_name, action) in noises.items():
+        actions.user.dynamic_action_set(noise, action_name, action)
 
 def wheel_stop(click = False):
     if click:
@@ -40,6 +40,10 @@ dynamic_noises = {
     "fighter": {
         "hiss": ("stop", stop),
         "pop": ("RT", lambda: actions.user.game_xbox_button_press('rt')),
+    },
+    "repeater": {
+        "hiss": ("stop", stop),
+        "pop": ("repeat", core.repeat_phrase),
     }
 }
 

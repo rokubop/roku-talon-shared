@@ -37,6 +37,7 @@ wish {user.game_xbox_button}: skip()
 # noise modes
 fighter: user.rdr2_noise_mode("fighter")
 mover | default: user.rdr2_noise_mode("default")
+repeater: user.rdr2_noise_mode("repeater")
 
 # actions
 weapon: user.game_xbox_button_press('lb')

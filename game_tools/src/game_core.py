@@ -281,16 +281,6 @@ def stopper():
 
 @mod.action_class
 class Actions:
-    def game_action_test(a: str):
-        """Test game action"""
-        print("game_action_test:")
-        print(a)
-
-    def game_action_test_2(a: str, b: str):
-        """Test game action 2"""
-        print("game_action_test_2:")
-        print(a, b)
-
     def game_show_commands(title: str, text_lines: list, bg_color: str = "222666", align: str = "right"):
         """Show the game commands"""
         actions.user.ui_textarea_show({

@@ -82,21 +82,6 @@ def restart_chapter():
     actions.user.game_stopper()
     actions.key("escape up up c c")
 
-# step 1 simple
-# default_config = {
-#     "ah":         ("left", actions.user.game_move_dir_hold_left),
-#     "oh":         ("right", actions.user.game_move_dir_hold_right),
-#     "eh":         ("up", actions.user.game_move_dir_hold_up),
-#     "er":         ("down", actions.user.game_move_dir_hold_down),
-#     "t":          ("f-up", actions.user.game_move_dir_hold_up_horizontal),
-#     "ee":         ("stop", actions.user.game_stopper),
-#     "sh:th_100":  ("c", jump_primary),
-#     "sh_stop":    ("", lambda: None),
-#     "pop":        ("x", lambda: actions.user.game_key("x")),
-#     "guh":        ("toggle z", lambda: actions.user.game_key_toggle("z")),
-#     "tut tut":    ("", actions.user.game_mode_disable),
-# }
-
 default_config = {
     "sh:th_100":  ("jump 1", jump_primary),
     "sh_stop":    ("", lambda: None),

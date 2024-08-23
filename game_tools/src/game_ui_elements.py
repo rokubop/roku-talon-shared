@@ -235,7 +235,7 @@ def on_button(button, state):
 
 
 def on_stick_dir(subject, coords):
-    print(f"subject: {subject}, coords: {coords}")
+    # print(f"subject: {subject}, coords: {coords}")
     x, y = coords
 
     for direction in ["up", "down", "left", "right"]:
@@ -252,7 +252,7 @@ def on_stick_dir(subject, coords):
 
 
 def on_stick(event):
-    print(f"on_stick: {event}")
+    # print(f"on_stick: {event}")
     if event.type == "gear_change":
         gear_state = event.value
         actions.user.ui_elements_set_text(f"{event.subject}_gear", gear_state.gear)

@@ -10,5 +10,3 @@ game mode: user.game_mode_enable()
 game [mode] exit: user.game_mode_disable()
 game mode stop: user.game_mode_disable()
 (stop | exit) game mode: user.game_mode_disable()
-
-# <user.game_action>: user.game_action_test(game_action)

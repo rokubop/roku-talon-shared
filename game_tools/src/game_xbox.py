@@ -158,7 +158,7 @@ def xbox_button_hold(button: str, hold: int = None):
     global button_up_pending_jobs, held_buttons
     button = xbox_button_map[button]
     if button in [LEFT_TRIGGER, RIGHT_TRIGGER]:
-        print("trigger hold", button, hold)
+        # print("trigger hold", button, hold)
         xbox_trigger_hold(button, hold=hold)
         return
 
@@ -168,7 +168,7 @@ def xbox_button_hold(button: str, hold: int = None):
     actions.user.vgamepad_button_hold(button)
     event_on_xbox.fire_button_hold(button)
 
-    print("button hold", button, hold)
+    # print("button hold", button, hold)
     if hold:
         button_up_pending_jobs[button] = cron.after(f"{hold}ms", lambda: xbox_button_release(button))
 
@@ -208,13 +208,13 @@ def xbox_right_stick(x: float, y: float):
 
 def xbox_trigger_hold(button: str, power: float = None, hold: int = None):
     global button_up_pending_jobs, held_buttons
-    print("trigger hold", button, power, hold)
+    # print("trigger hold", button, power, hold)
     power = power or gear_state[button].value
-    print("power", power)
+    # print("power", power)
     if button_up_pending_jobs.get(button):
         cron.cancel(button_up_pending_jobs[button])
     held_buttons.add(button)
-    print("vtrigger hold", button, power)
+    # print("vtrigger hold", button, power)
     getattr(actions.user, f"vgamepad_{button}")(power)
     event_on_xbox.fire_trigger_hold(button, gear_state[button])
 
@@ -274,6 +274,7 @@ class Actions:
 
 def game_mode_setup():
     global button_hold_time
+    # TODO: This isn't necessary for games without xbox controls
     button_hold_time = settings.get("user.game_xbox_button_hold")
     init_gear_states()
 
@@ -282,7 +283,6 @@ def on_game_mode(state):
         game_mode_setup()
 
 def on_ready():
-    # TODO: only if xbox
     game_mode_setup()
     event_on_game_mode.register_locked(on_game_mode)
 

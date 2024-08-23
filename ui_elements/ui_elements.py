@@ -880,7 +880,6 @@ class UIBuilder(UIBox):
                 canvas.freeze()
         else:
             def on_rendered():
-                self.init_blockable_canvases()
                 if on_mount:
                     on_mount()
                 event_fire_on_mount(self.id)
@@ -900,6 +899,7 @@ class UIBuilder(UIBox):
             # is there a way to do this without a hard coded delay?
             # we need to wait for everything to render so we have
             # all the dimensions to calculate the blockable canvas
+            cron.after("300ms", lambda: self.init_blockable_canvases())
             cron.after("1000ms", on_rendered)
 
     def on_mouse(self, e):

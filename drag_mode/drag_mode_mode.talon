@@ -53,22 +53,19 @@ grid bottom:
     user.drag_mode_reset()
     user.drag_mode_exclude_area_rect(0, 0, 1980, 800)
     user.drag_mode_show()
-grid left:
-    user.drag_mode_reset()
-    user.drag_mode_exclude_area_rect(0, 0, 1000, 800)
-    user.drag_mode_show()
 
 bring this to <user.drag_mode_target>: user.drag_mode_bring_to(drag_mode_target)
 bring <user.drag_mode_target>: user.drag_mode_bring(drag_mode_target)
-hover <user.drag_mode_target>: user.cursorless_move_mouse_to_target(drag_mode_target)
+(go | hover) <user.drag_mode_target>: user.drag_mode_move_mouse_to_target(drag_mode_target)
 
-fly to <user.drag_mode_target>: user.drag_mode_fly_towards(drag_mode_target)
+fly [to] <user.drag_mode_target>: user.drag_mode_fly_towards(drag_mode_target)
 fly up: user.mouse_move_continuous(0, -1)
 fly down: user.mouse_move_continuous(0, 1)
 fly left: user.mouse_move_continuous(-1, 0)
 fly right: user.mouse_move_continuous(1, 0)
 fly stop: user.drag_mode_stop()
 mouse stop: user.mouse_stop()
+stop | halt: user.drag_mode_stop()
 
 tick: user.mouse_tick_last_direction()
 tick down: user.mouse_tick_direction(0, 1)
@@ -76,8 +73,8 @@ tick up: user.mouse_tick_direction(0, -1)
 tick left: user.mouse_tick_direction(-1, 0)
 tick right: user.mouse_tick_direction(1, 0)
 tick back: user.mouse_tick_reverse_last_direction()
-speedup: user.mouse_speed_increase()
-slowdown: user.mouse_speed_decrease()
+gear up: user.mouse_speed_increase()
+gear down: user.mouse_speed_decrease()
 
 <user.drag_mode_target> up:
     user.drag_mode_move_mouse(drag_mode_target)

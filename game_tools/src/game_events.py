@@ -102,8 +102,7 @@ class GameEventOnXbox(GameEvent):
         Event type: hold, release, dir_change, gear_change
         Value: Optional value for the event
         """
-        print("a triggering event", subject, type, value)
-        print(self.subscribers)
+        # print("GameEventOnXbox", self.subscribers, subject, type, value)
         for callback in self.subscribers:
             callback(GameXboxEvent(subject, type, value))
 

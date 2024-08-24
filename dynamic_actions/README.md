@@ -58,10 +58,10 @@ actions.user.dynamic_actions_phrase_assignment_disable()
 ## Update programatically
 ```python
 # simple
-actions.user.dynamic_action_set("pop", lambda: print("pop"))
+actions.user.dynamic_actions_set("pop", lambda: print("pop"))
 
 # advanced
-actions.user.dynamic_action_set({
+actions.user.dynamic_actions_set({
     name: "pop",
     action: lambda: print("pop"),
     action_name: "go down", # optional
@@ -82,20 +82,20 @@ class Actions:
 ## Actions
 | Function | Description |
 | --- | --- |
-| `dynamic_action_set(name: str, callable: Callable)` | Set a dynamic action to a callable (Simple) |
-| `dynamic_action_set(dict)` | Set a dynamic action to a callable (Advanced) |
+| `dynamic_actions_set(name: str, callable: Callable)` | Set a dynamic action to a callable (Simple) |
+| `dynamic_actions_set(dict)` | Set a dynamic action to a callable (Advanced) |
 | `dynamic_action_set_once(name: str, callable: Callable)` | Set a dynamic action to a callable, but only once |
-| `dynamic_action_set_phrase(name: str, phrase: str)` | Set a dynamic action to a phrase |
+| `dynamic_actions_set_phrase(name: str, phrase: str)` | Set a dynamic action to a phrase |
 | `dynamic_action_reset(name: str)` | Reset a dynamic action to the default |
 | `dynamic_action_unset_current(name: str)` | Unset the current dynamic action |
 | `dynamic_action_swap_recent(name: str)` | Swap the current dynamic action with the most recent one |
 
 ```python
-dynamic_action_set("pop", callable)
+dynamic_actions_set("pop", callable)
 dynamic_action_set_once("pop", callable)
-dynamic_action_set_phrase("pop", "go down")
+dynamic_actions_set_phrase("pop", "go down")
 dynamic_action_reset("pop")
 dynamic_action_unset_current("pop")
 dynamic_action_swap_recent("pop")
 
-# my command: dynamic_action("pop")
+# my command: dynamic_actions_trigger("pop")

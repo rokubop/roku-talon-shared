@@ -5,10 +5,14 @@ from typing import Optional, TypedDict, Union, Literal
 mod = Module()
 ctx = Context()
 
+_dynamic_actions_enabled = False
+_use_talon_noises = False
+_use_speech_capture = False
 _talon_noise_pop_init = False
 _talon_noise_hiss_init = False
 _speech_capture_enabled = False
 event_subscribers = []
+_talon_noises = ["pop", "hiss"]
 EVENT_TYPE_CHANGE = "change"
 EVENT_TYPE_ACTION = "action"
 EVENT_TYPE_ACTION_STOP = "action_stop"
@@ -27,7 +31,6 @@ class DynamicActionCallback:
     debounce: Optional[int] = None
     debounce_stop: Optional[int] = None
     throttle: Optional[int] = None
-    once: Optional[bool] = False
 
 class DynamicAction:
     name: str
@@ -97,7 +100,7 @@ class DynamicAction:
                 )
             )
 
-_dynamic_actions: dict[str, DynamicAction] = {}
+dynamic_actions_state: dict[str, DynamicAction] = {}
 _dynamic_actions_aliases: dict[str, str] = {}
 
 def separate_base_and_qualifier(name: str):
@@ -108,85 +111,46 @@ def separate_base_and_qualifier(name: str):
     else:
         return name, ""
 
-def dynamic_action_set(name: str, dynamic_action_callback: DynamicActionCallback):
+def dynamic_actions_set_class(
+    name: str,
+    dynamic_action_callback: DynamicActionCallback,
+    default: bool = False,
+    alias: str = None
+):
     """Set a dynamic action"""
-    global _dynamic_actions
-    if name not in _dynamic_actions:
-        _dynamic_actions[name] = DynamicAction(name)
-    _dynamic_actions[name].set(dynamic_action_callback)
+    global dynamic_actions_state
+    if name not in dynamic_actions_state:
+        dynamic_actions_state[name] = DynamicAction(name, alias=alias)
+    if default:
+        dynamic_actions_state[name].set_default(dynamic_action_callback)
+    else:
+        dynamic_actions_state[name].set(dynamic_action_callback)
 
-def dynamic_action(name: str):
+def dynamic_actions_trigger(name: str):
     """Execute a dynamic action"""
-    global _dynamic_actions
+    global dynamic_actions_state
     base_name, qualifier = separate_base_and_qualifier(name)
-    if base_name in _dynamic_actions:
+    if base_name in dynamic_actions_state:
         if qualifier == "stop":
-            _dynamic_actions[base_name].execute_stop()
+            dynamic_actions_state[base_name].execute_stop()
         else:
-            _dynamic_actions[base_name].execute()
+            dynamic_actions_state[base_name].execute()
     else:
         print(f"Dynamic action {name} not found")
 
-def dynamic_action_set_default(name: str, dynamic_action_callback: DynamicActionCallback):
-    """Set a default dynamic action"""
-    global _dynamic_actions
-    if name not in _dynamic_actions:
-        _dynamic_actions[name] = DynamicAction(name)
-    _dynamic_actions[name].set_default(dynamic_action_callback)
-    dynamic_actions_event_trigger(
-        DynamicActionEvent(
-            EVENT_TYPE_CHANGE,
-            name,
-            dynamic_action_callback.name,
-        )
-    )
-
-def dynamic_action_remove(name: str):
-    """Remove a dynamic action"""
-    global _dynamic_actions
-    if name in _dynamic_actions:
-        del _dynamic_actions[name]
-
-def dynamic_action_init(
-    name: str,
-    action_name: str,
-    action: callable = lambda: None,
-    action_stop: callable = lambda: None,
-    debounce_ms: int = None,
-    debounce_stop_ms: int = None,
-    throttle_ms: int = None,
-    once: bool = False,
-    alias: str = None
-):
-    """Init a dynamic action"""
-    global _dynamic_actions
-    cb = DynamicActionCallback(
-        name=action_name,
-        action=action,
-        action_stop=action_stop,
-        debounce=debounce_ms,
-        debounce_stop=debounce_stop_ms,
-        throttle=throttle_ms,
-        once=once
-    )
-    if name not in _dynamic_actions:
-        _dynamic_actions[name] = DynamicAction(name, alias=alias)
-    _dynamic_actions[name].reset()
-    _dynamic_actions[name].set_default(cb)
-
 def noise_pop(_):
-    dynamic_action("pop")
+    dynamic_actions_trigger("pop")
 
 def noise_hiss(is_active):
     if is_active:
-        dynamic_action("hiss")
+        dynamic_actions_trigger("hiss")
     else:
-        dynamic_action("hiss_stop")
+        dynamic_actions_trigger("hiss_stop")
 
 def spoken_word_is_dynamic_action(word):
-    return word in _dynamic_actions or any(
+    return (_use_talon_noises and word in _talon_noises) or word in dynamic_actions_state or any(
         dynamic_action.alias == word
-        for dynamic_action in _dynamic_actions.values()
+        for dynamic_action in dynamic_actions_state.values()
     )
 
 def on_phrase(d):
@@ -202,7 +166,7 @@ def on_phrase(d):
                 action_stop=lambda: None
             )
             print(f"setting dynamic action {dynamic_action_word} to {action_phrase}")
-            dynamic_action_set(dynamic_action_word, cb)
+            dynamic_actions_set_class(dynamic_action_word, cb)
 
 def start_speech_capture():
     global _speech_capture_enabled
@@ -212,8 +176,9 @@ def start_speech_capture():
 
 def stop_speech_capture():
     global _speech_capture_enabled
-    speech_system.unregister("pre:phrase", on_phrase)
-    _speech_capture_enabled = False
+    if _speech_capture_enabled:
+        speech_system.unregister("pre:phrase", on_phrase)
+        _speech_capture_enabled = False
 
 def test():
     print("test")
@@ -229,13 +194,130 @@ def dynamic_actions_event_trigger(event: DynamicActionEvent):
     for subscriber in event_subscribers:
         subscriber(event)
 
+def dynamic_actions_set(
+    name: str,
+    action_name: str,
+    action: callable,
+    action_stop: callable = lambda: None,
+    debounce_ms: int = None,
+    debounce_stop_ms: int = None,
+    throttle_ms: int = None,
+    default: bool = False,
+    phrase: str = None,
+    alias: str = None
+):
+    global _talon_noise_pop_init, _talon_noise_hiss_init
+    callback = None
+
+    if not _dynamic_actions_enabled:
+        print("Dynamic actions not enabled. Enable using actions.user.dynamic_actions_enable()")
+        return
+
+    if action is None or not callable(action):
+        raise ValueError(
+            f"\ndynamic_actions_set: action for '{name}' must be a callable (function or lambda).\n\n"
+            f"Valid examples:\n"
+            f'dynamic_actions_set_pop("jump", lambda: actions.key("space"))\n'
+            f'dynamic_actions_set_hiss("jump", actions.user.game_mouse_click)\n'
+            f'dynamic_actions_set("pop", "jump", lambda: actions.key("space"))\n\n'
+            f"Invalid examples:\n"
+            f'dynamic_actions_set_pop("jump", actions.key("space"))\n'
+            f'dynamic_actions_set_hiss("jump", actions.key("space"))\n'
+            f'dynamic_actions_set("pop", "jump", actions.user.game_mouse_click())\n'
+        )
+
+    if _use_talon_noises:
+        if  name == "pop" and not _talon_noise_pop_init:
+            _talon_noise_pop_init = True
+            noise.register("pop", noise_pop)
+        elif name == "hiss" and not _talon_noise_hiss_init:
+            _talon_noise_hiss_init = True
+            noise.register("hiss", noise_hiss)
+
+    if phrase:
+        callback = DynamicActionCallback(
+            name=phrase,
+            action=lambda: actions.mimic(phrase),
+            action_stop=lambda: None
+        )
+    else:
+        callback = DynamicActionCallback(
+            name=action_name,
+            action=action,
+            action_stop=action_stop,
+            debounce=debounce_ms,
+            debounce_stop=debounce_stop_ms,
+            throttle=throttle_ms,
+        )
+    dynamic_actions_set_class(name, callback, default, alias)
+
+def dynamic_actions_enable(
+    talon_noises: bool = True,
+    speech_capture: bool = True
+):
+    global _dynamic_actions_enabled
+    global _use_talon_noises
+    global _use_speech_capture
+    global _talon_noise_hiss_init
+    global _talon_noise_pop_init
+
+    if not _dynamic_actions_enabled:
+        _dynamic_actions_enabled = True
+        _talon_noise_pop_init = False
+        _talon_noise_hiss_init = False
+        _use_talon_noises = talon_noises
+        _use_speech_capture = speech_capture
+        if _use_talon_noises:
+            ctx.tags = ["user.dynamic_actions_talon_noise_override"]
+        if _use_speech_capture:
+            start_speech_capture()
+
+def dynamic_actions_disable():
+    global _dynamic_actions_enabled
+    global _talon_noise_pop_init
+    global _talon_noise_hiss_init
+    global dynamic_actions_state
+
+    if _talon_noise_pop_init:
+        noise.unregister("pop", noise_pop)
+        _talon_noise_pop_init = False
+
+    if _talon_noise_hiss_init:
+        noise.unregister("hiss", noise_hiss)
+        _talon_noise_hiss_init = False
+
+    ctx.tags = []
+    _dynamic_actions_enabled = False
+    dynamic_actions_state = {}
+    stop_speech_capture()
+
 @mod.action_class
 class Actions:
-    def dynamic_action(name: str):
-        """Execute a dynamic action e.g. `actions.user.dynamic_action("pop")`"""
-        dynamic_action(name)
+    def dynamic_actions_enable(
+        talon_noises: bool = True,
+        speech_capture: bool = True
+    ):
+        """
+        Enable dynamic actions - Do this before setting dynamic actions
 
-    def dynamic_action_set(
+        - `talon_noises`: when "pop" or "hiss" is referenced,
+        it uses Talon's `noise.register`. Set this to `False` if
+        you want to manually trigger "pop" or "hiss" using parrot
+        noises to trigger `dynamic_actions_trigger("pop")` for example.
+
+        - `speech_capture`: Allows you to set dynamic actions
+        by saying "{noise name} {any phrase}"
+        """
+        dynamic_actions_enable(talon_noises, speech_capture)
+
+    def dynamic_actions_disable():
+        """
+        Unregister dynamic actions and restore Talon's default
+        noises if applicable.
+        """
+        dynamic_actions_disable()
+
+    def dynamic_actions_set(
         name: str,
         action_name: str,
         action: callable,
@@ -243,20 +325,22 @@ class Actions:
         debounce_ms: int = None,
         debounce_stop_ms: int = None,
         throttle_ms: int = None,
-        once: bool = False
+        default: bool = False,
+        phrase: str = None,
+        alias: str = None
     ):
         """
         Update a dynamic action with a new action
         Example:
         ```py
-        actions.user.dynamic_action_set(
+        actions.user.dynamic_actions_set(
             "pop",
             "jump",
             lambda: actions.key("space"),
         )
         ```
         ```py
-        actions.user.dynamic_action_set(
+        actions.user.dynamic_actions_set(
             "hiss",
             "jump",
             lambda: actions.key("space:down"),
@@ -264,146 +348,39 @@ class Actions:
         )
         ```
         """
-        cb = DynamicActionCallback(
-            name=action_name,
-            action=action,
-            action_stop=action_stop,
-            debounce=debounce_ms,
-            debounce_stop=debounce_stop_ms,
-            throttle=throttle_ms,
-            once=once
-        )
-        dynamic_action_set(name, cb)
+        dynamic_actions_set(name, action_name, action, action_stop, debounce_ms, debounce_stop_ms, throttle_ms, default, phrase, alias)
 
-    def dynamic_action_set_phrase(
-        name: str,
-        phrase: str,
-        once: bool = False
-    ):
-        """
-        Update a dynamic action using a phrase to mimic
-        Example:
-        ```py
-        actions.user.dynamic_action_set_phrase(
-            "pop",
-            "again"
-        )
-        ```
-        """
-        cb = DynamicActionCallback(
-            name=phrase,
-            action=lambda: actions.mimic(phrase),
-            action_stop=lambda: None
-        )
-        dynamic_action_set(name, cb)
-
-    def register_dynamic_actions():
-        """
-        Starts listening for phrases of the dynamic action name
-        and will bind the phrase to the action when spoken. Should
-        be used for generic commands or parrot noises.
-
-        Use `noise_register_dynamic_action_pop` and `noise_register_dynamic_action_hiss`
-        instead for talon noise registration.
-        """
-        start_speech_capture()
-
-    def unregister_dynamic_actions():
-        """
-        Stops listening for phrases of the dynamic action name.
-        Should be used for generic commands or parrot noises.
-
-        Use `noise_unregister_dynamic_actions` instead for talon noise registration.
-        """
-        stop_speech_capture()
-
-    def noise_register_dynamic_action_pop(
+    def dynamic_actions_set_hiss(
         action_name: str,
         action: callable,
-        once: bool = False,
-        alias: str = None
-    ):
-        """
-        Noise register dynamic pop using Talon's noise.register.
-        Sets context to disable Talon's default noise callback.
-        """
-        global _talon_noise_pop_init
-        dynamic_action_init(
-            "pop",
-            action_name,
-            action,
-            once=once,
-            alias=alias
-        )
-        if not _talon_noise_pop_init:
-            noise.register("pop", noise_pop)
-            _talon_noise_pop_init = True
-            start_speech_capture()
-        ctx.tags = ["user.dynamic_actions_talon_noise_override"]
-
-    def noise_register_dynamic_action_hiss(
-        action_name: str,
-        action: callable = lambda: None,
         action_stop: callable = lambda: None,
         debounce_ms: int = None,
         debounce_stop_ms: int = None,
         throttle_ms: int = None,
-        once: bool = False,
+        default: bool = False,
+        phrase: str = None,
         alias: str = None
     ):
-        """
-        Noise register dynamic hiss using Talon's noise.register.
-        Sets context to disable Talon's default noise callback.
-        """
-        global _talon_noise_hiss_init
-        dynamic_action_init(
-            "hiss",
-            action_name,
-            action,
-            action_stop,
-            debounce_ms,
-            debounce_stop_ms,
-            throttle_ms,
-            once,
-            alias
-        )
-        if not _talon_noise_hiss_init:
-            noise.register("hiss", noise_hiss)
-            _talon_noise_hiss_init = True
-            start_speech_capture()
-        ctx.tags = ["user.dynamic_actions_talon_noise_override"]
+        """Set hiss dynamic action"""
+        dynamic_actions_set("hiss", action_name, action, action_stop, debounce_ms, debounce_stop_ms, throttle_ms, default, phrase, alias)
 
-    def noise_unregister_dynamic_actions():
-        """
-        Unregister Talon noise dynamic actions for pop and hiss.
-        Restore Talon's default noise callbacks.
-        """
-        global _talon_noise_pop_init, _talon_noise_hiss_init
-        noise.unregister("pop", noise_pop)
-        noise.unregister("hiss", noise_hiss)
-        ctx.tags = []
-        _talon_noise_pop_init = False
-        _talon_noise_hiss_init = False
-        dynamic_action_remove("pop")
-        dynamic_action_remove("hiss")
-        if not _dynamic_actions:
-            stop_speech_capture()
+    def dynamic_actions_set_pop(
+        action_name: str,
+        action: callable,
+        action_stop: callable = lambda: None,
+        debounce_ms: int = None,
+        debounce_stop_ms: int = None,
+        throttle_ms: int = None,
+        default: bool = False,
+        phrase: str = None,
+        alias: str = None
+    ):
+        """Set pop dynamic action"""
+        dynamic_actions_set("pop", action_name, action, action_stop, debounce_ms, debounce_stop_ms, throttle_ms, default, phrase, alias)
 
-    def dynamic_noises_toggle():
-        """
-        Toggle dynamic talon noises on or off. Used if you don't care about
-        setting default actions and just want to toggle them on or off.
-        """
-        if _talon_noise_pop_init or _talon_noise_hiss_init:
-            actions.user.noise_unregister_dynamic_actions()
-            print("Dynamic noises disabled")
-        else:
-            actions.user.noise_register_dynamic_action_pop(
-                "click",
-                test
-            )
-            actions.user.noise_register_dynamic_action_hiss("none", alias="wish")
-            print("Dynamic noises enabled")
+    def dynamic_actions_trigger(name: str):
+        """Execute a dynamic action e.g. `actions.user.dynamic_actions_trigger("pop")`"""
+        dynamic_actions_trigger(name)
 
     def dynamic_actions_event_register(on_event: callable):
         """

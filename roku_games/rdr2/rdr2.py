@@ -1,4 +1,4 @@
-from talon import Module, Context, actions, core
+from talon import Module, Context, actions
 from .rdr2_ui import show_ui, hide_ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
@@ -11,7 +11,7 @@ ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 def set_noises(mode):
     noises = dynamic_noises[mode]
     for noise, (action_name, action) in noises.items():
-        actions.user.dynamic_action_set(noise, action_name, action)
+        actions.user.dynamic_actions_set(noise, action_name, action)
 
 def wheel_stop(click = False):
     if click:
@@ -43,7 +43,7 @@ dynamic_noises = {
     },
     "repeater": {
         "hiss": ("stop", stop),
-        "pop": ("repeat", core.repeat_phrase),
+        "pop": ("repeat", actions.core.repeat_phrase),
     }
 }
 
@@ -64,11 +64,12 @@ def stop_all():
     actions.user.game_xbox_stopper()
 
 def register_dynamic_noises():
-    actions.user.noise_register_dynamic_action_pop(
+    actions.user.dynamic_actions_enable()
+    actions.user.dynamic_actions_set_pop(
         action_name = "A",
         action = lambda: actions.user.game_xbox_button_press('a')
     )
-    actions.user.noise_register_dynamic_action_hiss(
+    actions.user.dynamic_actions_set_hiss(
         action_name="stop",
         action = stop_all,
         alias = "wish"
@@ -87,6 +88,6 @@ class Actions:
 
     def on_game_mode_disabled():
         actions.user.game_xbox_gamepad_disable()
-        actions.user.noise_unregister_dynamic_actions()
+        actions.user.dynamic_actions_disable()
         hide_ui()
         print("Game mode disabled")

@@ -35,16 +35,17 @@ pop {user.game_xbox_button}: skip()
 wish {user.game_xbox_button}: skip()
 
 # noise modes
-fighter: user.rdr2_noise_mode("fighter")
+fighter | shooter: user.rdr2_noise_mode("shooter")
 mover | default: user.rdr2_noise_mode("default")
 repeater: user.rdr2_noise_mode("repeater")
+brawler: user.rdr2_noise_mode("brawler")
 
 # actions
 weapon: user.game_xbox_button_press('lb')
 wheel: user.rdr2_wheel()
 jump: user.game_xbox_button_press('x')
 reload | punch: user.game_xbox_button_press('x', 200)
-aim: user.game_xbox_button_hold('lt')
+aim | target: user.game_xbox_button_hold('lt')
 shoot: user.game_xbox_button_hold('rt', 200)
 pick: user.game_xbox_button_hold('lb')
 call: user.game_xbox_button_press('dpad_up')

@@ -1,4 +1,4 @@
-from talon import actions, cron
+from talon import actions
 
 accent_color = "87ceeb"
 live_text_keys_state = ""
@@ -19,25 +19,6 @@ def noises_ui():
             text("", id="hiss_value", color=accent_color)
         ]
     ]
-
-def cam_mode_ui():
-    (div, text) = actions.user.ui_elements(["div", "text"])
-
-    return div(flex_direction="row", gap=16, height=20, align_items="center", justify_content="center", margin_bottom=12)[
-        text("<dir> mode:"),
-        text("cam", font_weight="bold", margin_bottom=3),
-    ]
-
-def live_text_keys_ui():
-    (div, text) = actions.user.ui_elements(["div", "text"])
-
-    return div()[
-        text("", id="live_text_keys", font_size=20, font_weight="bold")
-    ]
-
-def line_separator_ui():
-    (div) = actions.user.ui_elements(["div", "text"])
-    return div(background_color="FFFFFF66", width=120, height=2)
 
 def show_left_hud_ui(on_mount: callable = None):
     (div, screen, text) = actions.user.ui_elements(["div", "screen", "text"])
@@ -109,8 +90,8 @@ def show_commands_ui():
     global ui_commands
     (div, text, screen) = actions.user.ui_elements(["div", "text", "screen"])
 
-    ui_commands = screen(align_items="flex_end", justify_content="center")[
-        div(background_color="00000066", margin=16, margin_right=32, padding=16)[
+    ui_commands = screen(align_items="flex_end", justify_content="flex_start")[
+        div(background_color="00000066", margin=16, margin_right=32, margin_top=32, padding=16)[
             div(flex_direction="row", gap=16)[
                 div(gap=8)[
                     text("camera", font_weight="bold", color=accent_color),
@@ -121,14 +102,24 @@ def show_commands_ui():
                     text("look <dir>"),
                     text("cam 1-5"),
                     text("round"),
-                    text("movement", font_weight="bold", color=accent_color),
+                    text("movement", font_weight="bold", color=accent_color, margin_top=16),
                     text("go"),
                     text("go <dir>"),
                     text("go <dir> <dir>"),
                     text("go 1-5"),
                     text("back"),
-                    text("stop/halt"),
                     text("hiss noise"),
+                    text("Noise modes", font_weight="bold", color=accent_color, margin_top=16),
+                    text("default"),
+                    text("mover"),
+                    text("shooter"),
+                    text("brawler"),
+                    text("repeater"),
+                    text("wheel"),
+                    text("pop <phrase>"),
+                    text("hiss <phrase>"),
+                ],
+                div(gap=8)[
                     text("commands", font_weight="bold", color=accent_color),
                     text("<button>"),
                     text("<button> ee/er"),
@@ -138,25 +129,17 @@ def show_commands_ui():
                     text("long <button>"),
                     text("run"),
                     text("jump"),
-                    text("halt"),
+                    text("halt | stop"),
                     text("reload"),
-                    text("aim"),
+                    text("aim | target"),
                     text("hide"),
                     text("call"),
                     text("wheel"),
-                    text("Noise modes", font_weight="bold", color=accent_color),
-                    text("default"),
-                    text("mover"),
-                    text("fighter"),
-                    text("repeater"),
-                    text("wheel"),
-                    text("pop <phrase>"),
-                    text("hiss <phrase>"),
-                    text("Game", font_weight="bold", color=accent_color),
-                    text("game exit"),
-                ],
+                    text("Game", font_weight="bold", color=accent_color, margin_top=16),
+                    text("game exit")
+                ]
             ]
-        ],
+        ]
     ]
 
     ui_commands.show()

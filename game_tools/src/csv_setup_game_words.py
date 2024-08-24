@@ -5,6 +5,33 @@ import os
 
 mod = Module()
 
+valid_dir_csv_keys = [
+    "dir_left",
+    "dir_right",
+    "dir_up",
+    "dir_down",
+    "dir_forward",
+    "dir_backward"
+]
+
+valid_xbox_csv_keys = [
+    "xbox_button_a",
+    "xbox_button_b",
+    "xbox_button_x",
+    "xbox_button_y",
+    "xbox_button_lb",
+    "xbox_button_rb",
+    "xbox_button_guide",
+    "xbox_button_menu",
+    "xbox_left_trigger",
+    "xbox_right_trigger",
+    "xbox_dpad",
+    "xbox_left_stick",
+    "xbox_right_stick"
+]
+
+valid_csv_keys = ["list_value"] + valid_xbox_csv_keys + valid_dir_csv_keys
+
 def get_words(ctx_game, game_words_csv_path):
     game_dir = {}
     has_xbox_button = False
@@ -24,6 +51,11 @@ def get_words(ctx_game, game_words_csv_path):
             commands_str = row[1] if len(row) > 1 else ''
             if commands_str:
                 commands = [command.strip() for command in commands_str.split('|')]
+
+                if list_value not in valid_csv_keys:
+                        print(f"Invalid key in game_words.csv: {list_value}\n\n")
+                        print(f"Valid keys: {valid_csv_keys}")
+                        continue
 
                 def add_to_list(list, value):
                     for command in commands:
@@ -63,6 +95,8 @@ def get_words(ctx_game, game_words_csv_path):
                     elif value == "backward":
                         value = "down"
                     add_to_list(game_dir, value)
+                elif list_value == "list_value":
+                    continue
                 else:
                     print(f"Unknown prefix while parsing game_words.csv: {list_value}")
 

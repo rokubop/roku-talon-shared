@@ -37,9 +37,13 @@ dynamic_noises = {
         "hiss": ("close", lambda: wheel_stop(click = False)),
         "pop": ("pick and close", lambda: wheel_stop(click = True)),
     },
-    "fighter": {
+    "shooter": {
         "hiss": ("stop", stop),
         "pop": ("RT", lambda: actions.user.game_xbox_button_press('rt')),
+    },
+    "brawler": {
+        "hiss": ("toggle B", lambda: actions.user.game_xbox_button_toggle('b')),
+        "pop": ("A", lambda: actions.user.game_xbox_button_press('a')),
     },
     "repeater": {
         "hiss": ("stop", stop),

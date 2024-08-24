@@ -73,12 +73,12 @@ class Actions:
     def ui_elements_hide(id: str):
         """Hide and destroys a ui_element based on the id assigned to the screen ui_element"""
         global builders_core
-        if id in builders_core:
+        if id in list[builders_core]:
             builders_core[id].hide()
 
     def ui_elements_hide_all():
         """Hide and destroys all currently active ui_elements"""
-        for id in builders_core:
+        for id in list[builders_core]:
             builders_core[id].hide()
 
     def ui_elements_set_text(id: str, value: str):
@@ -103,7 +103,7 @@ class Actions:
         informational purposes. Not for mutation.
         """
         global builders_core
-        if id in builders_core:
+        if id in list[builders_core]:
             return builders_core[id]
         else:
             print(f"UI builder with ID {id} not found.")

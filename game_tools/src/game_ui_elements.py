@@ -91,7 +91,7 @@ def xbox_stick_ui(
             text(label),
             text(gear, id=f"{subject}_gear", color=accent_color),
         ],
-        div(flex_direction="column", background_color="333333dd", border_radius=100, padding=1)[
+        div(id=subject, flex_direction="column", background_color="333333dd", border_radius=100, padding=1)[
             div(flex_direction="row")[
                 blank_key(), key(f"{subject}_up", " "), blank_key()
             ],
@@ -284,6 +284,13 @@ def on_ui_lifecycle(event):
     global ui_elements_register_on_lifecycle_init
     global game_event_register_on_xbox_event_init
     global include_xbox_events, include_key_events
+
+    ids_to_check = ["dpad_up", "left_stick", "right_stick", "left_trigger", "a"]
+    children_ids = event.children_ids
+
+    if not any(id in children_ids for id in ids_to_check):
+        # different UI that we don't care about
+        return
 
     if event.type == "mount":
         if include_xbox_events and not game_event_register_on_xbox_event_init:

@@ -1,12 +1,9 @@
-from talon import Module, Context, actions, ui, cron, settings, ctrl
+from talon import Module, Context, actions, ui, settings, ctrl, app
 from talon.screen import Screen
 from talon.canvas import Canvas
 from talon.skia.canvas import Canvas as SkiaCanvas
-from talon.skia import RoundRect
 from talon.types import Rect, Point2d
-from pathlib import Path
 from itertools import islice
-import re
 
 mod, ctx = Module(), Context()
 mod.mode("drag_mode", "Drag mode. Defaults to LMB drag")
@@ -16,13 +13,6 @@ ctx.matches = r"""
 mode: user.drag_mode
 """
 
-mod.setting(
-    "drag_mode_exclude_chars",
-    type=str,
-    default="",
-    desc="Excluded characters from the drag mode grid e.g. 'ijl'",
-)
-
 canvas_grid = None
 def generate_char_combo():
     ord_a = ord('a')
@@ -30,7 +20,6 @@ def generate_char_combo():
     colors = ["", "g", "r", "b", "p", "y"]
     excluded_chars = settings.get("user.drag_mode_exclude_chars")
     valid_chars = [chr(i) for i in range(ord_a, ord_z + 1) if chr(i) not in excluded_chars]
-    print(valid_chars)
     for color in colors:
         for letter_one in valid_chars:
             for letter_two in valid_chars:
@@ -57,28 +46,30 @@ color_map = {
     "y": "ffff00",
 }
 background_color_drag = "00000099"
-background_color_pan = "0047AB"
-background_color_roll = "DE316399"
+background_color_pan = "0047AB55"
+background_color_roll = "DE316355"
 background_color = background_color_drag
 
-default_box_size = 60
-box_size = default_box_size
+tile_size = 60 # overwritten by settings.get("user.drag_mode_default_tile_size")
 
 def on_grid_update(c: SkiaCanvas):
-    global box_size, grid_pos_map, background_color
+    global tile_size, grid_pos_map, background_color
     screen: Screen = ui.main_screen()
     rect = screen.rect
-    box_size_half = box_size // 2
+    offset = settings.get("user.drag_mode_offset_x_y").split(" ")
+    offset_x = int(offset[0])
+    offset_y = int(offset[1])
+    tile_size_half = tile_size // 2
     c.paint.textsize = 16
-    columns = int(rect.width // box_size)
-    rows = int(rect.height // box_size)
+    columns = int(rect.width // tile_size)
+    rows = int(rect.height // tile_size)
     c.paint.color = "ffffff99"
     char_combo_generator = generate_char_combo()
     for y in range(rows):
         for x in range(columns):
             skip = False
-            x_pos = x * box_size + box_size_half
-            y_pos = y * box_size + box_size_half
+            x_pos = x * tile_size + tile_size_half + offset_x
+            y_pos = y * tile_size + tile_size_half + offset_y
             for region in grid_include_regions:
                 if not region.contains(Point2d(x_pos, y_pos)):
                     skip = True
@@ -96,15 +87,16 @@ def on_grid_update(c: SkiaCanvas):
             draw_center_text(c, text, x_pos, y_pos)
             grid_pos_map[text] = Point2d(x_pos, y_pos)
 
-def drag_mode_show():
-    global canvas_grid
-    drag_mode_hide()
+def drag_mode_tile_grid_show():
+    global canvas_grid, tile_size
+    drag_mode_tile_grid_hide()
     screen: Screen = ui.main_screen()
+    tile_size = settings.get("user.drag_mode_default_tile_size")
     canvas_grid = Canvas.from_screen(screen)
     canvas_grid.register("draw", on_grid_update)
     canvas_grid.freeze()
 
-def drag_mode_hide():
+def drag_mode_tile_grid_hide():
     global canvas_grid, grid_pos_map
     if canvas_grid:
         canvas_grid.unregister("draw", on_grid_update)
@@ -114,18 +106,18 @@ def drag_mode_hide():
         grid_pos_map = {}
 
 def get_pos_for_target(target: str) -> Point2d:
+    global tile_size
     screen: Screen = ui.main_screen()
     rect = screen.rect
-    box_size = 60
-    box_size_half = box_size // 2
-    columns = int(rect.width // box_size)
-    rows = int(rect.height // box_size)
+    tile_size_half = tile_size // 2
+    columns = int(rect.width // tile_size)
+    rows = int(rect.height // tile_size)
     char_combo_generator = generate_char_combo()
     for y in range(rows):
         for x in range(columns):
             text = next(char_combo_generator)
             if text == target:
-                return Point2d(x * box_size + box_size_half, y * box_size + box_size_half)
+                return Point2d(x * tile_size + tile_size_half, y * tile_size + tile_size_half)
     return Point2d(0, 0)
 
 @mod.capture(rule="<user.letter> <user.letter>")
@@ -150,6 +142,31 @@ def next_target(target: str, drag: bool=False):
     return lambda: next_pos(target, drag)
 
 builder = None
+drag_mode_enabled = False
+
+def drag_mode_enable():
+    global drag_mode_enabled
+    drag_mode_tile_grid_show()
+    if not drag_mode_enabled:
+        drag_mode_enabled = True
+        actions.user.drag_mode_show_commands()
+        actions.mode.enable("user.drag_mode")
+        if settings.get("user.drag_mode_dynamic_actions_enabled"):
+            actions.user.dynamic_actions_enable()
+            actions.user.dynamic_actions_set_hiss("stop", actions.user.mouse_move_continuous_stop)
+
+def drag_mode_disable():
+    global drag_mode_enabled
+    drag_mode_tile_grid_hide()
+    if drag_mode_enabled:
+        drag_mode_enabled = False
+        dynamic_actions_enabled = settings.get("user.drag_mode_dynamic_actions_enabled")
+        disable_dynamic_actions = settings.get("user.drag_mode_disable_dynamic_actions_on_grid_hide")
+        if dynamic_actions_enabled and disable_dynamic_actions:
+            actions.user.dynamic_actions_disable()
+        actions.user.mouse_move_continuous_stop()
+        actions.user.drag_mode_hide_commands()
+        actions.mode.disable("user.drag_mode")
 
 @mod.action_class
 class Actions:
@@ -157,35 +174,26 @@ class Actions:
         """Show the grid"""
         global background_color
         background_color = background_color_drag
-        drag_mode_show()
-        actions.user.drag_mode_show_commands()
-        actions.mode.enable("user.drag_mode")
+        drag_mode_enable()
         ctx.tags = []
 
     def pan_mode_show():
         """Show the grid"""
         global background_color
         background_color = background_color_pan
-        drag_mode_show()
-        actions.user.drag_mode_show_commands()
-        actions.mode.enable("user.drag_mode")
+        drag_mode_enable()
         ctx.tags = ["user.pan_mode"]
 
     def roll_mode_show():
         """Show the grid"""
         global background_color
         background_color = background_color_roll
-        drag_mode_show()
-        actions.user.drag_mode_show_commands()
-        actions.mode.enable("user.drag_mode")
+        drag_mode_enable()
         ctx.tags = ["user.roll_mode"]
 
     def drag_mode_hide():
         """Hide the grid"""
-        drag_mode_hide()
-        actions.user.mouse_move_continuous_stop()
-        actions.user.drag_mode_hide_commands()
-        actions.mode.disable("user.drag_mode")
+        drag_mode_disable()
 
     def drag_mode_move_mouse(target: str):
         """Move the mouse to the grid position"""
@@ -193,7 +201,7 @@ class Actions:
         actions.mouse_move(pos.x, pos.y)
         actions.user.mouse_move_continuous_stop()
 
-    def cursorless_move_mouse_to_target(target: str):
+    def drag_mode_move_mouse_to_target(target: str):
         """Move the mouse to the grid position"""
         pos = grid_pos_map[target]
         actions.user.mouse_move_to(pos.x, pos.y)
@@ -205,15 +213,15 @@ class Actions:
 
     def drag_mode_more_squares():
         """Increase the number of squares"""
-        global box_size
-        box_size += 20
+        global tile_size
+        tile_size += settings.get("user.drag_mode_tile_increment_size")
         if canvas_grid:
             canvas_grid.freeze()
 
     def drag_mode_less_squares():
         """Decrease the number of squares"""
-        global box_size
-        box_size -= 20
+        global tile_size
+        tile_size -= settings.get("user.drag_mode_tile_increment_size")
         if canvas_grid:
             canvas_grid.freeze()
 
@@ -330,8 +338,8 @@ class Actions:
 
     def drag_mode_reset():
         """Reset the grid"""
-        global grid_exclude_regions, grid_include_regions, box_size, default_box_size
-        box_size = default_box_size
+        global grid_exclude_regions, grid_include_regions, tile_size
+        tile_size = settings.get("user.drag_mode_default_tile_size")
         grid_exclude_regions = []
         grid_include_regions = []
         actions.user.mouse_move_continuous_stop()
@@ -346,49 +354,52 @@ class Actions:
         """Show the grid commands"""
         global builder
 
-        (css, screen, div, text) = actions.user.ui_elements(["css", "screen", "div", "text"])
+        (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
 
-        bar_css = css(
-            background_color="222222",
-            margin_bottom=48,
-            padding=16,
-            flex_direction="column",
-            justify_content="center",
-            align_items="center",
-            border_width=1,
-            border_color="666666",
-            border_radius=4)
+        container_css = {
+            "background_color": "222222",
+            "margin_right": 32,
+            "padding": 16,
+            "flex_direction": "column",
+            "justify_content": "center",
+            "align_items": "center",
+            "border_width": 1,
+            "border_color": "666666",
+            "border_radius": 4,
+        }
 
-        builder = screen(justify_content="flex_end", align_items="center")[
-            div(bar_css)[
-                div(flex_direction="row", gap=12, align_items="center")[
-                    text("Mode:"),
-                    text("Drag Mode", color="87CEEB", font_weight="bold"),
-                    text("|", color="666666"),
-                    text("X to Y (LMB)"),
-                    text("|", color="666666"),
-                    text("Drag X to Y (LMB)"),
-                    text("|", color="666666"),
-                    text("Pan X to Y (MMB)"),
-                    text("|", color="666666"),
-                    text("Roll X to Y (RMB)"),
-                    text("|", color="666666"),
-                    # text("<T> = Target")
-                    # text("fly <dir>")
-                    # text("|", color="666666")
-                    # text("fly to <T>")
-                    # text("|", color="666666")
-                    # text("fly stop")
-                    # text("|", color="666666")
-                    # text("tick [<dir>]")
-                    # text("|", color="666666")
-                    # text("<T> to <T>")
-                    # text("|", color="666666")
-                    # text("<T> <dir>")print('color', color)
-                    text("|", color="666666"),
-                    text("(more | less) squares"),
-                    text("|", color="666666"),
-                    text("grid hide", color="DD2222", font_weight="bold")
+        builder = screen(justify_content="center", align_items="flex_end")[
+            div(container_css)[
+                div(flex_direction="column", gap=12)[
+                    text("Mode:", color="87CEEB", font_weight="bold"),
+                    text("drag mode - LMB"),
+                    text("roll mode - RMB"),
+                    text("pan mode - MMB"),
+                    text("Commands:", color="87CEEB", font_weight="bold", margin_top=12),
+                    text("<T>"),
+                    text("<T> to <T>"),
+                    text("go <T>"),
+                    text("fly <T>"),
+                    text("fly <dir>"),
+                    text("fly stop"),
+                    text("<T> <dir>"),
+                    text("halt / stop"),
+                    text("bring <T>"),
+                    text("bring this to <T>"),
+                    text("center <T>"),
+                    text("tick <dir>"),
+                    text("gear up"),
+                    text("gear down"),
+                    text("Noises:", color="87CEEB", font_weight="bold", margin_top=12),
+                    text("hiss: stop"),
+                    text("Layout:", color="87CEEB", font_weight="bold", margin_top=12),
+                    text("more squares"),
+                    text("less squares"),
+                    text("clear <T> past <T>"),
+                    text("clear line <T>"),
+                    text("take <T> past <T>"),
+                    text("grid reset"),
+                    text("grid hide", color="F33A6A", font_weight="bold", margin_top=12),
                 ]
             ]
         ]

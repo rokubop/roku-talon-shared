@@ -24,5 +24,7 @@ settings():
     # exclude chars that have "hiss" sounds so that
     # we can use hiss sound freely.
     user.drag_mode_exclude_chars = "giosvxz"
+    user.drag_mode_default_tile_size = 80
+    user.drag_mode_disable_dynamic_actions_on_grid_hide = false
 
 ^game [mode]$:                user.game_mode_enable()

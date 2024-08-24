@@ -956,6 +956,7 @@ class UIBuilder(UIBox):
         """Hide and destroy the UI builder."""
         global ids, state, buttons, inputs
 
+        event_fire_on_unmount(self.id)
         if self.static_canvas:
             self.static_canvas.unregister("draw", self.on_draw_static)
             self.static_canvas.hide()
@@ -984,7 +985,6 @@ class UIBuilder(UIBox):
         for id in inputs:
             inputs[id].hide()
         inputs = {}
-        event_fire_on_unmount()
 
         # state["text"] = {}
         # ids = {}

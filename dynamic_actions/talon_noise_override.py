@@ -6,6 +6,7 @@ Skip actions that are normally enabled in your repo
 """
 
 from talon import Module, Context, actions
+from .dynamic_actions import dynamic_actions_state
 
 mod = Module()
 mod.tag("dynamic_actions_talon_noise_override", desc="Tag for enabling dynamic noises")
@@ -14,14 +15,24 @@ ctx_dynamic_actions_talon_noises.matches = "tag: user.dynamic_actions_talon_nois
 
 @ctx_dynamic_actions_talon_noises.action_class("user")
 class Actions:
-    # Skip talon noise actions that are normally enabled in your repo
-
-    # remove this def if you don't have an on_pop in your repo
+    # When this ctx is active, it will skip talon noise actions
+    # that are normally enabled in your repo. Add functions here
+    # that are normally active for you. Remove functions here if
+    # you don't have them in your repo.
     def on_pop():
-        actions.skip()
+        if dynamic_actions_state.get("pop"):
+            actions.skip()
+        else:
+            actions.next()
 
     def noise_trigger_pop():
-        actions.skip()
+        if dynamic_actions_state.get("pop"):
+            actions.skip()
+        else:
+            actions.next()
 
     def noise_trigger_hiss(active: bool):
-        actions.skip()
+        if dynamic_actions_state.get("hiss"):
+            actions.skip()
+        else:
+            actions.next(active)

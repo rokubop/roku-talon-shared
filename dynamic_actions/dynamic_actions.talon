@@ -1,1 +1,1 @@
-dynamic (actions | noises): user.dynamic_noises_toggle()
+dynamic actions: user.dynamic_actions_tester_toggle()

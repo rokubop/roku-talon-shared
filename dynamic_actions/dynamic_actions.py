@@ -1,6 +1,11 @@
 from talon import Module, Context, actions, noise, speech_system, ctrl
 from dataclasses import dataclass
 from typing import Optional, TypedDict, Union, Literal
+from .dynamic_actions_ui import (
+    dynamic_actions_ui_element,
+    show_tester_ui,
+    hide_tester_ui
+)
 
 mod = Module()
 ctx = Context()
@@ -119,11 +124,15 @@ def dynamic_actions_set_class(
 ):
     """Set a dynamic action"""
     global dynamic_actions_state
+    print(f"dynamic_actions_state: {dynamic_actions_state}")
     if name not in dynamic_actions_state:
+        print(f"Setting dynamic action {name}")
         dynamic_actions_state[name] = DynamicAction(name, alias=alias)
     if default:
+        print(f"Setting default dynamic action {name}")
         dynamic_actions_state[name].set_default(dynamic_action_callback)
     else:
+        print(f"Setting dynamic action {name}")
         dynamic_actions_state[name].set(dynamic_action_callback)
 
 def dynamic_actions_trigger(name: str):
@@ -179,10 +188,6 @@ def stop_speech_capture():
     if _speech_capture_enabled:
         speech_system.unregister("pre:phrase", on_phrase)
         _speech_capture_enabled = False
-
-def test():
-    print("test")
-    ctrl.mouse_click(button=0, hold=16000)
 
 def dynamic_actions_event_register(on_event: callable):
     event_subscribers.append(on_event)
@@ -288,7 +293,8 @@ def dynamic_actions_disable():
 
     ctx.tags = []
     _dynamic_actions_enabled = False
-    dynamic_actions_state = {}
+    print("setting dynamic actions to empty")
+    dynamic_actions_state.clear()
     stop_speech_capture()
 
 @mod.action_class
@@ -407,3 +413,23 @@ class Actions:
         """
         global event_subscribers
         event_subscribers = []
+
+    def dynamic_actions_tester_toggle():
+        """
+        Toggle
+        """
+        global _dynamic_actions_enabled, _use_talon_noises, _use_speech_capture
+        if _dynamic_actions_enabled:
+            print("Disabling dynamic actions")
+            dynamic_actions_disable()
+            hide_tester_ui()
+        else:
+            print("Enabling dynamic actions")
+            dynamic_actions_enable()
+            show_tester_ui()
+
+    def dynamic_actions_ui_element():
+        """
+        Show dynamic actions UI
+        """
+        return dynamic_actions_ui_element()

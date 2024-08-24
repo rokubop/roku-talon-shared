@@ -952,7 +952,7 @@ class UIBuilder(UIBox):
         pending_unhighlight = lambda: self.unhighlight(id)
         self.unhighlight_jobs[id] = (cron.after(f"{duration}ms", pending_unhighlight), pending_unhighlight)
 
-    def hide(self):
+    def hide(self, destroy=True):
         """Hide and destroy the UI builder."""
         global ids, state, buttons, inputs
 
@@ -980,14 +980,21 @@ class UIBuilder(UIBox):
                     canvas.close()
                 self.blockable_canvases = []
 
-        buttons = {}
+        buttons.clear()
 
         for id in inputs:
             inputs[id].hide()
-        inputs = {}
+        inputs.clear()
 
-        # state["text"] = {}
-        # ids = {}
+        if destroy:
+            remove_ids = [id for id in ids if ids[id]["builder_id"] == self.id]
+
+            for id in remove_ids:
+                state["highlighted"].pop(id, None)
+                state["text"].pop(id, None)
+                ids.pop(id, None)
+
+            builders_core.pop(self.id, None)
 
 @dataclass
 class UIProps:

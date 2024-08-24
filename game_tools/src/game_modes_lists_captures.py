@@ -1,6 +1,4 @@
-from talon import actions, Module, Context, cron, settings, app
-from typing import Union
-from .game_events import event_on_xbox, event_on_game_mode, EVENT_GAME_MODE_ENABLED
+from talon import Module, Context
 
 mod = Module()
 ctx = Context()

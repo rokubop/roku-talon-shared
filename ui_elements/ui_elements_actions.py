@@ -51,7 +51,7 @@ class Actions:
         ```
         """
         element_mapping: Dict[str, callable] = {
-            'css': css,
+            'css': css, # deprecated, just use a dict
             'div': div,
             'text': text,
             'screen': screen,
@@ -61,6 +61,14 @@ class Actions:
             'text_input': input_text
         }
         return tuple(element_mapping[element] for element in elements)
+
+    def ui_elements_screen():
+        """
+        Only the screen ui element. Has .show() method.
+        Give it an id if you want to specifically hide it
+        later with actions.user.ui_elements_hide(id)
+        """
+        return screen
 
     def ui_elements_hide(id: str):
         """Hide and destroys a ui_element based on the id assigned to the screen ui_element"""

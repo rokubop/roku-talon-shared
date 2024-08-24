@@ -5,9 +5,6 @@ from talon.canvas import Canvas
 from talon.skia.canvas import Canvas as SkiaCanvas
 from talon.skia import RoundRect
 from talon.types import Rect, Point2d
-from pathlib import Path
-from itertools import islice
-import re
 
 mod = Module()
 

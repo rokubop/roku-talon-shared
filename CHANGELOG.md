@@ -8,6 +8,7 @@
 - Added `roku_games/rdr2` for Red Dead Redemption 2 using virtual xbox gamepad. Works with free version of Talon.
 - Added `actions.user.ui_elements_hide_all`
 - Added `actions.user.game_ui_elements_`
+- Added better UI for drag mode and "hiss" stop support
 
 ### Breaking Changes
 - Rename `actions.user.rt_mouse_move_delta` to `actions.user.mouse_move_delta_smooth`

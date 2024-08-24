@@ -4,47 +4,30 @@ This is an experimental repository. WIP.
 
 Dynamic actions allow you to update noises like "pop" or "hiss" on the fly, programatically or to any spoken phrase e.g. saying "pop scroll down" to bind "scroll down" to noise "pop". Keeps a history of recent actions and allows you to swap between them. Can be used with commands, noises, or parrot.
 
-## Try it out
-- Say "dynamic actions" to try it out with default talon noises.
-- Say "pop again" to bind "again" to "pop". Now you have a repeater for "pop"
-- Say "touch pop" to both execute touch and bind it at the same time.
+## Actions
+| Action | Description |
+| --- | --- |
+| dynamic_actions_enable | Enable dynamic actions. Replaces talon noises with dynamic actions. Starts listening to speech for setting actions on the fly. |
+| dynamic_actions_disable | Disable dynamic actions. Restores talon noises if applicable. |
+| dynamic_actions_set | Set a named action like "pop" or "hiss" or "shush" to any function. "pop" and "hiss" will automatically use talon noises. |
+| dynamic_actions_set_hiss | Set a dynamic action to "hiss". |
+| dynamic_actions_set_pop | Set a dynamic action to "pop". |
+| dynamic_actions_trigger | Trigger a dynamic action manually. For example if you're using parrot instead of talon noises. |
+| dynamic_actions_event_register | If you want to listen to state changes, you can register a listener for dynamic action changes. |
+| dynamic_actions_event_unregister | Unregister an event for a dynamic action. |
+| dynamic_actions_event_unregister_all | Unregister all events for a dynamic action. |
 
-### hiss noise
-The word "hiss" will inadvertently trigger the "hiss" noise, so we use the alias "wish".
-- Say "wish scroll up" to bind "scroll up" to "hiss" (wish).
-
-## Programmatic setup
+## Usage
 ```python
-# .enable
-actions.user.dynamic_actions_talon_noise_replace_enable()
-actions.user.dynamic_actions_phrase_assignment_enable()
-# actions.user.dynamic_actions_enable({
-#     replace_talon_noises: true,
-#     register_phrase_assignment: true,
-# })
-actions.user.dynamic_action_set_default([{
-    name: "pop",
-    action: lambda: print("pop"),
-    action_name: "click",
-}, {
-    name: "hiss",
-    action: lambda: print("hiss"),
-    action_name: "scroll down", # optional
-    throttle: int, # optional
-    debounce: int, # optional
-    once: bool # optional
-}, {
-    name: "hiss_stop",
-    action: lambda: print("hiss_stop"),
-}])
+actions.user.dynamic_actions_enable()
+actions.user.dynamic_action_set_pop("repeater", actions.core.repeat_phrase)
 
-# disable
-actions.user.dynamic_actions_talon_noise_replace_disable()
-actions.user.dynamic_actions_phrase_assignment_disable()
+# disable - restores original talon noise
+actions.user.dynamic_actions_disable()
 ```
 
 
-## Update with spoken phrase
+## Update with spoken phrase (WIP)
 - Saying "pop" at the beginning of any phrase will assign that phrase to the "pop" noise, and will not be executed
 - Saying "pop" at the end of any phrase will execute the action and be assigned to the "pop" noise
 
@@ -55,47 +38,15 @@ actions.user.dynamic_actions_phrase_assignment_disable()
 | "go down 3 pop" | "go down 3" will execute and be assigned to "pop" noise |
 | "jump hiss" | "jump" will execute and be assigned to "hiss" noise |
 
-## Update programatically
+## Set to phrase programmatically (WIP)
 ```python
-# simple
-actions.user.dynamic_actions_set("pop", lambda: print("pop"))
-
-# advanced
-actions.user.dynamic_actions_set({
-    name: "pop",
-    action: lambda: print("pop"),
-    action_name: "go down", # optional
-    throttle: int, # optional
-    debounce: int, # optional
-    once: bool # optional
-})
+actions.user.dynamic_actions_set("pop", phrase="go down")
 ```
 
 ## Monitor changes
 ```python
-@ctx.action_class
-class Actions:
-    def on_dynamic_action_change(state: dict):
-        print(f"Dynamic action {state.name} set to {state.action_name}")
+def on_change(event):
+    print(event)
+
+actions.user.dynamic_actions_event_register(on_change)
 ```
-
-## Actions
-| Function | Description |
-| --- | --- |
-| `dynamic_actions_set(name: str, callable: Callable)` | Set a dynamic action to a callable (Simple) |
-| `dynamic_actions_set(dict)` | Set a dynamic action to a callable (Advanced) |
-| `dynamic_action_set_once(name: str, callable: Callable)` | Set a dynamic action to a callable, but only once |
-| `dynamic_actions_set_phrase(name: str, phrase: str)` | Set a dynamic action to a phrase |
-| `dynamic_action_reset(name: str)` | Reset a dynamic action to the default |
-| `dynamic_action_unset_current(name: str)` | Unset the current dynamic action |
-| `dynamic_action_swap_recent(name: str)` | Swap the current dynamic action with the most recent one |
-
-```python
-dynamic_actions_set("pop", callable)
-dynamic_action_set_once("pop", callable)
-dynamic_actions_set_phrase("pop", "go down")
-dynamic_action_reset("pop")
-dynamic_action_unset_current("pop")
-dynamic_action_swap_recent("pop")
-
-# my command: dynamic_actions_trigger("pop")

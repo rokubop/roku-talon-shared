@@ -1,5 +1,4 @@
 from talon import Module, actions
-import time
 
 accent_color = "87ceeb"
 

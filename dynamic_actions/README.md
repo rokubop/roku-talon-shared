@@ -2,20 +2,24 @@
 
 This is an experimental repository. WIP.
 
-Dynamic actions allow you to update noises like "pop" or "hiss" on the fly, programatically or to any spoken phrase e.g. saying "pop scroll down" to bind "scroll down" to noise "pop". Keeps a history of recent actions and allows you to swap between them. Can be used with commands, noises, or parrot.
+Dynamic actions allow you to update noises like "pop" or "hiss" on the fly, programatically or to any spoken phrase e.g. saying "pop scroll down" to bind "scroll down" to noise "pop".
+
+## Try it
+Say "dynamic actions" to try it out. A UI will show you your current phrase binding.
 
 ## Actions
 | Action | Description |
 | --- | --- |
-| dynamic_actions_enable | Enable dynamic actions. Replaces talon noises with dynamic actions. Starts listening to speech for setting actions on the fly. |
-| dynamic_actions_disable | Disable dynamic actions. Restores talon noises if applicable. |
-| dynamic_actions_set | Set a named action like "pop" or "hiss" or "shush" to any function. "pop" and "hiss" will automatically use talon noises. |
-| dynamic_actions_set_hiss | Set a dynamic action to "hiss". |
-| dynamic_actions_set_pop | Set a dynamic action to "pop". |
-| dynamic_actions_trigger | Trigger a dynamic action manually. For example if you're using parrot instead of talon noises. |
-| dynamic_actions_event_register | If you want to listen to state changes, you can register a listener for dynamic action changes. |
-| dynamic_actions_event_unregister | Unregister an event for a dynamic action. |
-| dynamic_actions_event_unregister_all | Unregister all events for a dynamic action. |
+| `dynamic_actions_enable` | Enable dynamic actions. Replaces talon noises with dynamic actions. `dynamic_actions_set` will now work, and phrases such as "pop go down" or "hiss again" will bind it. |
+| `dynamic_actions_disable` | Disable dynamic actions. Restores talon noises if applicable.  Stops listening to phrase binding. |
+| `dynamic_actions_set` | Primary action for assigning a dynamic action. The words "pop" and "hiss" will automatically use talon noises unless specified otherwise in `dynamic_actions_enable`. |
+| `dynamic_actions_set_hiss` | Convenience wrapper around `dynamic_actions_set`. Set a dynamic action to "hiss". |
+| `dynamic_actions_set_pop` | Convenience wrapper around `dynamic_actions_set`. Set a dynamic action to "pop". |
+| `dynamic_actions_trigger` | Trigger a dynamic action manually. For example if you're using parrot instead of talon noises. |
+| `dynamic_actions_event_register` | If you want to listen to state changes, you can register a listener for dynamic action changes. |
+| `dynamic_actions_event_unregister` | Unregister an event for a dynamic action. |
+| `dynamic_actions_event_unregister_all` | Unregister all events for a dynamic action. |
+| `dynamic_actions_ui_element` | A UI built from `ui_elements` showing pop and hiss you can place inside of other `ui_elements` to show the current dynamic action. |
 
 ## Usage
 ```python

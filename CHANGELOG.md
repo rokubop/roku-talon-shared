@@ -1,5 +1,11 @@
 # Changelog
 
+## Sun Aug 25, 2024
+- Fixed `ui_elements` not highlighting
+- Fixed `text_input` not returning correct value
+- Show red errors for bad noise bindings for `dynamic_actions`
+- Add `ui_elements` components specific to game and noises. `game_ui_elements_` and `dynamic_actions_ui_element`
+
 ## Fri Aug 23, 2024
 ### New Features
 - Added `dynamic_actions` experimental folder for dynamic "pop" and "hiss"

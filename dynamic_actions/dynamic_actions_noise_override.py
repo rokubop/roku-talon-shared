@@ -6,7 +6,13 @@ Skip actions that are normally enabled in your repo
 """
 
 from talon import Module, Context, actions
-from .dynamic_actions import dynamic_actions_state, dynamic_actions_event_trigger, DynamicActionEvent, EVENT_TYPE_ACTION, EVENT_TYPE_ACTION_STOP
+from .dynamic_actions import (
+    dynamic_actions_state,
+    dynamic_actions_event_trigger,
+    DynamicActionEvent,
+    EVENT_TYPE_ACTION,
+    EVENT_TYPE_ACTION_STOP
+)
 
 mod = Module()
 mod.tag("dynamic_actions_talon_noise_override", desc="Tag for enabling dynamic noises")
@@ -21,7 +27,7 @@ class Actions:
     # you don't have them in your repo.
     def on_pop():
         if dynamic_actions_state.get("pop"):
-            # Old community version used this function mar 2023
+            # Old community version used this 2023
             actions.skip()
         else:
             dynamic_actions_event_trigger(DynamicActionEvent(EVENT_TYPE_ACTION, "pop", "default"))

@@ -1,6 +1,6 @@
-from talon import Module, Context, actions, noise, speech_system, ctrl, engines, cron
+from talon import Module, Context, actions, noise, speech_system
 from dataclasses import dataclass
-from typing import Optional, TypedDict, Union, Literal
+from typing import Optional, Literal
 from .dynamic_actions_ui import (
     dynamic_actions_ui_element,
     show_tester_ui,
@@ -22,12 +22,11 @@ _talon_noises = ["pop", "hiss"]
 EVENT_TYPE_CHANGE = "change"
 EVENT_TYPE_ACTION = "action"
 EVENT_TYPE_ACTION_STOP = "action_stop"
-EVENT_TYPE_ACTION_ERROR = "action_error"
 change_event_history = []
 
 @dataclass
 class DynamicActionEvent:
-    type: Literal["change", "action", "action_stop", "action_error"]
+    type: Literal["change", "action", "action_stop"]
     name: str
     action_name: str
     error: bool = False
@@ -125,7 +124,6 @@ class ChangeEventHistory:
     timestamp: float
 
 dynamic_actions_state: dict[str, DynamicAction] = {}
-_dynamic_actions_aliases: dict[str, str] = {}
 
 def separate_base_and_qualifier(name: str):
     if "_" in name:
@@ -209,10 +207,10 @@ def dynamic_actions_event_register(on_event: callable):
 
     if change_event_history:
         for h in change_event_history:
-            # if a change event happened in the last 2 seconds
+            # if a change event happened in the last 5 seconds
             # then it was probably intended to be received,
             # so trigger it for the new subscriber
-            if h.timestamp > time.perf_counter() - 2:
+            if h.timestamp > time.perf_counter() - 5:
                 on_event(h.change_event)
 
 def dynamic_actions_event_unregister(on_event: callable):

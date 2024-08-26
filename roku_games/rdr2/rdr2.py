@@ -67,7 +67,7 @@ def stop_all():
     actions.user.game_stopper()
     actions.user.game_xbox_stopper()
 
-def register_dynamic_noises():
+def dynamic_noises_enable():
     actions.user.dynamic_actions_enable()
     actions.user.dynamic_actions_set_pop(
         action_name = "A",
@@ -79,16 +79,14 @@ def register_dynamic_noises():
         alias = "wish"
     )
 
-def on_mount():
-    register_dynamic_noises()
-
 @ctx_game.action_class("user")
 class Actions:
     def on_game_mode_enabled():
         print("Game mode enabled")
         actions.user.game_csv_game_words_setup(ctx_game, __file__)
         actions.user.game_xbox_gamepad_enable()
-        show_ui(on_mount)
+        dynamic_noises_enable()
+        show_ui()
 
     def on_game_mode_disabled():
         actions.user.game_xbox_gamepad_disable()

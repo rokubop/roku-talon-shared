@@ -6,7 +6,7 @@ pressed_keys = []
 clear_pressed_keys_job = None
 KEY_SIZE = 25
 
-def show_left_hud_ui(on_mount: callable = None):
+def show_left_hud_ui():
     (div, screen, text) = actions.user.ui_elements(["div", "screen", "text"])
 
     css = {
@@ -31,7 +31,7 @@ def show_left_hud_ui(on_mount: callable = None):
 
     ui_hud.show(on_mount)
 
-def show_right_hud_ui(on_mount: callable = None):
+def show_right_hud_ui():
     (div, screen, text) = actions.user.ui_elements(["div", "screen", "text"])
 
     css = {
@@ -70,7 +70,7 @@ def show_right_hud_ui(on_mount: callable = None):
         ]
     ]
 
-    ui_hud.show(on_mount)
+    ui_hud.show()
 
 def show_commands_ui():
     global ui_commands
@@ -130,10 +130,10 @@ def show_commands_ui():
 
     ui_commands.show()
 
-def show_ui(on_mount):
+def show_ui():
     show_commands_ui()
     show_right_hud_ui()
-    show_left_hud_ui(on_mount)
+    show_left_hud_ui()
 
 def hide_ui():
     actions.user.ui_elements_hide_all()

@@ -9,7 +9,6 @@ from itertools import cycle
 from dataclasses import dataclass, fields
 from talon.experimental.textarea import DarkThemeLabels, TextArea
 import uuid
-import time
 
 debug_draw_step_by_step = False
 debug_points = False

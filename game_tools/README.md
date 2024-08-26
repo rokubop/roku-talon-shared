@@ -4,13 +4,8 @@ This is an experimental repository for a full set of game actions and eventually
 
 ## Commands
 
-- (WIP - not for use yet) "game create files" command will automatically create a directory and talon files for you based on the game you currently have focused, at the directory based on `game_tools/user_game_settings`, using template `game_tools/templates/fp/template_roku_14_parrot.py`. I plan to make this more configurable in the future.
-- (WIP - might be broken in latest update) You can say "game calibrate" to start calibrating in-game for your x and y movement commands (third person or first person game). You'll need to copy the values to the respective code in your talon file for that game:
-```
-settings():
-    user.game_calibrate_x_360 = 2300
-    user.game_calibrate_y_90 = 500
-```
+- (WIP - not for use yet) "game create files" command will automatically create a directory and talon files for you based on the game you currently have focused.
+- (WIP - not for use yet) You can say "game calibrate" to start calibrating in-game for your x and y movement commands
 
 ## Actions
 ### Keys
@@ -30,6 +25,17 @@ settings():
 
 
 ### Mouse
+
+You will need these settings to be accurate for angles to work properly.
+
+```
+settings():
+    user.game_calibrate_x_360 = 2300
+    user.game_calibrate_y_90 = 500
+    user.mouse_move_api = "windows"
+    # user.mouse_move_api = "talon"
+```
+
 | **Action**                     | **Action**                     | **Action**                     |
 |--------------------------------|--------------------------------|--------------------------------|
 | game_mouse_click               | game_turn_right_continuous_10  | game_turn_right_continuous_20  |
@@ -77,3 +83,14 @@ settings():
 | game_xbox_stick_set_gear | game_xbox_trigger | game_xbox_right_trigger_release |
 | game_xbox_stick_stop | game_xbox_trigger_hold | game_xbox_right_trigger_set_gear |
 | game_xbox_left_stick_hold_dir | game_xbox_trigger_release | game_xbox_stopper |
+
+### UI Elements
+
+UI components built with `ui_elements` that you can place inside of other `ui_elements`. Automatically recieve state from game actions.
+
+| **Action** | **Action** | **Action** |
+|------------|------------|------------|
+| game_ui_element_arrows_dpad (WIP) | game_ui_element_wasd_dpad (WIP) | game_ui_element_xbox_left_stick |
+| game_ui_element_xbox_right_stick | game_ui_element_xbox_primary_buttons | game_ui_element_xbox_dpad |
+| game_ui_element_xbox_left_trigger | game_ui_element_xbox_right_trigger |  game_ui_element_xbox_left_bumper |
+| game_ui_element_xbox_right_bumper |

@@ -1,4 +1,4 @@
-from talon import Module, Context, actions, noise, speech_system, ctrl
+from talon import Module, Context, actions, noise, speech_system, ctrl, engines, cron
 from dataclasses import dataclass
 from typing import Optional, TypedDict, Union, Literal
 from .dynamic_actions_ui import (
@@ -6,6 +6,7 @@ from .dynamic_actions_ui import (
     show_tester_ui,
     hide_tester_ui
 )
+import time
 
 mod = Module()
 ctx = Context()
@@ -21,12 +22,15 @@ _talon_noises = ["pop", "hiss"]
 EVENT_TYPE_CHANGE = "change"
 EVENT_TYPE_ACTION = "action"
 EVENT_TYPE_ACTION_STOP = "action_stop"
+EVENT_TYPE_ACTION_ERROR = "action_error"
+change_event_history = []
 
 @dataclass
 class DynamicActionEvent:
-    type: Literal["change", "action", "action_stop"]
+    type: Literal["change", "action", "action_stop", "action_error"]
     name: str
     action_name: str
+    error: bool = False
 
 @dataclass
 class DynamicActionCallback:
@@ -85,14 +89,24 @@ class DynamicAction:
 
     def execute(self):
         if self.current and self.current.action:
-            self.current.action()
-            dynamic_actions_event_trigger(
-                DynamicActionEvent(
-                    EVENT_TYPE_ACTION,
-                    self.name,
-                    self.current.name,
+            try:
+                self.current.action()
+                dynamic_actions_event_trigger(
+                    DynamicActionEvent(
+                        EVENT_TYPE_ACTION,
+                        self.name,
+                        self.current.name,
+                    )
                 )
-            )
+            except Exception as e:
+                dynamic_actions_event_trigger(
+                    DynamicActionEvent(
+                        EVENT_TYPE_ACTION,
+                        self.name,
+                        self.current.name,
+                        error=True
+                    )
+                )
 
     def execute_stop(self):
         if self.current and self.current.action_stop:
@@ -104,6 +118,11 @@ class DynamicAction:
                     self.current.name,
                 )
             )
+
+@dataclass
+class ChangeEventHistory:
+    change_event: DynamicActionEvent
+    timestamp: float
 
 dynamic_actions_state: dict[str, DynamicAction] = {}
 _dynamic_actions_aliases: dict[str, str] = {}
@@ -124,15 +143,11 @@ def dynamic_actions_set_class(
 ):
     """Set a dynamic action"""
     global dynamic_actions_state
-    print(f"dynamic_actions_state: {dynamic_actions_state}")
     if name not in dynamic_actions_state:
-        print(f"Setting dynamic action {name}")
         dynamic_actions_state[name] = DynamicAction(name, alias=alias)
     if default:
-        print(f"Setting default dynamic action {name}")
         dynamic_actions_state[name].set_default(dynamic_action_callback)
     else:
-        print(f"Setting dynamic action {name}")
         dynamic_actions_state[name].set(dynamic_action_callback)
 
 def dynamic_actions_trigger(name: str):
@@ -167,15 +182,14 @@ def on_phrase(d):
     if parsed:
         words = parsed._unmapped
         if words and len(words) > 1 and spoken_word_is_dynamic_action(words[0]):
-            dynamic_action_word, words = words[0], words[1:]
+            dynamic_action_name, words = words[0], words[1:]
             action_phrase = " ".join(words)
             cb = DynamicActionCallback(
                 name=action_phrase,
                 action=lambda: actions.mimic(action_phrase),
                 action_stop=lambda: None
             )
-            print(f"setting dynamic action {dynamic_action_word} to {action_phrase}")
-            dynamic_actions_set_class(dynamic_action_word, cb)
+            dynamic_actions_set_class(dynamic_action_name, cb)
 
 def start_speech_capture():
     global _speech_capture_enabled
@@ -190,14 +204,30 @@ def stop_speech_capture():
         _speech_capture_enabled = False
 
 def dynamic_actions_event_register(on_event: callable):
-    event_subscribers.append(on_event)
+    if on_event not in event_subscribers:
+        event_subscribers.append(on_event)
+
+    if change_event_history:
+        for h in change_event_history:
+            # if a change event happened in the last 2 seconds
+            # then it was probably intended to be received,
+            # so trigger it for the new subscriber
+            if h.timestamp > time.perf_counter() - 2:
+                on_event(h.change_event)
 
 def dynamic_actions_event_unregister(on_event: callable):
-    event_subscribers.remove(on_event)
+    if on_event in event_subscribers:
+        event_subscribers.remove(on_event)
 
 def dynamic_actions_event_trigger(event: DynamicActionEvent):
+    global change_event_history
     for subscriber in event_subscribers:
         subscriber(event)
+
+    if event.type == EVENT_TYPE_CHANGE:
+        # what about garbage collection?
+        change_event_history.append(ChangeEventHistory(event, time.perf_counter()))
+        change_event_history = change_event_history[-5:]
 
 def dynamic_actions_set(
     name: str,
@@ -293,7 +323,6 @@ def dynamic_actions_disable():
 
     ctx.tags = []
     _dynamic_actions_enabled = False
-    print("setting dynamic actions to empty")
     dynamic_actions_state.clear()
     stop_speech_capture()
 
@@ -426,6 +455,8 @@ class Actions:
         else:
             print("Enabling dynamic actions")
             dynamic_actions_enable()
+            actions.user.dynamic_actions_set_pop("click", lambda: actions.mouse_click(0))
+            actions.user.dynamic_actions_set_hiss("none", lambda: None)
             show_tester_ui()
 
     def dynamic_actions_ui_element():

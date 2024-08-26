@@ -6,20 +6,6 @@ pressed_keys = []
 clear_pressed_keys_job = None
 KEY_SIZE = 25
 
-def noises_ui():
-    (div, text) = actions.user.ui_elements(["div", "text"])
-
-    return div(flex_direction="column", gap=8)[
-        div(id="pop", flex_direction="row", width=150, padding=8, border_width=1, border_color="FFFFFF33", border_radius=4)[
-            text("pop"),
-            text("", id="pop_value", color=accent_color)
-        ],
-        div(id="hiss", flex_direction="row", width=150, padding=8, border_width=1, border_color="FFFFFF33", border_radius=4)[
-            text("hiss"),
-            text("", id="hiss_value", color=accent_color)
-        ]
-    ]
-
 def show_left_hud_ui(on_mount: callable = None):
     (div, screen, text) = actions.user.ui_elements(["div", "screen", "text"])
 
@@ -78,7 +64,7 @@ def show_right_hud_ui(on_mount: callable = None):
                 ],
                 div()[
                     text("noises", margin_bottom=16),
-                    noises_ui()
+                    actions.user.dynamic_actions_ui_element()
                 ],
             ],
         ]
@@ -144,32 +130,10 @@ def show_commands_ui():
 
     ui_commands.show()
 
-def update_pop(new_action_name):
-    actions.user.ui_elements_set_text("pop", new_action_name)
-
-def update_hiss(new_action_name):
-    actions.user.ui_elements_set_text("hiss", new_action_name)
-
-def on_event(event):
-    if event.type == "change":
-        if event.name == "pop":
-            actions.user.ui_elements_set_text("pop_value", event.action_name)
-        elif event.name == "hiss" or event.name == "wish":
-            actions.user.ui_elements_set_text("hiss_value", event.action_name)
-    elif event.type == "action":
-        if event.name == "pop":
-            actions.user.ui_elements_highlight_briefly("pop")
-        elif event.name == "hiss" or event.name == "wish":
-            actions.user.ui_elements_highlight("hiss")
-    elif event.type == "action_stop" and event.name == "hiss":
-        actions.user.ui_elements_unhighlight("hiss")
-
 def show_ui(on_mount):
     show_commands_ui()
     show_right_hud_ui()
     show_left_hud_ui(on_mount)
-    actions.user.dynamic_actions_event_register(on_event)
 
 def hide_ui():
     actions.user.ui_elements_hide_all()
-    actions.user.dynamic_actions_event_unregister_all()

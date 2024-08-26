@@ -21,8 +21,7 @@ settings():
     user.game_calibrate_x_360 = 6000
     user.game_calibrate_y_90 = 1500
 
-    # exclude chars that have "hiss" sounds so that
-    # we can use hiss sound freely.
+    # exclude chars that have "hiss" sound
     user.drag_mode_exclude_chars = "giosvxz"
     user.drag_mode_default_tile_size = 80
     user.drag_mode_disable_dynamic_actions_on_grid_hide = false

@@ -9,6 +9,7 @@ from itertools import cycle
 from dataclasses import dataclass, fields
 from talon.experimental.textarea import DarkThemeLabels, TextArea
 import uuid
+import time
 
 debug_draw_step_by_step = False
 debug_points = False
@@ -114,11 +115,12 @@ class LifecycleEvent:
         self.type = event_type
         self.builder_id = builder_id
         self.children_ids = []
-        if builder_id and event_type == "mount":
+        if builder_id:
             self.children_ids = [id for id in ids if ids[id]["builder_id"] == builder_id]
 
 def event_register_on_lifecycle(callback):
-    _event_subscribers["lifecycle"].append(callback)
+    if callback not in _event_subscribers["lifecycle"]:
+        _event_subscribers["lifecycle"].append(callback)
 
 def _event_fire_on_lifecycle(event: LifecycleEvent):
     for callback in _event_subscribers["lifecycle"]:
@@ -131,7 +133,8 @@ def event_fire_on_unmount(builder_id = None):
     _event_fire_on_lifecycle(LifecycleEvent("unmount", builder_id))
 
 def event_unregister_on_lifecycle(callback):
-    _event_subscribers["lifecycle"].remove(callback)
+    if callback in _event_subscribers["lifecycle"]:
+        _event_subscribers["lifecycle"].remove(callback)
 
 def grow_rect(orig_rect: Rect, new_rect: Rect):
     if new_rect.x < orig_rect.x:
@@ -797,11 +800,22 @@ class UIBuilder(UIBox):
     def on_draw_static(self, c: SkiaCanvas):
         self.virtual_render(c, self.cursor)
         self.render(c, self.cursor, self.builder_options)
+
+        if not self.dynamic_canvas:
+            screen = get_screen(self.screen)
+            self.dynamic_canvas = canvas_from_screen(screen)
+            self.dynamic_canvas.register("draw", self.on_draw_dynamic)
+
+            self.highlight_canvas = canvas_from_screen(screen)
+            self.highlight_canvas.register("draw", self.on_draw_highlight)
+            self.highlight_canvas.freeze()
+
+        # dynamic canvas depends on static canvas first
         self.dynamic_canvas.freeze()
 
     def on_draw_dynamic(self, c: SkiaCanvas):
         global state
-        for id in state["text"]:
+        for id in list(state["text"]):
             if id in ids:
                 if ids[id]["builder_id"] == self.id:
                     options = ids[id]["options"]
@@ -810,9 +824,22 @@ class UIBuilder(UIBox):
             else:
                 print(f"Could not update state on ID {id}. ID not found.")
 
+        self.on_fully_rendered()
+
+    def on_fully_rendered(self):
+        if not self.is_mounted:
+            self.is_mounted = True
+
+            self.init_blockable_canvases()
+
+            if self.on_mount:
+                self.on_mount()
+
+            cron.after("10ms", lambda: event_fire_on_mount(self.id))
+
     def on_draw_highlight(self, c: SkiaCanvas):
         global state
-        for id in state["highlighted"]:
+        for id in list(state["highlighted"]):
             if id in ids:
                 if ids[id]["builder_id"] == self.id:
                     box_model = ids[id]["box_model"]
@@ -836,7 +863,7 @@ class UIBuilder(UIBox):
             full_rect = self.box_model.content_children_rect
             if inputs:
                 bottom_rect = None
-                for input in inputs.values():
+                for input in list(inputs.values()):
                     current_rect = bottom_rect or full_rect
 
                     top_rect = Rect(current_rect.x, current_rect.y, current_rect.width, input.rect.y - current_rect.y)
@@ -874,37 +901,27 @@ class UIBuilder(UIBox):
         if self.static_canvas:
             self.cursor = Cursor(screen)
             self.static_canvas.freeze()
-            self.dynamic_canvas.freeze()
             self.highlight_canvas.freeze()
             for canvas in self.blockable_canvases:
                 canvas.freeze()
         else:
-            def on_rendered():
-                if on_mount:
-                    on_mount()
-                event_fire_on_mount(self.id)
+            self.is_mounted = False
+            self.on_mount = on_mount
 
             self.static_canvas = canvas_from_screen(screen)
             self.static_canvas.register("draw", self.on_draw_static)
+
+            # FLOW:
+            # 1. self.static_canvas.freeze() -> self.on_draw_static() ->
+            # 2. self.dynamic_canvas.freeze() -> self.on_draw_dynamic() ->
+            # 4. self.on_fully_rendered() -> self.is_mounted = True ->
+            # 5. setup blockable canvases and fire on mounted events
+            # Other: highlight_canvas triggered manually
             self.static_canvas.freeze()
-
-            self.dynamic_canvas = canvas_from_screen(screen)
-            self.dynamic_canvas.register("draw", self.on_draw_dynamic)
-            self.dynamic_canvas.freeze()
-
-            self.highlight_canvas = canvas_from_screen(screen)
-            self.highlight_canvas.register("draw", self.on_draw_highlight)
-            self.highlight_canvas.freeze()
-
-            # is there a way to do this without a hard coded delay?
-            # we need to wait for everything to render so we have
-            # all the dimensions to calculate the blockable canvas
-            cron.after("300ms", lambda: self.init_blockable_canvases())
-            cron.after("1000ms", on_rendered)
 
     def on_mouse(self, e):
         if e.event == "mousemove":
-            for id, button in buttons.items():
+            for id, button in list(buttons.items()):
                 if button["builder_id"] == self.id:
                     rect = ids[id]["box_model"].padding_rect
                     hovering = rect.contains(e.gpos)
@@ -914,7 +931,7 @@ class UIBuilder(UIBox):
                         else:
                             self.unhighlight(id)
         elif e.event == "mousedown":
-            for id, button in buttons.items():
+            for id, button in list(buttons.items()):
                 if button["builder_id"] == self.id:
                     rect = ids[id]["box_model"].padding_rect
                     if rect.contains(e.gpos):
@@ -930,9 +947,9 @@ class UIBuilder(UIBox):
         if self.dynamic_canvas:
             self.dynamic_canvas.freeze()
 
-    def highlight(self, id: str, color_alpha: str = None):
+    def highlight(self, id: str, color: str = None):
         global state
-        state["highlighted"][id] = color_alpha or self.highlight_color or "FFFFFF88"
+        state["highlighted"][id] = color or self.highlight_color or "FFFFFF88"
         self.highlight_canvas.freeze()
 
     def unhighlight(self, id: str):
@@ -947,8 +964,8 @@ class UIBuilder(UIBox):
 
             self.highlight_canvas.freeze()
 
-    def highlight_briefly(self, id: str, color_alpha: str = None, duration: int = 150):
-        self.highlight(id, color_alpha)
+    def highlight_briefly(self, id: str, color: str = None, duration: int = 150):
+        self.highlight(id, color)
         pending_unhighlight = lambda: self.unhighlight(id)
         self.unhighlight_jobs[id] = (cron.after(f"{duration}ms", pending_unhighlight), pending_unhighlight)
 
@@ -957,6 +974,8 @@ class UIBuilder(UIBox):
         global ids, state, buttons, inputs
 
         event_fire_on_unmount(self.id)
+        self.is_mounted = False
+
         if self.static_canvas:
             self.static_canvas.unregister("draw", self.on_draw_static)
             self.static_canvas.hide()
@@ -980,11 +999,8 @@ class UIBuilder(UIBox):
                     canvas.close()
                 self.blockable_canvases = []
 
-        buttons.clear()
-
-        for id in inputs:
+        for id in list(inputs):
             inputs[id].hide()
-        inputs.clear()
 
         if destroy:
             remove_ids = [id for id in ids if ids[id]["builder_id"] == self.id]
@@ -995,6 +1011,9 @@ class UIBuilder(UIBox):
                 ids.pop(id, None)
 
             builders_core.pop(self.id, None)
+
+        buttons.clear()
+        inputs.clear()
 
 @dataclass
 class UIProps:

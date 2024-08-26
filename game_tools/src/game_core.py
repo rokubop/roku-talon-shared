@@ -281,23 +281,6 @@ def stopper():
 
 @mod.action_class
 class Actions:
-    def game_show_commands(title: str, text_lines: list, bg_color: str = "222666", align: str = "right"):
-        """Show the game commands"""
-        actions.user.ui_textarea_show({
-            "title": title,
-            "bg_color": bg_color,
-            "align": align,
-            "text_lines": text_lines
-        })
-
-    def game_hide_commands():
-        """Hide the game commands"""
-        actions.user.ui_textarea_hide()
-
-    def game_menu_mode_enable():
-        """Enable menu mode"""
-        actions.mode.disable("user.game")
-
     def game_mode_enable():
         """Enable play mode"""
         global _game_use_awsd_for_arrows

@@ -73,29 +73,29 @@ class Actions:
     def ui_elements_hide(id: str):
         """Hide and destroys a ui_element based on the id assigned to the screen ui_element"""
         global builders_core
-        if id in list[builders_core]:
+        if id in list(builders_core):
             builders_core[id].hide()
 
     def ui_elements_hide_all():
         """Hide and destroys all currently active ui_elements"""
-        for id in list[builders_core]:
+        for id in list(builders_core):
             builders_core[id].hide()
 
     def ui_elements_set_text(id: str, value: str):
         """set text based on id"""
         builder_child_id_action(id, "set_text", value)
 
-    def ui_elements_highlight(id: str):
+    def ui_elements_highlight(id: str, color: str = None):
         """highlight based on id"""
-        builder_child_id_action(id, "highlight")
+        builder_child_id_action(id, "highlight", color)
 
     def ui_elements_unhighlight(id: str):
         """unhighlight based on id"""
         builder_child_id_action(id, "unhighlight")
 
-    def ui_elements_highlight_briefly(id: str):
+    def ui_elements_highlight_briefly(id: str, color: str = None):
         """highlight briefly based on id"""
-        builder_child_id_action(id, "highlight_briefly")
+        builder_child_id_action(id, "highlight_briefly", color)
 
     def ui_builder_get(id: str) -> UIBuilder:
         """
@@ -103,7 +103,7 @@ class Actions:
         informational purposes. Not for mutation.
         """
         global builders_core
-        if id in list[builders_core]:
+        if id in list(builders_core):
             return builders_core[id]
         else:
             print(f"UI builder with ID {id} not found.")

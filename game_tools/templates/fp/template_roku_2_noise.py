@@ -7,8 +7,6 @@ settings():
     key_wait = 16.0
     user.game_calibrate_x_360 = 2139
     user.game_calibrate_y_90 = 542
-menu:           user.game_menu_mode_enable()
-play:           user.game_play_mode_enable()
 '''
 
 game_menu_talon = '''\
@@ -27,7 +25,6 @@ game_play_talon = '''\
 app: {app_name}
 mode: user.game_play
 -
-menu:                       user.game_menu_mode_enable()
 exit:                       user.game_mode_disable()
 
 go:                         user.game_move_dir_hold_w()

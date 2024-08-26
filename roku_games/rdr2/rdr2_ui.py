@@ -29,7 +29,7 @@ def show_left_hud_ui():
         ]
     ]
 
-    ui_hud.show(on_mount)
+    ui_hud.show()
 
 def show_right_hud_ui():
     (div, screen, text) = actions.user.ui_elements(["div", "screen", "text"])

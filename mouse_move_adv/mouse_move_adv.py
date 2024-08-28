@@ -523,7 +523,7 @@ class Actions:
 
     def mouse_move_event_unregister_all():
         """
-        Unregister all dynamic actions events
+        Unregister all events
         """
         global dir_change_event_subscribers, mouse_move_event_subscribers
         dir_change_event_subscribers = []

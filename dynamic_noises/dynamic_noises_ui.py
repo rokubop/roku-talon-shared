@@ -35,16 +35,16 @@ def on_ui_lifecycle(event):
         return
 
     if event.type == "mount":
-        actions.user.dynamic_actions_event_register(on_event)
+        actions.user.dynamic_noises_event_register(on_event)
     elif event.type == "unmount":
-        actions.user.dynamic_actions_event_unregister(on_event)
+        actions.user.dynamic_noises_event_unregister(on_event)
         actions.user.ui_elements_unregister_on_lifecycle(on_ui_lifecycle)
 
 def events_init():
     global is_listening_to_ui_elements_events, is_dyanmic_actions_registered
     actions.user.ui_elements_register_on_lifecycle(on_ui_lifecycle)
 
-def dynamic_actions_ui_element():
+def dynamic_noises_ui_element():
     (div, text) = actions.user.ui_elements(["div", "text"])
     events_init()
 
@@ -82,15 +82,15 @@ def show_tester_ui():
         "border_radius": 4,
     }
 
-    ui = screen(id="dynamic_actions_tester", justify_content="center", align_items="flex_end")[
+    ui = screen(id="dynamic_noises_tester", justify_content="center", align_items="flex_end")[
         div(container_css)[
-            text("Dynamic actions", margin_bottom=16),
-            dynamic_actions_ui_element(),
+            text("Dynamic noises", margin_bottom=16),
+            dynamic_noises_ui_element(),
             text("Commands", color="87CEEB", font_weight="bold", margin_top=16),
             text("pop <phrase>"),
             text("hiss <phrase>"),
             div(flex_direction="row", margin_top=16)[
-                text("dynamic actions"),
+                text("dynamic quit"),
                 text("exit", color="F33A6A")
             ]
         ]
@@ -98,4 +98,4 @@ def show_tester_ui():
     ui.show()
 
 def hide_tester_ui():
-    actions.user.ui_elements_hide("dynamic_actions_tester")
+    actions.user.ui_elements_hide("dynamic_noises_tester")

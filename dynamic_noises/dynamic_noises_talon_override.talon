@@ -1,4 +1,4 @@
-tag: user.dynamic_actions_talon_noise_override
+tag: user.dynamic_noises_talon_noise_override
 mode: all
 -
 # "wish" word will not trigger hiss sound
@@ -11,3 +11,5 @@ pop <phrase>: skip()
 
 <phrase> pop: mimic(phrase)
 <phrase> (hiss | wish): mimic(phrase)
+
+{user.dynamic_noise_mode}: user.dynamic_noises_set_mode(dynamic_noise_mode)

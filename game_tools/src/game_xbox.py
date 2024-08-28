@@ -1,8 +1,13 @@
-from talon import actions, Module, cron, settings, app
+from talon import actions, Module, Context, cron, settings, app
 from typing import Union
 from .game_events import event_on_xbox, event_on_game_mode, EVENT_GAME_MODE_ENABLED
 
 mod = Module()
+ctx = Context()
+ctx_game_xbox = Context()
+ctx_game_xbox.matches = """
+tag: user.game_xbox
+"""
 
 def get_gear_value(subject: str, gear: int = 5):
     gears = settings.get(f"user.game_xbox_{subject}_gears")
@@ -89,9 +94,12 @@ xbox_button_map = {
     "right_shoulder": "right_shoulder",
     "left_thumb": "left_thumb",
     "right_thumb": "right_thumb",
+    "menu": "start",
     "start": "start",
+    "view": "back",
     "back": "back",
     "guide": "guide",
+    "xbox": "guide",
     **xbox_trigger_map,
 }
 
@@ -250,6 +258,14 @@ def xbox_stopper():
         xbox_button_release(button)
     held_buttons.clear()
 
+def xbox_mode_enable():
+    actions.user.vgamepad_enable()
+    ctx.tags = ["user.game_xbox"]
+
+def xbox_mode_disable():
+    actions.user.vgamepad_disable()
+    ctx.tags = []
+
 @mod.action_class
 class Actions:
     def game_event_register_on_xbox_event(callback: callable):
@@ -274,6 +290,12 @@ class Actions:
         Unregister all callbacks for a specific game event.
         """
         event_on_xbox.unregister_all()
+
+@ctx_game_xbox.action_class("user")
+class Actions:
+    def game_stopper():
+        xbox_stopper()
+        actions.next() # mouse/keys
 
 def game_mode_setup():
     global button_hold_time

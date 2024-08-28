@@ -151,19 +151,19 @@ def drag_mode_enable():
         drag_mode_enabled = True
         actions.user.drag_mode_show_commands()
         actions.mode.enable("user.drag_mode")
-        if settings.get("user.drag_mode_dynamic_actions_enabled"):
-            actions.user.dynamic_actions_enable()
-            actions.user.dynamic_actions_set_hiss("stop", actions.user.mouse_move_continuous_stop)
+        if settings.get("user.drag_mode_dynamic_noises_enabled"):
+            actions.user.dynamic_noises_enable()
+            actions.user.dynamic_noises_set_hiss("stop", actions.user.mouse_move_continuous_stop)
 
 def drag_mode_disable():
     global drag_mode_enabled
     drag_mode_tile_grid_hide()
     if drag_mode_enabled:
         drag_mode_enabled = False
-        dynamic_actions_enabled = settings.get("user.drag_mode_dynamic_actions_enabled")
-        disable_dynamic_actions = settings.get("user.drag_mode_disable_dynamic_actions_on_grid_hide")
-        if dynamic_actions_enabled and disable_dynamic_actions:
-            actions.user.dynamic_actions_disable()
+        dynamic_noises_enabled = settings.get("user.drag_mode_dynamic_noises_enabled")
+        disable_dynamic_noises = settings.get("user.drag_mode_disable_dynamic_noises_on_grid_hide")
+        if dynamic_noises_enabled and disable_dynamic_noises:
+            actions.user.dynamic_noises_disable()
         actions.user.mouse_move_continuous_stop()
         actions.user.drag_mode_hide_commands()
         actions.mode.disable("user.drag_mode")

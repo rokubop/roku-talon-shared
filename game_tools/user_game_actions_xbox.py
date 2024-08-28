@@ -14,39 +14,41 @@ from .src.game_xbox import (
     xbox_left_stick,
     xbox_right_stick,
     xbox_stopper,
+    xbox_mode_enable,
+    xbox_mode_disable
 )
 
 mod = Module()
 
 @mod.action_class
 class Actions:
-    def game_xbox_gamepad_enable(): """Enable xbox gamepad actions. Enables vgamepad. Windows and Linux only."""; actions.user.vgamepad_enable()
-    def game_xbox_gamepad_disable(): """Disable xbox gamepad actions. Disables vgamepad."""; actions.user.vgamepad_disable()
+    def game_xbox_gamepad_enable(): """Enable xbox gamepad actions. Enables vgamepad. Windows and Linux only."""; xbox_mode_enable()
+    def game_xbox_gamepad_disable(): """Disable xbox gamepad actions. Disables vgamepad."""; xbox_mode_disable()
     def game_xbox_button_press(button: str, hold: int = None):
         """
         Press an xbox button
 
-        **buttons**:  a, b, x, y, left_shoulder, right_shoulder, left_thumb, right_thumb, start, back, guide, dpad_up, dpad_down, dpad_left, dpad_right
+        **buttons**:  a, b, x, y, left_shoulder, right_shoulder, left_thumb, right_thumb, start, back, guide, dpad_up, dpad_down, dpad_left, dpad_right, view, guide, menu
 
-        **button aliases**: lb, rb, lt, rt, l1, r1, l2, r2, l3, r3
+        **button aliases**: lb, rb, lt, rt, l1, r1, l2, r2, l3, r3, xbox
         """
         xbox_button_press(button, hold)
     def game_xbox_button_release(button: str): """Release an xbox button"""; xbox_button_release(button)
     def game_xbox_button_hold(button: str, hold_ms: int = None):
         """Hold an xbox button indefinitely or for a fixed duration.
 
-        **buttons**:  a, b, x, y, left_shoulder, right_shoulder, left_thumb, right_thumb, start, back, guide, dpad_up, dpad_down, dpad_left, dpad_right
+        **buttons**:  a, b, x, y, left_shoulder, right_shoulder, left_thumb, right_thumb, start, back, guide, dpad_up, dpad_down, dpad_left, dpad_right, view, guide, menu
 
-        **button aliases**: lb, rb, lt, rt, l1, r1, l2, r2, l3, r3
+        **button aliases**: lb, rb, lt, rt, l1, r1, l2, r2, l3, r3, xbox
         """
         xbox_button_hold(button, hold_ms)
     def game_xbox_button_toggle(button: str):
         """
         Toggle holding an xbox button
 
-        **buttons**:  a, b, x, y, left_shoulder, right_shoulder, left_thumb, right_thumb, start, back, guide, dpad_up, dpad_down, dpad_left, dpad_right
+        **buttons**:  a, b, x, y, left_shoulder, right_shoulder, left_thumb, right_thumb, start, back, guide, dpad_up, dpad_down, dpad_left, dpad_right, view, guide, menu
 
-        **button aliases**: lb, rb, lt, rt, l1, r1, l2, r2, l3, r3
+        **button aliases**: lb, rb, lt, rt, l1, r1, l2, r2, l3, r3, xbox
         """
         xbox_button_toggle(button)
     def game_xbox_stick_hold_dir(stick_side: str, dir: str, power: float = None):

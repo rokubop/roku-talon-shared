@@ -83,8 +83,10 @@ def xbox_stick_ui(
             text(text_content, font_size=size//2)
         ]
 
-    def blank_key():
-        return div(key_css)[text(" ")]
+    def blank_key(id: str = ""):
+        return div(key_css, id=id)[text(" ")]
+
+    thumb = "left_thumb" if subject == "left_stick" else "right_thumb"
 
     return div()[
         div(flex_direction="row", margin_bottom=16, gap=8)[
@@ -96,7 +98,7 @@ def xbox_stick_ui(
                 blank_key(), key(f"{subject}_up", " "), blank_key()
             ],
             div(flex_direction="row")[
-                key(f"{subject}_left", " "), blank_key(), key(f"{subject}_right", " ")
+                key(f"{subject}_left", " "), blank_key(thumb), key(f"{subject}_right", " ")
             ],
             div(flex_direction="row")[
                 blank_key(), key(f"{subject}_down", " "), blank_key()
@@ -150,6 +152,31 @@ def xbox_primary_buttons_ui(label: str, size : int = 30):
                 blank_area(), button("a", "A", GREEN), blank_area()
             ]
         ]
+    ]
+
+def xbox_center_buttons_ui(size : int):
+    (div, text) = actions.user.ui_elements(["div", "text"])
+
+    container_css = {
+        "flex_direction": "row",
+        "justify_content": "center",
+        "align_items": "center",
+        "gap": 16,
+    }
+
+    css = {
+        "width": size,
+        "height": size,
+        "border_radius": size,
+        "border_width": 1,
+        "border_color": "FFFFFF33",
+        "background_color": "33333333",
+    }
+
+    return div(container_css)[
+        div(css, id="back")[text(" ")],
+        div(css, id="guide", border_color="88d61a55", highlight_color="88d61a55")[text(" ")],
+        div(css, id="start")[text(" ")]
     ]
 
 def xbox_dpad_ui(label: str, size : int = 30):
@@ -276,7 +303,8 @@ def on_xbox_event(event):
         on_trigger(event)
     else:
         if event.type == "hold":
-            actions.user.ui_elements_highlight(event.subject)
+            color = "88d61a" if event.subject == "guide" else None
+            actions.user.ui_elements_highlight(event.subject, color)
         elif event.type == "release":
             actions.user.ui_elements_unhighlight(event.subject)
 
@@ -345,6 +373,11 @@ class Actions:
         """game ui element xbox primary buttons"""
         events_init("xbox")
         return xbox_primary_buttons_ui(label, size)
+
+    def game_ui_element_xbox_center_buttons(label: str = "buttons", size: int = 20):
+        """game ui element xbox center buttons"""
+        events_init("xbox")
+        return xbox_center_buttons_ui(size)
 
     def game_ui_element_xbox_dpad(label: str = None, size: int = 30):
         """game ui element xbox dpad"""

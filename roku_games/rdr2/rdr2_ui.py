@@ -59,18 +59,24 @@ def show_right_hud_ui():
                         div(flex_direction="row", gap=8)[
                             actions.user.game_ui_element_xbox_left_bumper(),
                             actions.user.game_ui_element_xbox_right_bumper(),
+                        ],
+                        div(justify_content="center", align_items="center", margin_top=4, margin_left=16)[
+                            actions.user.game_ui_element_xbox_center_buttons()
                         ]
                     ],
                 ],
                 div()[
                     text("noises", margin_bottom=16),
-                    actions.user.dynamic_actions_ui_element()
+                    actions.user.dynamic_noises_ui_element()
                 ],
             ],
         ]
     ]
 
     ui_hud.show()
+
+def noise_modes_list():
+    return actions.user.dynamic_noise_modes().keys()
 
 def show_commands_ui():
     global ui_commands
@@ -96,12 +102,7 @@ def show_commands_ui():
                     text("back"),
                     text("hiss noise"),
                     text("Noise modes", font_weight="bold", color=accent_color, margin_top=16),
-                    text("default"),
-                    text("mover"),
-                    text("shooter"),
-                    text("brawler"),
-                    text("repeater"),
-                    text("wheel"),
+                    *(text(mode) for mode in noise_modes_list()),
                     text("pop <phrase>"),
                     text("hiss <phrase>"),
                 ],
@@ -121,6 +122,8 @@ def show_commands_ui():
                     text("hide"),
                     text("call"),
                     text("wheel"),
+                    text("crouch"),
+                    text("look back"),
                     text("Game", font_weight="bold", color=accent_color, margin_top=16),
                     text("game exit")
                 ]

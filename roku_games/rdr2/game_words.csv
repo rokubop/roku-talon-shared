@@ -11,8 +11,11 @@ xbox_button_x, check | plex | ex
 xbox_button_y, yank | why
 xbox_button_lb, lob
 xbox_button_rb, rob
+xbox_button_view, view
 xbox_button_guide, guide
 xbox_button_menu, menu
+xbox_button_left_thumb, ling | link
+xbox_button_right_thumb, ring | rink
 xbox_left_trigger, latch
 xbox_right_trigger, ratch
 xbox_dpad, pad

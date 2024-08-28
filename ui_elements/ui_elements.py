@@ -180,6 +180,7 @@ class UIOptionsDict(TypedDict):
     color: str
     flex_direction: str
     justify_content: str
+    highlight_color: str
     align_items: str
     height: int
     justify: str
@@ -224,6 +225,7 @@ class UIOptions:
     flex_direction: str = "column"
     gap: int = None
     height: int = 0
+    highlight_color: str = None
     justify: str = "flex_start"
     justify_content: str = "flex_start"
     align_items: str = "flex_start"
@@ -354,6 +356,7 @@ class UIBox(UIWithChildren):
         self.box_model: BoxModelLayout = None
         self.type = "div"
         self.id = self.options.id or None
+        self.highlight_color = self.options.highlight_color or None
         self.debug_number = 0
         self.debug_color = "red"
         self.debug_colors = iter(cycle(["red", "green", "blue", "yellow", "purple", "orange", "cyan", "magenta"]))
@@ -418,6 +421,14 @@ class UIBox(UIWithChildren):
                 self.box_model.padding_rect.y - self.options.border_width,
                 self.box_model.padding_rect.width + self.options.border_width * 2,
                 self.box_model.padding_rect.height + self.options.border_width * 2)
+
+            # for larger border width - but this is not quite right
+            # c.paint.stroke_width = self.options.border_width
+            # bordered_rect = Rect(
+            #     self.box_model.padding_rect.x - self.options.border_width / 2 - 1,
+            #     self.box_model.padding_rect.y - self.options.border_width / 2 - 1,
+            #     self.box_model.padding_rect.width + self.options.border_width + 1,
+            #     self.box_model.padding_rect.height + self.options.border_width + 1)
 
             if self.options.border_radius:
                 c.draw_rrect(RoundRect.from_rect(bordered_rect, x=self.options.border_radius, y=self.options.border_radius))

@@ -1,5 +1,12 @@
 # Changelog
 
+## Tue Aug 27, 2024
+- Add left_thumb, right_thumb, view, guide, menu buttons for xbox
+- Simplify and automate the noise mode binding process
+
+Breaking Changes
+- Rename `dynamic_actions_*` to `dynamic_noises_*`
+
 ## Sun Aug 25, 2024
 - Fixed `ui_elements` not highlighting
 - Fixed `text_input` not returning correct value

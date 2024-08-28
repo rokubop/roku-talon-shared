@@ -161,7 +161,7 @@ class Actions:
     def game_look_down_75(mouse_button: int = None): """Look down 75 degrees"""; mouse_move_deg(0, 75)
     def game_look_down_90(mouse_button: int = None): """Look down 90 degrees"""; mouse_move_deg(0, 90)
     def game_look_down(deg: int = 20, mouse_button: int = None): """Look down y degrees"""; mouse_move_deg(0, deg, mouse_button)
-    def game_gear_set(gear_num: int): """Set gear for current/last action. For dynamic actions."""; game_gear_set(gear_num)
+    def game_gear_set(gear_num: int): """Set gear for current/last action. For dynamic noises."""; game_gear_set(gear_num)
     def game_reset_center_y(mouse_button: int = None): """Reset the mouse to the center of the screen"""; mouse_reset_center_y()
     def game_state_switch_horizontal(): """Switch state value of horizontal"""; game_state_switch_horizontal()
     def game_calibrate_x_360(num: int, mouse_button: int = None): """Calibrate x by testing a 360"""; mouse_calibrate_x_360(num)

@@ -29,16 +29,13 @@ Erie | airy | error: user.game_xbox_button_hold("a")
 round: user.game_turn_180()
 cam mid: user.game_reset_center_y()
 look <user.game_dir>: user.game_camera_snap_dynamic(game_dir)
+look back: user.game_xbox_button_hold('right_thumb')
 
 # add noise actions to vocabulary
 pop {user.game_xbox_button}: skip()
 wish {user.game_xbox_button}: skip()
 
-# noise modes
-fighter | shooter: user.rdr2_noise_mode("shooter")
-mover | default: user.rdr2_noise_mode("default")
-repeater: user.rdr2_noise_mode("repeater")
-brawler: user.rdr2_noise_mode("brawler")
+{user.dynamic_noise_mode}: user.rdr2_set_noise_mode(dynamic_noise_mode)
 
 # actions
 weapon: user.game_xbox_button_press('lb')
@@ -51,6 +48,7 @@ pick: user.game_xbox_button_hold('lb')
 call: user.game_xbox_button_press('dpad_up')
 run: user.game_xbox_button_hold('a')
 hide: user.game_xbox_button_press('rb')
+crouch: user.game_xbox_button_hold('left_thumb')
 
 halt | stop:
     user.game_stopper()

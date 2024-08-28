@@ -61,8 +61,8 @@ user.drag_mode_exclude_chars
 user.drag_mode_default_tile_size
 user.drag_mode_tile_increment_size
 user.drag_mode_offset_x_y
-user.drag_mode_dynamic_actions_enabled
-user.drag_mode_disable_dynamic_actions_on_grid_hide
+user.drag_mode_dynamic_noises_enabled
+user.drag_mode_disable_dynamic_noises_on_grid_hide
 ```
 
 Commands:
@@ -74,5 +74,5 @@ roll (mode | grid)
 
 ## Dependencies
 - roku-talon-shared/mouse_move_adv
-- roku-talon-shared/dynamic_actions
+- roku-talon-shared/dynamic_noises
 - roku-talon-shared/ui_elements

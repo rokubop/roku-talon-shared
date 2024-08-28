@@ -27,14 +27,14 @@ mod.setting(
     desc="Default offset for the drag mode grid",
 )
 mod.setting(
-    "drag_mode_dynamic_actions_enabled",
+    "drag_mode_dynamic_noises_enabled",
     type=bool,
     default=True,
-    desc="Enable dynamic actions for the hiss sound to stop",
+    desc="Enable dynamic noises for the hiss sound to stop",
 )
 mod.setting(
-    "drag_mode_disable_dynamic_actions_on_grid_hide",
+    "drag_mode_disable_dynamic_noises_on_grid_hide",
     type=bool,
     default=True,
-    desc="Disable dynamic actions when exiting drag mode",
+    desc="Disable dynamic noises when exiting drag mode",
 )

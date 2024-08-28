@@ -76,7 +76,7 @@ def show_right_hud_ui():
     ui_hud.show()
 
 def noise_modes_list():
-    return actions.user.dynamic_noise_modes().keys()
+    return actions.user.dynamic_noises().keys()
 
 def show_commands_ui():
     global ui_commands

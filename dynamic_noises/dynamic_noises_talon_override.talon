@@ -12,4 +12,4 @@ pop <phrase>: skip()
 <phrase> pop: mimic(phrase)
 <phrase> (hiss | wish): mimic(phrase)
 
-{user.dynamic_noise_mode}: user.dynamic_noises_set_mode(dynamic_noise_mode)
+{user.dynamic_noise_mode}: user.dynamic_noises_use_mode(dynamic_noise_mode)

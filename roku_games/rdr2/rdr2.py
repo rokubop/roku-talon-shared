@@ -8,59 +8,48 @@ mod.apps.rdr2 = "os: windows\nand app.exe: /rdr2.exe/i"
 ctx.matches = "os: windows\napp: rdr2"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 
-def stop():
-    actions.user.game_stopper()
-
 def wheel_stop(click = False):
     if click:
         actions.user.game_mouse_click()
     actions.user.game_xbox_button_release("lb")
     actions.user.drag_mode_hide()
-    actions.user.dynamic_noises_set_mode("default")
+    actions.user.dynamic_noises_use_mode("default")
 
 def wheel():
     actions.user.game_xbox_button_hold("lb")
     actions.user.drag_mode_show()
 
-@mod.action_class
-class Actions:
-    def rdr2_set_noise_mode(mode: str):
-        """Set noise mode"""
-        if mode == "wheel":
-            wheel()
-        actions.user.dynamic_noises_set_mode(mode)
+default = {
+    "pop": ("A", lambda: actions.user.game_xbox_button_press('a')),
+    "hiss": ("stop", actions.user.game_stopper),
+}
 
-noise_modes = {
-    "default": {
-        "hiss": ("stop", stop),
-        "pop": ("A", lambda: actions.user.game_xbox_button_press('a')),
-    },
-    "mover": {
-        "hiss": ("stop", stop),
-        "pop": ("A", lambda: actions.user.game_xbox_button_press('a')),
-    },
+dynamic_noises = {
+    "default": default,
+    "mover": default,
     "wheel": {
+        "on_enable": wheel,
         "hiss": ("close", lambda: wheel_stop(click = False)),
         "pop": ("pick and close", lambda: wheel_stop(click = True)),
     },
     "shooter": {
-        "hiss": ("stop", stop),
+        **default,
         "pop": ("RT", lambda: actions.user.game_xbox_button_press('rt')),
     },
     "brawler": {
+        **default,
         "hiss": ("toggle B", lambda: actions.user.game_xbox_button_toggle('b')),
-        "pop": ("A", lambda: actions.user.game_xbox_button_press('a')),
     },
     "repeater": {
-        "hiss": ("stop", stop),
+        **default,
         "pop": ("repeat", actions.core.repeat_phrase),
     }
 }
 
 @ctx_game.action_class("user")
 class Actions:
-    def dynamic_noise_modes():
-        return noise_modes
+    def dynamic_noises():
+        return dynamic_noises
 
     def on_game_mode_enabled():
         actions.user.game_csv_game_words_setup(ctx_game, __file__)

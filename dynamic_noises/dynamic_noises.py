@@ -286,15 +286,19 @@ def dynamic_noises_set(
         )
     dynamic_noises_set_class(name, callback, default, alias)
 
-def dynamic_noises_set_mode(mode: str):
-    noise_modes = actions.user.dynamic_noise_modes()
-    if not noise_modes:
-        raise ValueError(f"Tried to set noise mode '{mode}' but def dynamic_noise_modes() is not defined. Define def dynamic_noise_modes in your ctx.")
+def dynamic_noises_use_mode(mode: str):
+    dynamic_noises = actions.user.dynamic_noises()
+    if not dynamic_noises:
+        raise ValueError(f"Tried to set noise mode '{mode}' but def dynamic_noises() is not defined. Define def dynamic_noises in your ctx.")
 
-    if not mode in noise_modes:
-        raise ValueError(f"Noise mode '{mode}' not found in def dynamic_noise_modes(). Available modes: {list(noise_modes.keys())}")
+    if not mode in dynamic_noises:
+        raise ValueError(f"Noise mode '{mode}' not found in def dynamic_noises(). Available modes: {list(dynamic_noises.keys())}")
 
-    for noise, action in noise_modes[mode].items():
+    for noise, action in dynamic_noises[mode].items():
+        if noise == "on_enable":
+            action()
+            continue
+
         if not isinstance(action, (list, tuple)):
             raise ValueError(f"Action for noise '{noise}' is not a tuple or list: {action}")
 
@@ -336,13 +340,13 @@ def dynamic_noises_enable(
         if _use_speech_capture:
             start_speech_capture()
 
-        noise_modes = actions.user.dynamic_noise_modes()
-        if noise_modes:
-            if not "default" in noise_modes:
+        dynamic_noises = actions.user.dynamic_noises()
+        if dynamic_noises:
+            if not "default" in dynamic_noises:
                 raise ValueError(
-                    f'\ndef dynamic_noise_modes should must contain a "default" mode\n\n'
+                    f'\ndef dynamic_noises should must contain a "default" mode\n\n'
                     f"Example:\n"
-                    f"def dynamic_noise_modes():\n"
+                    f"def dynamic_noises():\n"
                     f"    return {{\n"
                     f'        "default": {{\n'
                     f'            "pop": ("click", actions.mouse_click),\n'
@@ -355,8 +359,8 @@ def dynamic_noises_enable(
                     f"    }}\n"
                 )
 
-            dynamic_noises_set_mode("default")
-            ctx.lists["user.dynamic_noise_mode"] = list(noise_modes.keys())
+            dynamic_noises_use_mode("default")
+            ctx.lists["user.dynamic_noise_mode"] = list(dynamic_noises.keys())
 
 def dynamic_noises_disable():
     global _dynamic_noises_enabled
@@ -517,13 +521,13 @@ class Actions:
         """
         return dynamic_noises_ui_element()
 
-    def dynamic_noises_set_mode(mode: str):
+    def dynamic_noises_use_mode(mode: str):
         """
-        Set dynamic noises mode
+        Use dynamic noise mode matching your definitions from `def dynamic_noises()`
         """
-        dynamic_noises_set_mode(mode)
+        dynamic_noises_use_mode(mode)
 
-    def dynamic_noise_modes():
+    def dynamic_noises():
         """
         Return dynamic noise modes
         """

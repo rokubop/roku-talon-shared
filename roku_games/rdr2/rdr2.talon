@@ -35,7 +35,7 @@ look back: user.game_xbox_button_hold('right_thumb')
 pop {user.game_xbox_button}: skip()
 wish {user.game_xbox_button}: skip()
 
-{user.dynamic_noise_mode}: user.rdr2_set_noise_mode(dynamic_noise_mode)
+{user.dynamic_noise_mode}: user.dynamic_noises_use_mode(dynamic_noise_mode)
 
 # actions
 weapon: user.game_xbox_button_press('lb')
@@ -48,7 +48,7 @@ pick: user.game_xbox_button_hold('lb')
 call: user.game_xbox_button_press('dpad_up')
 run: user.game_xbox_button_hold('a')
 hide: user.game_xbox_button_press('rb')
-crouch: user.game_xbox_button_hold('left_thumb')
+crouch: user.game_xbox_button_press('left_thumb')
 
 halt | stop:
     user.game_stopper()

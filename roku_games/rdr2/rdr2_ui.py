@@ -124,6 +124,7 @@ def show_commands_ui():
                     text("wheel"),
                     text("crouch"),
                     text("look back"),
+                    text("dead eye"),
                     text("Game", font_weight="bold", color=accent_color, margin_top=16),
                     text("game exit")
                 ]

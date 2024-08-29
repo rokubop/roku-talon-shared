@@ -55,6 +55,9 @@ call: user.game_xbox_button_press('dpad_up')
 run: user.game_xbox_button_hold('a')
 hide: user.game_xbox_button_press('rb')
 crouch: user.game_xbox_button_press('left_thumb')
+(dead | dot | did) (eye | I):
+    user.game_xbox_button_press('left_thumb')
+    user.game_xbox_button_press('right_thumb')
 
 halt | stop:
     user.game_stopper()

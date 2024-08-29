@@ -10,6 +10,11 @@ include_xbox_events = False
 accent_color_default = "87ceeb"
 list_names = {}
 
+GREEN = "88d61a"
+RED = "d61a1a"
+BLUE = "1a1ad6"
+YELLOW = "d6d61a"
+
 def get_first_list_key(list_name: str):
     list_key_values = list(registry.lists[list_name])[0]
     if list_key_values:
@@ -92,6 +97,7 @@ def xbox_stick_ui(
         div(flex_direction="row", margin_bottom=16, gap=8)[
             text(label),
             text(gear, id=f"{subject}_gear", color=accent_color),
+            div(id=f"{subject}_preferred", width=12, height=12, border_radius=12)[text(" ")]
         ],
         div(id=subject, flex_direction="column", background_color="333333dd", border_radius=100, padding=1)[
             div(flex_direction="row")[
@@ -108,11 +114,6 @@ def xbox_stick_ui(
 
 def xbox_primary_buttons_ui(label: str, size : int = 30):
     (div, text) = actions.user.ui_elements(["div", "text"])
-
-    GREEN = "88d61a"
-    RED = "d61a1a"
-    BLUE = "1a1ad6"
-    YELLOW = "d6d61a"
 
     key_css = {
         "padding": 8,
@@ -175,7 +176,7 @@ def xbox_center_buttons_ui(size : int):
 
     return div(container_css)[
         div(css, id="back")[text(" ")],
-        div(css, id="guide", border_color="88d61a55", highlight_color="88d61a55")[text(" ")],
+        div(css, id="guide", border_color=f"{GREEN}55", highlight_color=f"{GREEN}55")[text(" ")],
         div(css, id="start")[text(" ")]
     ]
 
@@ -204,7 +205,10 @@ def xbox_dpad_ui(label: str, size : int = 30):
         return div(key_css, background_color="333333dd")[text(" ")]
 
     return div()[
-        text(label, margin_bottom=16),
+        div(flex_direction="row", margin_bottom=16, gap=8)[
+            text(label),
+            div(id="dpad_preferred", width=12, height=12, border_radius=12)[text(" ")],
+        ],
         div(flex_direction="column")[
             div(flex_direction="row")[
                 blank_key(), key("dpad_up", "↑"), blank_key()
@@ -262,7 +266,6 @@ def on_button(button, state):
 
 
 def on_stick_dir(subject, coords):
-    # print(f"subject: {subject}, coords: {coords}")
     x, y = coords
 
     for direction in ["up", "down", "left", "right"]:
@@ -277,14 +280,18 @@ def on_stick_dir(subject, coords):
     if y > 0:
         actions.user.ui_elements_highlight(f"{subject}_up")
 
-
 def on_stick(event):
-    # print(f"on_stick: {event}")
     if event.type == "gear_change":
         gear_state = event.value
         actions.user.ui_elements_set_text(f"{event.subject}_gear", gear_state.gear)
     elif event.type == "dir_change":
         on_stick_dir(event.subject, event.value)
+
+def on_dpad_dir(dir):
+    for direction in ["up", "down", "left", "right"]:
+        actions.user.ui_elements_unhighlight(f"dpad_{direction}")
+
+    actions.user.ui_elements_highlight(f"dpad_{dir}")
 
 def on_trigger(event):
     if event.type == "hold":
@@ -297,13 +304,20 @@ def on_trigger(event):
 
 def on_xbox_event(event):
     # print(f"on_xbox_event: {event}")
-    if event.subject == "right_stick" or event.subject == "left_stick":
+    if event.type == "preferred_dir_mode_change":
+        actions.user.ui_elements_unhighlight("left_stick_preferred")
+        actions.user.ui_elements_unhighlight("right_stick_preferred")
+        actions.user.ui_elements_unhighlight("dpad_preferred")
+        actions.user.ui_elements_highlight(f"{event.subject}_preferred", f"{GREEN}55")
+    elif event.subject == "right_stick" or event.subject == "left_stick":
         on_stick(event)
     elif event.subject == "left_trigger" or event.subject == "right_trigger":
         on_trigger(event)
+    elif event.subject == "dpad" and event.type == "dir_change":
+        on_dpad_dir(event.value)
     else:
         if event.type == "hold":
-            color = "88d61a" if event.subject == "guide" else None
+            color = GREEN if event.subject == "guide" else None
             actions.user.ui_elements_highlight(event.subject, color)
         elif event.type == "release":
             actions.user.ui_elements_unhighlight(event.subject)
@@ -324,6 +338,9 @@ def on_ui_lifecycle(event):
         if include_xbox_events and not game_event_register_on_xbox_event_init:
             game_event_register_on_xbox_event_init = True
             actions.user.game_event_register_on_xbox_event(on_xbox_event)
+            preferred_dir_mode_subject = settings.get("user.game_xbox_preferred_dir_mode_subject")
+            if preferred_dir_mode_subject:
+                actions.user.ui_elements_highlight(f"{preferred_dir_mode_subject}_preferred", f"{GREEN}55")
     elif event.type == "unmount":
         if include_xbox_events and game_event_register_on_xbox_event_init:
             game_event_register_on_xbox_event_init = False

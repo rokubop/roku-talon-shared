@@ -9,6 +9,10 @@ ctx_game_xbox.matches = """
 tag: user.game_xbox
 """
 
+# for one word left, right, up, down
+preferred_dir_mode_subject = "right_stick"
+preferred_dir_mode_action_type = "hold"
+
 def get_gear_value(subject: str, gear: int = 5):
     gears = settings.get(f"user.game_xbox_{subject}_gears")
     if not gears:
@@ -147,12 +151,18 @@ def xbox_right_analog_hold_dir(dir: str | tuple, power: float = None):
         event_on_xbox.fire_right_stick_dir_change(xy_dir)
     right_stick_dir = xy_dir
 
-def xbox_dpad_hold_dir(dir: str):
+def xbox_dpad_hold_dir(dir: str | tuple):
     """Hold a dpad direction"""
     global dpad_hold_dir
+    dir_2 = None
+    if isinstance(dir, tuple):
+        dir_2 = dir[1]
+        dir = dir[0]
     actions.user.vgamepad_dpad_dir_hold(dir)
     if dpad_hold_dir != dir:
         event_on_xbox.fire_dpad_dir_hold_change(dir)
+    if dir_2:
+        xbox_button_hold(f"dpad_{dir_2}")
     dpad_hold_dir = dir
 
 def xbox_set_gear(subject: str, gear: Union[str, int]):
@@ -240,6 +250,28 @@ def xbox_trigger_release(button):
     if button in held_buttons:
         held_buttons.remove(button)
 
+def xbox_preferred_dir_mode(dir: str | tuple, type: str = None):
+    type = type or preferred_dir_mode_action_type
+    if preferred_dir_mode_subject == "left_stick":
+        xbox_left_analog_hold_dir(dir)
+    elif preferred_dir_mode_subject == "right_stick":
+        xbox_right_analog_hold_dir(dir)
+    elif preferred_dir_mode_subject == "dpad":
+        if type == "press":
+            if isinstance(dir, tuple):
+                for single_dir in dir:
+                    xbox_button_press(f"dpad_{single_dir}")
+            else:
+                xbox_button_press(f"dpad_{dir}")
+        elif type == "hold":
+            xbox_dpad_hold_dir(dir)
+
+def xbox_preferred_dir_mode_set(subject: str, type: str):
+    global preferred_dir_mode_subject, preferred_dir_mode_action_type
+    preferred_dir_mode_subject = subject
+    preferred_dir_mode_action_type = type
+    event_on_xbox.fire_preferred_dir_mode_change(subject, type)
+
 def xbox_stop_all():
     xbox_left_stick(0, 0)
     xbox_right_stick(0, 0)
@@ -249,6 +281,7 @@ def xbox_stop_all():
 
 def xbox_stopper():
     """Perform general purpose stopper based on priority"""
+    global dpad_hold_dir
     if right_stick_dir != (0, 0):
         xbox_right_stick(0, 0)
         return
@@ -257,6 +290,9 @@ def xbox_stopper():
     for button in list(held_buttons):
         xbox_button_release(button)
     held_buttons.clear()
+    if dpad_hold_dir:
+        xbox_button_release(f"dpad_{dpad_hold_dir}")
+        dpad_hold_dir = None
 
 def xbox_mode_enable():
     actions.user.vgamepad_enable()
@@ -298,10 +334,12 @@ class Actions:
         actions.next() # mouse/keys
 
 def game_mode_setup():
-    global button_hold_time
+    global button_hold_time, preferred_dir_mode_action_type, preferred_dir_mode_subject
     # TODO: This isn't necessary for games without xbox controls
     button_hold_time = settings.get("user.game_xbox_button_hold")
     init_gear_states()
+    preferred_dir_mode_action_type = settings.get("user.game_xbox_preferred_dir_mode_action_type")
+    preferred_dir_mode_subject = settings.get("user.game_xbox_preferred_dir_mode_subject")
 
 def on_game_mode(state):
     if state == EVENT_GAME_MODE_ENABLED:

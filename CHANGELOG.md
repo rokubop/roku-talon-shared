@@ -1,6 +1,8 @@
 # Changelog
 
-## Tue Aug 27, 2024
+## Tue Aug 27-28, 2024
+- Add 'cam mode', 'go mode', 'pad mode' to set preferred dir
+- Add hold pad commands
 - Add left_thumb, right_thumb, view, guide, menu buttons for xbox
 - Simplify and automate the noise mode binding process
 

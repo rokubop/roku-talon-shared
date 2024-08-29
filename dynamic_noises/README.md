@@ -2,12 +2,33 @@
 
 This is an experimental repository. WIP.
 
-Dynamic noises allow you to update noises like "pop" or "hiss" on the fly, programatically or to any spoken phrase e.g. saying "pop scroll down" to bind "scroll down" to noise "pop", as well as a convenient way to setup a dictionary of modes.
+Dynamic noises allow you to update noises "pop" and "hiss" on the fly, individually, or as a group.
 
 ## Try it
 Say "dynamic noises" to try it out. A UI will show you your current phrase binding.
 
-## Usage modes
+## Manual setup
+```python
+# enable
+actions.user.dynamic_noises_enable()
+
+# disable
+actions.user.dynamic_noises_disable()
+```
+
+While enabled:
+- Default talon pop and hiss replaced with ctx dynamic versions
+- Speech recognition will listen for "pop" and "hiss" at the beginning of a phrase and bind whatever comes after it.
+- We can also update individual noises using actions `actions.user.dynamic_noises_set_pop` and `actions.user.dynamic_noises_set_hiss`
+
+This looks like:
+```python
+actions.user.dynamic_noises_set_pop("repeater", actions.core.repeat_phrase)
+```
+
+## Modes
+We can also set up modes conveniently
+
 ```python
 dynamic_noises = {
     "default": {
@@ -32,42 +53,12 @@ actions.user.dynamic_noises_enable()
 actions.user.dynamic_noises_disable()
 ```
 
-## Usage individual
-```python
-actions.user.dynamic_noises_enable()
+This sets us up with two modes, "default" and "repeater". If we speak the words "default" or "repeater", we get the corresponding mode.
 
-# Set individual noise
-actions.user.dynamic_noises_set_pop("repeater", actions.core.repeat_phrase)
-
-# Use mode
-actions.user.dynamic_noises_use_mode("default")
-
-# disable - restores original talon noise
-actions.user.dynamic_noises_disable()
-```
-
-
-## Update with spoken phrase (WIP)
-- Saying "pop" at the beginning of any phrase will assign that phrase to the "pop" noise, and will not be executed
-- Saying "pop" at the end of any phrase will execute the action and be assigned to the "pop" noise
-
-| Phrase | Action |
+## ctx for modes
+| ctx | Description |
 | --- | --- |
-| "pop each" | "pop" noise assigned to "each" |
-| "pop say hello" | "pop" noise assigned to "say hello" |
-
-## Set to phrase programmatically (WIP)
-```python
-actions.user.dynamic_noises_set("pop", phrase="go down")
-```
-
-## Monitor changes
-```python
-def on_change(event):
-    print(event)
-
-actions.user.dynamic_noises_event_register(on_change)
-```
+| `dynamic_noises` | User defined dictionary of modes and their corresponding actions. |
 
 ## Actions
 | Action | Description |

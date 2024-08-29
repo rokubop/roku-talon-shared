@@ -3,13 +3,19 @@ mode: user.game
 -
 
 # directions
-<user.game_dir>: user.game_xbox_right_stick_hold_dir(game_dir)
+<user.game_dir>: user.game_xbox_preferred_dir_mode(game_dir)
 {user.game_xbox_left_stick}: user.game_xbox_left_stick_hold_dir("up")
 {user.game_xbox_left_stick} <user.game_dir>: user.game_xbox_left_stick_hold_dir(game_dir)
 {user.game_xbox_right_stick} <user.game_dir>: user.game_xbox_right_stick_hold_dir(game_dir)
 {user.game_xbox_stick} {user.game_gear}: user.game_xbox_stick_set_gear(game_xbox_stick, game_gear)
 {user.game_xbox_trigger} {user.game_gear}: user.game_xbox_trigger_set_gear(game_xbox_trigger, game_gear)
 {user.game_xbox_dpad} {user.game_dir}: user.game_xbox_dpad_press_dir(game_dir)
+hold {user.game_xbox_dpad} {user.game_dir}: user.game_xbox_dpad_hold_only_dir(game_dir)
+hold <user.game_dir>: user.game_xbox_preferred_dir_mode(game_dir, "hold")
+
+{user.game_xbox_left_stick} mode: user.game_xbox_preferred_dir_mode_set(game_xbox_left_stick)
+{user.game_xbox_right_stick} mode: user.game_xbox_preferred_dir_mode_set(game_xbox_right_stick)
+{user.game_xbox_dpad} mode: user.game_xbox_preferred_dir_mode_set(game_xbox_dpad, "press")
 
 # buttons
 [tap] {user.game_xbox_button}: user.game_xbox_button_press(game_xbox_button)

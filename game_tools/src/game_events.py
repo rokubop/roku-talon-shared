@@ -18,10 +18,13 @@ EVENT_ON_GAME_MODE = "on_game_mode_changed"
 EVENT_GAME_MODE_DISABLED = "disabled"
 EVENT_GAME_MODE_ENABLED = "enabled"
 
+EVENT_ON_XBOX = "on_xbox"
 EVENT_XBOX_HOLD = "hold"
 EVENT_XBOX_RELEASE = "release"
 EVENT_XBOX_DIR_CHANGE = "dir_change"
 EVENT_XBOX_GEAR_CHANGE = "gear_change"
+
+EVENT_PREFERRED_DIR_MODE_CHANGE = "preferred_dir_mode_change"
 
 SUBJECT_LEFT_STICK = "left_stick"
 SUBJECT_RIGHT_STICK = "right_stick"
@@ -94,7 +97,7 @@ class GameXboxEvent:
 class GameEventOnXbox(GameEvent):
     def __init__(self):
         super().__init__()
-        self.event_name = "on_xbox"
+        self.event_name = EVENT_ON_XBOX
 
     def _fire(self, subject: str, type: str, value: Any = None):
         """
@@ -126,6 +129,9 @@ class GameEventOnXbox(GameEvent):
 
     def fire_button_release(self, button: str):
         self._fire(button, EVENT_XBOX_RELEASE)
+
+    def fire_preferred_dir_mode_change(self, subject: str, type: str):
+        self._fire(subject, EVENT_PREFERRED_DIR_MODE_CHANGE, type)
 
 event_on_mouse = GameEventOnMouse()
 event_on_key = GameEventOnKey()

@@ -71,47 +71,19 @@ def left_trigger(power: float):
         gamepad.left_trigger_float(power)
         gamepad.update()
 
-job = None
-
-def test():
-    global job
-    pow = 0.1
-
-    def update():
-        nonlocal pow
-        pow += 0.1
-        if pow == 1:
-            cron.cancel(job)
-            job = None
-            return
-        print(f"*****right trigger from vgamepad {pow}")
-        gamepad.right_trigger_float(pow)
-        gamepad.update()
-
-    job = cron.interval("20ms", update)
-
 def right_trigger(power: float):
     global job
-    # print(f"*****8right trigger from vgamepad {power}")
     if gamepad:
-        # print(f"*****right trigger from vgamepad {power}")
-        # if power == 0:
-        #     gamepad.right_trigger_float(0)
-        #     gamepad.update()
-        #     cron.cancel(job)
-        #     job = None
-        # else:
-        #     test()
         gamepad.right_trigger_float(power)
         gamepad.update()
 
 def dpad_dir_hold(dir: str):
     if gamepad:
-        for direction in ["dpad_left", "dpad_right", "dpad_up", "dpad_down"]:
+        for direction in ["left", "right", "up", "down"]:
             if direction == dir:
-                gamepad.press_button(direction)
+                gamepad.press_button(button_map[f"dpad_{direction}"])
             else:
-                gamepad.release_button(direction)
+                gamepad.release_button(button_map[f"dpad_{direction}"])
         gamepad.update()
 
 def not_supported():

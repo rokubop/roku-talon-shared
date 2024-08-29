@@ -20,7 +20,9 @@ _settings = {
     "game_xbox_right_stick_default_gear": (5, int, "Default gear for the right stick"),
     "game_xbox_right_stick_gears": (".2 .4 .6 .8 1", str, "Gears for the right stick"),
     "game_xbox_right_trigger_default_gear": (5, int, "Default gear for the right trigger"),
-    "game_xbox_right_trigger_gears": (".2 .4 .6 .8 1", str, "Gears for the right trigger")
+    "game_xbox_right_trigger_gears": (".2 .4 .6 .8 1", str, "Gears for the right trigger"),
+    "game_xbox_preferred_dir_mode_subject": ("right_stick", str, "The preferred subject for the directionals"),
+    "game_xbox_preferred_dir_mode_action_type": ("hold", str, "The preferred action type for the preferred direction mode."),
 }
 
 for name, (default, type, desc) in _settings.items():

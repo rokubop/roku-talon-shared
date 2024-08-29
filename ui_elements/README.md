@@ -77,7 +77,7 @@ screen(align_items="center", justify_content="center")[]
 screen(align_items="flex_start", justify_content="flex_start")[]
 
 # children of screen will be top right
-screen(align_items="flex_start", justify_content="flex_end")[]
+screen(flex_direction="row", align_items="flex_start", justify_content="flex_end")[]
 
 # Use margin to offset
 div(margin_top=16)[

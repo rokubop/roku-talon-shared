@@ -45,25 +45,22 @@ This is an experimental repository. Allows you drag from one point to another us
 
 ## Includes
 Modes:
-```
-user.drag_mode
-```
+
+`user.drag_mode`
 
 Tags:
-```
-user.pan_mode
-user.roll_mode
-```
+
+`user.pan_mode`
+`user.roll_mode`
 
 Settings:
-```
-user.drag_mode_exclude_chars
-user.drag_mode_default_tile_size
-user.drag_mode_tile_increment_size
-user.drag_mode_offset_x_y
-user.drag_mode_dynamic_noises_enabled
-user.drag_mode_disable_dynamic_noises_on_grid_hide
-```
+
+`user.drag_mode_exclude_chars`
+`user.drag_mode_default_tile_size`
+`user.drag_mode_tile_increment_size`
+`user.drag_mode_offset_x_y`
+`user.drag_mode_dynamic_noises_enabled`
+`user.drag_mode_disable_dynamic_noises_on_grid_hide`
 
 Commands:
 ```

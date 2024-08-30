@@ -10,7 +10,7 @@ This is an experimental repository for making any generic UI in HTML-like syntax
 - `input_text`
 
 ## Usage
-First we pick the elements we want to use:
+First we pick the elements we want to use. This is similar to an import statement.
 ```py
 (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
 ```
@@ -24,7 +24,7 @@ my_ui = screen()[
 ]
 ```
 
-To define css, we put it inside of the parentheses. This uses standard CSS property naming. To define children, we put it inside the square brackets. let's give it 1 div, positioned to the right center:
+To define css, we put it inside of the **parentheses**. To define children, we put it inside the **square brackets**.
 ```py
 my_ui = screen(align_items="flex_end", justify_content="center")[
     div()[
@@ -33,7 +33,7 @@ my_ui = screen(align_items="flex_end", justify_content="center")[
 ]
 ```
 
-Now we just need to show it:
+Now we just need to show it. Only the `screen` property has `.show()` method.
 ```py
 def show_ui():
     my_ui = screen()[
@@ -63,7 +63,13 @@ def hide_ui():
     actions.user.ui_elements_hide_all()
 ```
 
+## Box Model
+ui_elements have the same box model as normal HTML, with `padding`, `margin`, `border`, and `width` and `height`.
+
 ## Alignment
+All components use flexbox.
+However by default components are `flex_direction="column"` instead of `"row"`. This means when you don't provide anything, it will act like normal HTML where children are stacked vertically.
+
 You can look up CSS flexbox guide for learning more about alignment. Here are some examples:
 
 ```py
@@ -131,7 +137,7 @@ button("Click me", on_click=actions.user.hide_my_custom_ui),
 ## Text inputs
 ```py
 div()[
-    input_text(id="your_name"),
+    input_text(id="your_name", on_change=lambda value: print(value)),
 ],
 
 # later
@@ -197,7 +203,7 @@ screen(screen=2, align_items="flex_end", justify_content="center")[
 | font_weight | `str` - e.g. `'bold'` |
 | gap | `int` - gap between children |
 | height | `int` |
-| highlight_color | `str` - 6-digit hexadecimal with 2 optional digits for opacity e.g. `'FF0000'` or `FF000088` for opacity of `88` from `00` to `FF` |
+| highlight_color | `str` - 6-digit hexadecimal with 2 optional digits for opacity e.g. `'FF0000'` or `FF000088` for opacity of `88` from `00` to `FF`. Only works for screen component at the moment. |
 | id | `str` - Required on builder, and for 'highlight' feature to work on a div |
 | justify | `str` |
 | justify_content | `'flex_start'`, `'flex_end'`, `'center'` |
@@ -220,3 +226,22 @@ screen(screen=2, align_items="flex_end", justify_content="center")[
 | top | `int` |
 | value | `str` - For input |
 | width | `int` |
+
+## Actions
+| **Action** | **Description** |
+|------------|-----------------|
+| `ui_elements` | This acts like an import for the components you want to use. div, text, screen, button, input_text. |
+| `ui_elements_screen` | Only the screen ui element. Has .show() method. Give it an id if you want to specifically hide it later with actions.user.ui_elements_hide(id) |
+| `ui_elements_hide` | Hide and destroys a ui_element based on the id assigned to the screen ui_element |
+| `ui_elements_hide_all` | Hide and destroys all currently active ui_elements |
+| `ui_elements_set_text` | set text based on id |
+| `ui_elements_highlight` | highlight based on id |
+| `ui_elements_unhighlight` | unhighlight based on id |
+| `ui_elements_highlight_briefly` | highlight briefly based on id |
+| `ui_builder_get` | Get the UI builder with the given ID. Only for informational purposes. Not for mutation. |
+| `ui_elements_get_value` | Get value of an input based on id |
+| `ui_elements_register_on_lifecycle` | Register a callback to be called on mount or unmount |
+| `ui_elements_unregister_on_lifecycle` | Unregister a lifecycle callback |
+
+## Dependencies
+none

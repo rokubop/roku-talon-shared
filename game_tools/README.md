@@ -94,3 +94,8 @@ UI components built with `ui_elements` that you can place inside of other `ui_el
 | game_ui_element_xbox_right_stick | game_ui_element_xbox_primary_buttons | game_ui_element_xbox_dpad |
 | game_ui_element_xbox_left_trigger | game_ui_element_xbox_right_trigger |  game_ui_element_xbox_left_bumper |
 | game_ui_element_xbox_right_bumper |
+
+## Modes
+`user.game`
+`user.game_calibrating_x`
+`user.game_calibrating_y`

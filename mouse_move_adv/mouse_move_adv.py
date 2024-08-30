@@ -427,7 +427,7 @@ class Actions:
 
     def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float], speed_initial: int = 2):
         """
-        Move the mouse continuously.
+        Move the mouse continuously given a unit vector.
         Examples:
         ```
         mouse_move_continuous(1, 0) # right at default speed_initial
@@ -439,7 +439,7 @@ class Actions:
         mouse_move_continuous(dx_unit, dy_unit, speed_initial)
 
     def mouse_move_continuous_towards(x: Union[int, float], y: Union[int, float], speed_initial: int = 2):
-        """Move the mouse continuously."""
+        """Move the mouse continuously towards an xy screen position."""
         mouse_move_continuous_towards(x, y, speed_initial)
 
     def mouse_move_continuous_stop(debounce_ms: int = 0):
@@ -447,7 +447,7 @@ class Actions:
         mouse_move_continuous_stop(debounce_ms)
 
     def mouse_tick_last_direction(distance: int = 50, duration_ms: int = 0):
-        """Get the last direction of the continuous movement."""
+        """Jump the mouse a short distance in the same direction of the last continuous movement."""
         global _last_unit_vector
 
         if not _last_unit_vector.x and not _last_unit_vector.y:
@@ -455,7 +455,7 @@ class Actions:
         return mouse_move_delta_smooth(_last_unit_vector.x * distance, _last_unit_vector.y * distance, duration_ms)
 
     def mouse_tick_reverse_last_direction(distance: int = 50, duration_ms: int = 0):
-        """Get the last direction of the continuous movement."""
+        """Jump the mouse a short distance in the opposite direction of the last continuous movement."""
         global _last_unit_vector
 
         if not _last_unit_vector.x and not _last_unit_vector.y:
@@ -463,21 +463,21 @@ class Actions:
         return mouse_move_delta_smooth(-_last_unit_vector.x * distance, -_last_unit_vector.y * distance, duration_ms)
 
     def mouse_tick_direction(dx: int, dy: int, distance: int = 50, duration_ms: int = 0):
-        """Get the last direction of the continuous movement."""
+        """Jump the mouse a short distance in a specific direction."""
         return mouse_move_delta_smooth(dx * distance, dy * distance, duration_ms)
 
     def mouse_speed_increase(multipler: Union[int, float] = 2):
-        """Get the last direction of the continuous movement."""
+        """Increase the speed of a current continuous movement."""
         global _mouse_continuous_speed
         _mouse_continuous_speed *= multipler
 
     def mouse_speed_decrease(multipler: Union[int, float] = 2):
-        """Get the last direction of the continuous movement."""
+        """Decrease the speed of a current continuous movement."""
         global _mouse_continuous_speed
         _mouse_continuous_speed /= multipler
 
     def mouse_move_info():
-        """Get mouse info"""
+        """Get mouse movement info"""
         return {
             "last_unit_vector": _last_unit_vector,
             "continuous_active": _mouse_continuous_start_ts,
@@ -505,7 +505,7 @@ class Actions:
     def mouse_move_dir_change_event_register(on_event: callable):
         """
         Register callback event for mouse_move_dir_change.
-        Will trigger when movement starts or stops.
+        Will trigger when direction changes.
 
         ```py
         def on_event(event):

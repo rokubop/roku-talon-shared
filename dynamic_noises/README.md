@@ -55,7 +55,7 @@ actions.user.dynamic_noises_disable()
 
 This sets us up with two modes, "default" and "repeater". If we speak the words "default" or "repeater", we get the corresponding mode.
 
-## ctx for modes
+## ctx actions to override
 | ctx | Description |
 | --- | --- |
 | `dynamic_noises` | User defined dictionary of modes and their corresponding actions. |
@@ -74,3 +74,12 @@ This sets us up with two modes, "default" and "repeater". If we speak the words 
 | `dynamic_noises_event_unregister` | Unregister an event for a dynamic action. |
 | `dynamic_noises_event_unregister_all` | Unregister all events for a dynamic action. |
 | `dynamic_noises_ui_element` | A UI built from `ui_elements` showing pop and hiss you can place inside of other `ui_elements` to show the current dynamic action. |
+
+## Tags
+`dynamic_noises_talon_noise_override`
+
+## Lists
+`dynamic_noise_mode`
+
+## Dependencies
+`ui_elements` for displaying `dynamic_noises_ui_element`.

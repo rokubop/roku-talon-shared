@@ -47,6 +47,10 @@ The below low level actions are available, but it is recommended to use the `gam
 | `vgamepad_left_stick` | Sets the values of the X and Y axis for the left joystick. float between -1.0 and 1.0 (0 = neutral position) |
 | `vgamepad_right_stick` | Sets the values of the X and Y axis for the left joystick. float between -1.0 and 1.0 (0 = neutral position) |
 
+## Dependencies
+- `vgamepad` python package manually installed by you with Talon's `pip` package installer.
+- `vgamepad` repo which is included in the `.subtrees` folder.
+
 ## Additional info
 `vgamepad` is included in the `.subtrees` folder, which was cloned from https://github.com/yannbouteiller/vgamepad.
 

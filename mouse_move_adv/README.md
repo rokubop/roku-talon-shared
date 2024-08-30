@@ -4,19 +4,35 @@ This is an experimental repository. WIP. action names may change in the future. 
 
 Mouse movement actions for Talon using a delta (dx, dy) or position(s) (x, y) over a duration of time, with control over the easing type, API (Windows or Talon), and callbacks.
 
-| **Action** |
-|------------|
-mouse_move_from_to
-mouse_move_to
-mouse_move_from
-mouse_move_delta_degrees
-mouse_move_queue
-mouse_move_continuous
-mouse_move_continuous_towards
-mouse_move_continuous_stop
-mouse_tick_last_direction
-mouse_tick_reverse_last_direction
-mouse_tick_direction
-mouse_speed_increase
-mouse_speed_decrease
-mouse_move_info
+## Actions
+
+| **Action** | **Description** |
+|------------|-----------------|
+| `mouse_move_delta_smooth` | Move the mouse over a delta with control over the curve type, duration, mouse api type, and callback. |
+| `mouse_move_from_to` | Move the mouse from one point to another over a duration. |
+| `mouse_move_to` | Move the mouse to a point over a duration. |
+| `mouse_move_from` | Move the mouse from a point over a duration. |
+| `mouse_move_delta_degrees` | Move the mouse by a number of degrees over a duration. |
+| `mouse_move_queue` | Add to movement queue, executed after next mouse_stop. |
+| `mouse_move_continuous` | Move the mouse continuously given a unit vector. |
+| `mouse_move_continuous_towards` | Move the mouse continuously towards an xy screen position. |
+| `mouse_move_continuous_stop` | Stop continuous mouse movement with optional debounce. l|
+| `mouse_tick_last_direction` | Jump the mouse a short distance in the same direction of the last continuous movement. |
+| `mouse_tick_reverse_last_direction` | Jump the mouse a short distance in the opposite direction of the last continuous movement. |
+| `mouse_tick_direction` | Jump the mouse a short distance in a specific direction. |
+| `mouse_speed_increase` | Increase the speed of a current continuous movement.|
+| `mouse_speed_decrease` | Decrease the speed of a current continuous movement.|
+| `mouse_move_info` | Get mouse movement info |
+| `mouse_move_event_register` | Register callback event for mouse movement. Will trigger when movement starts or stops. |
+| `mouse_move_event_unregister` | Unregister event set by actions.user.mouse_move_event_register. |
+| `mouse_move_dir_change_event_register` | Register callback event for mouse_move_dir_change. Will trigger when direction changes. |
+| `mouse_move_dir_change_event_unregister` | Unregister event set by actions.user.mouse_move_dir_change_event_register. |
+| `mouse_move_event_unregister_all` | Unregister all mouse movement events. |
+
+## Settings
+| **Setting** | **Type** | **Default** | **Description** |
+|-------------|----------|-------------|-----------------|
+| `mouse_move_api` | "talon" or "windows" | "talon" | Mouse API to use for mouse movement - talon or windows |
+
+## Dependencies
+none

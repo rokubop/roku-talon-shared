@@ -95,3 +95,15 @@ class Actions:
 | `"pop@up"` | Triggers when you pop on the top side of the screen. |
 | `"pop@down"` | Triggers when you pop on the bottom side of the screen. |
 | `"hiss:db@left"` | Debounces the hiss command to only trigger after 100ms of continuous popping on the left side of the screen. |
+
+## Actions
+| Action | Description |
+| --- | --- |
+| `use_parrot_config` | parrot noises should call this in order to use current `parrot_config` e.g. `parrot(pop): user.use_parrot_config("pop")` |
+| `parrot_config` | Return the parrot configuration for the current context. Default should be `{}`. Override this in your preferred contexts. |
+| `parrot_config_format_display` | Format the parrot config in a convenient tuple format for displaying in a UI. |
+| `parrot_config_event_register` | Register noise event triggered from parrot_config. |
+| `parrot_config_event_unregister` | Unregister event set by actions.user.parrot_config_event_register |
+
+## Dependencies
+none

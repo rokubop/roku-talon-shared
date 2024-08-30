@@ -11,7 +11,7 @@ mod = Module()
 class Actions:
     def use_parrot_config(sound: str):
         """
-        Call this with your sounds to use the current `ctx` `parrot_config`
+        parrot noises should call this in order to use current `parrot_config`
 
         Example:
         ```talon

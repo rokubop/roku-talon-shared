@@ -21,6 +21,9 @@ mod = Module()
 class Actions:
     def ui_elements(elements: List[str]) -> tuple[callable]:
         """
+        This acts like an import for the components you want to use.
+        div, text, screen, button, input_text.
+
         Usage:
         ```py
         # def show

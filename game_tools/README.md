@@ -99,3 +99,8 @@ UI components built with `ui_elements` that you can place inside of other `ui_el
 `user.game`
 `user.game_calibrating_x`
 `user.game_calibrating_y`
+
+## Dependencies
+- `roku-talon-shared/mouse_move_adv`
+- `roku-talon-shared/vgamepad` if you use the `game_xbox_` actions
+- `roku-talon-shared/ui_elements` if you use the `game_ui_element_` actions

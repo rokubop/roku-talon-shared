@@ -279,29 +279,6 @@ def stopper():
     if _held_mouse_buttons:
         mouse_release_all()
 
-@mod.action_class
-class Actions:
-    def game_mode_enable():
-        """Enable play mode"""
-        global _game_use_awsd_for_arrows
-        actions.mode.enable("user.game")
-        if settings.get("user.game_mode_disables_command_mode"):
-            actions.mode.disable("command")
-        print("game_mode_enable")
-        if settings.get("user.game_use_awsd_for_arrows"):
-            _game_use_awsd_for_arrows = True
-        event_on_game_mode.fire_enabled()
-        actions.user.on_game_mode_enabled()
-
-    def game_mode_disable():
-        """Disable game mode"""
-        actions.user.on_game_mode_disabled()
-        event_on_game_mode.fire_disabled()
-        stopper()
-        actions.mode.disable("user.game")
-        actions.mode.enable("command")
-        print("game_mode_disable")
-
 def mouse_reset_center_y():
     """Reset the mouse to the center of the screen."""
     actions.user.mouse_move_delta_degrees(0, 180, 100)
@@ -475,6 +452,27 @@ def game_gear_set(gear_num: int):
 
 @mod.action_class
 class Actions:
+    def game_mode_enable():
+        """Enable play mode"""
+        global _game_use_awsd_for_arrows
+        actions.mode.enable("user.game")
+        if settings.get("user.game_mode_disables_command_mode"):
+            actions.mode.disable("command")
+        print("game_mode_enable")
+        if settings.get("user.game_use_awsd_for_arrows"):
+            _game_use_awsd_for_arrows = True
+        event_on_game_mode.fire_enabled()
+        actions.user.on_game_mode_enabled()
+
+    def game_mode_disable():
+        """Disable game mode"""
+        actions.user.on_game_mode_disabled()
+        event_on_game_mode.fire_disabled()
+        stopper()
+        actions.mode.disable("user.game")
+        actions.mode.enable("command")
+        print("game_mode_disable")
+
     def game_calibrate_x_360_add(num: int):
         """Add to the current x calibration."""
         game_calibrate_x_360_adjust_last(num)

@@ -4,11 +4,12 @@ accent_color = "87ceeb"
 
 def show_ui(parrot_config, background_color="22266688"):
     global commands
+    actions.user.ui_elements_hide_all()
 
     (div, screen, text) = actions.user.ui_elements(['div', 'screen', 'text'])
     (cmds, acts) = actions.user.parrot_config_format_display(parrot_config)
 
-    commands = screen(align_items="flex_end", justify_content="center")[
+    commands = screen(flex_direction="row", align_items="center", justify_content="flex_end")[
         div(flex_direction="row", background_color=background_color, padding=16, gap=16)[
             div(gap=8)[
                 text("sound", font_weight="bold"),

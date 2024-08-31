@@ -17,7 +17,7 @@ def peppermint_mode():
     global parrot_config
     key("alt:down"),
     parrot_config = peppermint_config
-    show_ui(parrot_config, background_color="45f24888")
+    show_ui(parrot_config, background_color="00800088")
 
 def rpg_mode():
     global parrot_config
@@ -60,6 +60,7 @@ def rpg_mouse_mode_disable():
     global parrot_config
     actions.user.mouse_move_continuous_stop()
     parrot_config = default_config
+    show_ui(parrot_config)
 
 def rpg_mouse_click_stop():
     actions.user.mouse_move_continuous_stop()

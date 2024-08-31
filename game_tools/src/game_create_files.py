@@ -12,7 +12,7 @@ active_app = None
 
 @mod.action_class
 class Actions:
-    def prep_game_create_files():
+    def game_prep_create_files():
         """Prepare to create a new directory with talon and python context files for the current application"""
         global active_app
         active_app = ui.active_app()

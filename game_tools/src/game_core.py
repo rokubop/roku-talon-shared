@@ -308,37 +308,43 @@ def mouse_reset_center_y():
     actions.user.mouse_move_queue(lambda: actions.user.mouse_move_delta_degrees(0, -90, 100))
 
 def on_calibrate_x_360_tick(value):
-    global _last_calibrate_value_x
-    actions.user.ui_calibrate_update(_last_calibrate_value_x + value.dx)
-    if value.type == "stop":
-        _last_calibrate_value_x += value.dx
+    actions.skip()
+#     global _last_calibrate_value_x
+#     actions.user.game_ui_calibrate_update(_last_calibrate_value_x + value.dx)
+#     if value.type == "stop":
+#         _last_calibrate_value_x += value.dx
 
 def on_calibrate_y_90_tick(value):
-    global _last_calibrate_value_y
-    actions.user.ui_calibrate_update(_last_calibrate_value_y - value.dy)
-    if value.type == "stop":
-        _last_calibrate_value_y -= value.dy
+    actions.skip()
+#     global _last_calibrate_value_y
+#     actions.user.game_ui_calibrate_update(_last_calibrate_value_y - value.dy)
+#     if value.type == "stop":
+#         _last_calibrate_value_y -= value.dy
 
 def mouse_calibrate_x_360(dx360: int):
-    """Calibrate a 360 spin"""
-    global _last_calibrate_value_x
-    _last_calibrate_value_x = 0
-    actions.user.mouse_move_delta_smooth(dx360, 0, 1000, on_calibrate_x_360_tick, mouse_api_type="windows")
+    actions.skip()
+#     """Calibrate a 360 spin"""
+#     global _last_calibrate_value_x
+#     _last_calibrate_value_x = 0
+#     actions.user.mouse_move_delta_smooth(dx360, 0, 1000, on_calibrate_x_360_tick, mouse_api_type="windows")
 
 def game_calibrate_x_360_adjust_last(dx: int):
-    """Add or subtract to the last x calibration."""
-    actions.user.mouse_move_delta_smooth(dx, 0, 500, on_calibrate_x_360_tick, mouse_api_type="windows")
+    actions.skip()
+#     """Add or subtract to the last x calibration."""
+#     actions.user.mouse_move_delta_smooth(dx, 0, 500, on_calibrate_x_360_tick, mouse_api_type="windows")
 
 def game_calibrate_y_90_adjust_last(dy: int):
-    """Add or subtract to the last x calibration."""
-    actions.user.mouse_move_delta_smooth(0, dy, 500, on_calibrate_y_90_tick, mouse_api_type="windows")
+    actions.skip()
+#     """Add or subtract to the last x calibration."""
+#     actions.user.mouse_move_delta_smooth(0, dy, 500, on_calibrate_y_90_tick, mouse_api_type="windows")
 
 def mouse_calibrate_90_y(dy_90: int):
-    """Calibrate looking down to the ground and looking up to center."""
-    global _last_calibrate_value_y
-    _last_calibrate_value_y = 0
-    actions.user.mouse_move_delta_smooth(0, dy_90 * 2, 100, mouse_api_type="windows")
-    actions.user.mouse_move_queue(lambda: actions.user.mouse_move_delta_smooth(0, -dy_90, 100, on_calibrate_y_90_tick, mouse_api_type="windows"))
+    actions.skip()
+#     """Calibrate looking down to the ground and looking up to center."""
+#     global _last_calibrate_value_y
+#     _last_calibrate_value_y = 0
+#     actions.user.mouse_move_delta_smooth(0, dy_90 * 2, 100, mouse_api_type="windows")
+#     actions.user.mouse_move_queue(lambda: actions.user.mouse_move_delta_smooth(0, -dy_90, 100, on_calibrate_y_90_tick, mouse_api_type="windows"))
 
 def game_key_up(key):
     global _key_up_pending_jobs
@@ -487,33 +493,45 @@ class Actions:
 
     def game_calibrate_x_360_copy_to_clipboard():
         """Copy the last x calibration to the clipboard."""
-        clip.set_text(str(_last_calibrate_value_x))
+        print("WIP")
+        actions.skip()
+        # clip.set_text(str(_last_calibrate_value_x))
 
     def game_calibrate_y_90_copy_to_clipboard():
         """Copy the last y calibration to the clipboard."""
-        clip.set_text(str(_last_calibrate_value_y))
+        print("WIP")
+        actions.skip()
+        # clip.set_text(str(_last_calibrate_value_y))
 
     def game_mode_calibrate_x_enable():
         """Start calibrating x"""
-        actions.mode.disable("user.game_calibrating_y")
-        actions.mode.enable("user.game_calibrating_x")
-        actions.user.ui_show_calibrate_x()
+        print("WIP")
+        actions.skip()
+        # actions.mode.disable("user.game_calibrating_y")
+        # actions.mode.enable("user.game_calibrating_x")
+        # actions.user.game_ui_show_calibrate_x()
 
     def game_mode_calibrate_x_disable():
         """Start calibrating x"""
-        actions.mode.disable("user.game_calibrating_x")
-        actions.user.ui_hide_game_modal_large()
+        print("WIP")
+        actions.skip()
+        # actions.mode.disable("user.game_calibrating_x")
+        # actions.user.game_ui_hide_game_modal_large()
 
     def game_mode_calibrate_y_enable():
         """Start calibrating y"""
-        actions.mode.disable("user.game_calibrating_x")
-        actions.mode.enable("user.game_calibrating_y")
-        actions.user.ui_show_calibrate_y()
+        print("WIP")
+        actions.skip()
+        # actions.mode.disable("user.game_calibrating_x")
+        # actions.mode.enable("user.game_calibrating_y")
+        # actions.user.game_ui_show_calibrate_y()
 
     def game_mode_calibrate_y_disable():
         """Start calibrating y"""
-        actions.mode.disable("user.game_calibrating_y")
-        actions.user.ui_hide_game_modal_large()
+        print("WIP")
+        actions.skip()
+        # actions.mode.disable("user.game_calibrating_y")
+        # actions.user.game_ui_hide_game_modal_large()
 
     def on_game_mode_enabled():
         """Triggered on game mode enabled"""

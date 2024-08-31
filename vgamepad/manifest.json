@@ -1,0 +1,30 @@
+{
+  "name": "vgamepad",
+  "description": "Auto-generated manifest. This will allow us to emulate Xbox360 gamepad actions with Talon. Only Windows and Linux are supported.",
+  "version": "0.1.0",
+  "lists": [],
+  "modes": [],
+  "settings": [],
+  "tags": [],
+  "actions": [
+    "user.vgamepad_button_hold",
+    "user.vgamepad_button_hold",
+    "user.vgamepad_button_release",
+    "user.vgamepad_button_release",
+    "user.vgamepad_disable",
+    "user.vgamepad_disable",
+    "user.vgamepad_dpad_dir_hold",
+    "user.vgamepad_dpad_dir_hold",
+    "user.vgamepad_enable",
+    "user.vgamepad_enable",
+    "user.vgamepad_left_stick",
+    "user.vgamepad_left_stick",
+    "user.vgamepad_left_trigger",
+    "user.vgamepad_left_trigger",
+    "user.vgamepad_right_stick",
+    "user.vgamepad_right_stick",
+    "user.vgamepad_right_trigger",
+    "user.vgamepad_right_trigger"
+  ],
+  "dependencies": []
+}

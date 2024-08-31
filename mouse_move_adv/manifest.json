@@ -1,0 +1,34 @@
+{
+  "name": "mouse_move_adv",
+  "description": "Auto-generated manifest. This is an experimental repository. WIP. action names may change in the future. This is used for helping you turn in game and drag commands.",
+  "version": "0.1.0",
+  "lists": [],
+  "modes": [],
+  "settings": [
+    "user.mouse_move_api"
+  ],
+  "tags": [],
+  "actions": [
+    "user.mouse_move_continuous",
+    "user.mouse_move_continuous_stop",
+    "user.mouse_move_continuous_towards",
+    "user.mouse_move_delta_degrees",
+    "user.mouse_move_delta_smooth",
+    "user.mouse_move_dir_change_event_register",
+    "user.mouse_move_dir_change_event_unregister",
+    "user.mouse_move_event_register",
+    "user.mouse_move_event_unregister",
+    "user.mouse_move_event_unregister_all",
+    "user.mouse_move_from",
+    "user.mouse_move_from_to",
+    "user.mouse_move_info",
+    "user.mouse_move_queue",
+    "user.mouse_move_to",
+    "user.mouse_speed_decrease",
+    "user.mouse_speed_increase",
+    "user.mouse_tick_direction",
+    "user.mouse_tick_last_direction",
+    "user.mouse_tick_reverse_last_direction"
+  ],
+  "dependencies": []
+}

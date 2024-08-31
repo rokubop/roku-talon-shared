@@ -100,7 +100,7 @@ class Actions:
         """highlight briefly based on id"""
         builder_child_id_action(id, "highlight_briefly", color)
 
-    def ui_builder_get(id: str) -> UIBuilder:
+    def ui_elements_get(id: str) -> UIBuilder:
         """
         Get the UI builder with the given ID. Only for
         informational purposes. Not for mutation.

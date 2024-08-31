@@ -238,7 +238,7 @@ screen(screen=2, align_items="flex_end", justify_content="center")[
 | `ui_elements_highlight` | highlight based on id |
 | `ui_elements_unhighlight` | unhighlight based on id |
 | `ui_elements_highlight_briefly` | highlight briefly based on id |
-| `ui_builder_get` | Get the UI builder with the given ID. Only for informational purposes. Not for mutation. |
+| `ui_elements_get` | Get the UI builder with the given ID. Only for informational purposes. Not for mutation. |
 | `ui_elements_get_value` | Get value of an input based on id |
 | `ui_elements_register_on_lifecycle` | Register a callback to be called on mount or unmount |
 | `ui_elements_unregister_on_lifecycle` | Unregister a lifecycle callback |

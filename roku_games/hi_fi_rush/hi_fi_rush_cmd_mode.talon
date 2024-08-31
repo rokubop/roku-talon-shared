@@ -7,5 +7,6 @@ settings():
     key_hold = 64.0
     key_wait = 16.0
     user.mouse_move_api = "windows"
+    user.mouse_move_continuous_speed_default = 6
 
 ^game [mode]$:              user.game_mode_enable()

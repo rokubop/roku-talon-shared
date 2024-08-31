@@ -50,8 +50,8 @@ Modes:
 
 Tags:
 
-`user.pan_mode`
-`user.roll_mode`
+`user.drag_mode_pan_mode`
+`user.drag_mode_roll_mode`
 
 Settings:
 

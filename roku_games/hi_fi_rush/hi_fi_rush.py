@@ -58,17 +58,17 @@ parrot_config = default_config
 
 def rpg_mouse_mode_disable():
     global parrot_config
-    actions.user.rpg_mouse_stop()
+    actions.user.mouse_move_continuous_stop()
     parrot_config = default_config
 
 def rpg_mouse_click_stop():
-    actions.user.rpg_mouse_stop()
-    actions.user.mouse_click()
+    actions.user.mouse_move_continuous_stop()
+    actions.user.game_mouse_click()
 
 def rpg_mouse_click_exit():
     global parrot_config
-    actions.user.rpg_mouse_stop()
-    actions.user.mouse_click()
+    actions.user.mouse_move_continuous_stop()
+    actions.user.game_mouse_click()
     parrot_config = default_config
     show_ui(parrot_config)
 
@@ -76,15 +76,15 @@ nav_config = {
     "cluck":  ("exit", rpg_mouse_mode_disable),
     "nn":     ("click", rpg_mouse_click_stop),
     "pop":    ("click exit", rpg_mouse_click_exit),
-    "ah":     ("left", actions.user.rpg_mouse_move_left),
-    "oh":     ("right", actions.user.rpg_mouse_move_right),
-    "hiss":   ("down", actions.user.rpg_mouse_move_down),
-    "shush":  ("up", actions.user.rpg_mouse_move_up),
-    "palate": ("repeat", actions.user.rpg_mouse_repeat_dir_by_increment),
-    "tut":    ("reverse", actions.user.rpg_mouse_repeat_reverse_dir_by_increment),
-    "ee":     ("stop", actions.user.rpg_mouse_stop),
-    "t":      ("slow", actions.user.rpg_mouse_move_slow),
-    "guh":    ("fast", actions.user.rpg_mouse_move_fast),
+    "ah":     ("left", actions.user.mouse_move_continuous_left),
+    "oh":     ("right", actions.user.mouse_move_continuous_right),
+    "hiss":   ("down", actions.user.mouse_move_continuous_down),
+    "shush":  ("up", actions.user.mouse_move_continuous_up),
+    "palate": ("repeat", actions.user.mouse_move_tick_last_direction),
+    "tut":    ("reverse", actions.user.mouse_move_tick_reverse_last_direction),
+    "ee":     ("stop", actions.user.mouse_move_continuous_stop),
+    "t":      ("slow", actions.user.mouse_move_speed_decrease),
+    "guh":    ("fast", actions.user.mouse_move_speed_increase),
     "er":     ("exit mode", rpg_mouse_mode_disable),
 }
 
@@ -93,18 +93,10 @@ def shoot_and_exit():
     rpg_mouse_mode_disable()
 
 peppermint_config = {
+    **nav_config,
     "cluck":  ("exit", shoot_and_exit),
     "nn":     ("click", shoot_and_exit),
     "pop":    ("click exit", shoot_and_exit),
-    "ah":     ("left", actions.user.rpg_mouse_move_left),
-    "oh":     ("right", actions.user.rpg_mouse_move_right),
-    "hiss":   ("down", actions.user.rpg_mouse_move_down),
-    "shush":  ("up", actions.user.rpg_mouse_move_up),
-    "palate": ("repeat", actions.user.rpg_mouse_repeat_dir_by_increment),
-    "tut":    ("reverse", actions.user.rpg_mouse_repeat_reverse_dir_by_increment),
-    "ee":     ("stop", actions.user.rpg_mouse_stop),
-    "t":      ("slow", actions.user.rpg_mouse_move_slow),
-    "guh":    ("fast", actions.user.rpg_mouse_move_fast),
     "er":     ("exit mode", shoot_and_exit),
 }
 

@@ -8,12 +8,8 @@
     "user.private_game_spoken_dir_arrows"
   ],
   "modes": [],
-  "settings": [
-    "user.game_setting_awsd_for_movement"
-  ],
-  "tags": [
-    "user.game_3d_commands"
-  ],
+  "settings": ["user.game_setting_awsd_for_movement"],
+  "tags": ["user.game_3d_commands"],
   "actions": [
     "user.civilization_vi_mouse_movement_toggle",
     "user.game_celeste_set_jump_2",
@@ -38,6 +34,7 @@
     "user.dynamic_noises_enable",
     "user.dynamic_noises_ui_element",
     "user.dynamic_noises_use_mode",
+    "user.game_mouse_click",
     "user.game_csv_game_words_setup",
     "user.game_event_register_on_key",
     "user.game_event_unregister_on_key",
@@ -100,7 +97,6 @@
     "user.game_xbox_button_toggle",
     "user.game_xbox_gamepad_disable",
     "user.game_xbox_gamepad_enable",
-    "user.mouse_click",
     "user.parrot_config_event_register",
     "user.parrot_config_event_unregister",
     "user.parrot_config_format_display",

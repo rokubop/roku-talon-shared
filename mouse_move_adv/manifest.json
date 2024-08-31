@@ -5,13 +5,19 @@
   "lists": [],
   "modes": [],
   "settings": [
-    "user.mouse_move_api"
+    "user.mouse_move_api",
+    "user.mouse_move_continuous_speed_default",
+    "user.mouse_move_tick_distance"
   ],
   "tags": [],
   "actions": [
     "user.mouse_move_continuous",
+    "user.mouse_move_continuous_down",
+    "user.mouse_move_continuous_left",
+    "user.mouse_move_continuous_right",
     "user.mouse_move_continuous_stop",
     "user.mouse_move_continuous_towards",
+    "user.mouse_move_continuous_up",
     "user.mouse_move_delta_degrees",
     "user.mouse_move_delta_smooth",
     "user.mouse_move_dir_change_event_register",
@@ -23,12 +29,12 @@
     "user.mouse_move_from_to",
     "user.mouse_move_info",
     "user.mouse_move_queue",
-    "user.mouse_move_to",
-    "user.mouse_speed_decrease",
-    "user.mouse_speed_increase",
-    "user.mouse_tick_direction",
-    "user.mouse_tick_last_direction",
-    "user.mouse_tick_reverse_last_direction"
+    "user.mouse_move_speed_decrease",
+    "user.mouse_move_speed_increase",
+    "user.mouse_move_tick_direction",
+    "user.mouse_move_tick_last_direction",
+    "user.mouse_move_tick_reverse_last_direction",
+    "user.mouse_move_to"
   ],
   "dependencies": []
 }

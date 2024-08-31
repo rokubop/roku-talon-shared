@@ -7,8 +7,8 @@ from itertools import islice
 
 mod, ctx = Module(), Context()
 mod.mode("drag_mode", "Drag mode. Defaults to LMB drag")
-mod.tag("pan_mode", desc="Default to MMB drag")
-mod.tag("roll_mode", desc="Default to RMB drag")
+mod.tag("drag_mode_pan_mode", desc="Default to MMB drag")
+mod.tag("drag_mode_roll_mode", desc="Default to RMB drag")
 ctx.matches = r"""
 mode: user.drag_mode
 """
@@ -177,19 +177,19 @@ class Actions:
         drag_mode_enable()
         ctx.tags = []
 
-    def pan_mode_show():
+    def drag_mode_pan_mode_show():
         """Show the grid"""
         global background_color
         background_color = background_color_pan
         drag_mode_enable()
-        ctx.tags = ["user.pan_mode"]
+        ctx.tags = ["user.drag_mode_pan_mode"]
 
-    def roll_mode_show():
+    def drag_mode_roll_mode_show():
         """Show the grid"""
         global background_color
         background_color = background_color_roll
         drag_mode_enable()
-        ctx.tags = ["user.roll_mode"]
+        ctx.tags = ["user.drag_mode_roll_mode"]
 
     def drag_mode_hide():
         """Hide the grid"""

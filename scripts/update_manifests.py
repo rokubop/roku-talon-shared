@@ -1,16 +1,35 @@
+import os
+import json
+import re
+import tokenize
+from io import StringIO
+
 """
-Update Manifests
+update_manifests.py script
 
 This script is used to generate/update the manifest file for each
 directory at '../{folders}'. It will scan and accumulate all actions,
 modes, settings, tags, and dependencies and update the manifest.json
 """
 
-import os
-import json
-import re
-import tokenize
-from io import StringIO
+PACKAGE_DIRS = [
+    '../drag_mode',
+    '../dynamic-noises',
+    '../game_tools',
+    '../mouse_move_adv',
+    '../parrot_config',
+    '../ui_elements',
+    '../vgamepad',
+    '../roku_games/celeste',
+    '../roku_games/hi_fi_rush',
+    '../roku_games/rdr2',
+    '../roku_games/sheepy',
+    '../roku_games/stray',
+    '../roku_games/talos_2',
+]
+
+exclude_dirs = ['.git', 'scripts', '.subtrees', ['roku_games, private']]
+
 
 def find_dependencies(content, known_entities):
     """
@@ -28,8 +47,8 @@ def find_dependencies(content, known_entities):
                 if next_token and next_token.type == tokenize.NAME:
                     reference = next_token.string
                     if reference not in known_entities:
-                        print(f"Found unknown dependency: user.{reference}")
                         dependencies.append(reference)
+    print(f"Found dependencies: {len(dependencies)}")
 
     return dependencies
 
@@ -163,7 +182,7 @@ def update_manifest(package_dir, manifest_data):
         json.dump(manifest_data, f, indent=2)
 
 def create_or_update_manifest():
-    root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    root_path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 
     print(f"Packages path: {root_path}")
 
@@ -171,9 +190,10 @@ def create_or_update_manifest():
         print(f"Error: Packages directory not found at {root_path}")
         return
 
-    for package_dir in [d for d in os.listdir(root_path) if not d.startswith('.') and d != 'scripts']:
+
+    for relative_dir in PACKAGE_DIRS:
+        full_package_dir = os.path.abspath(os.path.join(root_path, relative_dir))
         known_entities = set()
-        full_package_dir = os.path.join(root_path, package_dir)
 
         if os.path.isdir(full_package_dir):
             existing_manifest_data = load_existing_manifest(full_package_dir)
@@ -194,7 +214,7 @@ def create_or_update_manifest():
                 new_manifest_data[key].sort()
 
             update_manifest(full_package_dir, new_manifest_data)
-            print(f"Found {len(deps)} non-package user references: {deps}")
+            print(f"Found {len(deps)} non-package user references")
             print(f"Manifest updated for {full_package_dir}")
 
 if __name__ == "__main__":

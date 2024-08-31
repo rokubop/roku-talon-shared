@@ -29,7 +29,7 @@ Breaking Changes
 - Rename `actions.user.rt_mouse_move_delta` to `actions.user.mouse_move_delta_smooth`
 - Removed `actions.user.ui_elements_screen`. Use `actions.user.ui_elements` instead.
 - Removed `actions.user.ui_builder_show`. Use `.show()` instead.
-- Removed `ui_builder_get_id` and `ui_builder_get_ids`. Use `ui_builder_get` instead.
+- Removed `ui_elements_get_id` and `ui_elements_get_ids`. Use `ui_elements_get` instead.
 
 ## Sun Aug 4, 2024
 ui_elements

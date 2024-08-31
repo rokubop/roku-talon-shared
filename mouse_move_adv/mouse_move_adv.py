@@ -14,6 +14,8 @@ import time
 
 mod = Module()
 mod.setting("mouse_move_api", type=str, default="talon", desc="Mouse API to use for mouse movement - talon or windows")
+mod.setting("mouse_move_continuous_speed_default", type=int, default=2, desc="Default speed for continuous mouse movement")
+mod.setting("mouse_move_tick_distance", type=int, default=50, desc="Distance for mouse_move_tick_last_direction")
 
 _mouse_job = None
 _last_mouse_job_type = None
@@ -425,7 +427,7 @@ class Actions:
         """Add to movement queue, executed after next mouse_stop."""
         mouse_move_queue(fn)
 
-    def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float], speed_initial: int = 2):
+    def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float], speed_initial: int = None):
         """
         Move the mouse continuously given a unit vector.
         Examples:
@@ -436,7 +438,23 @@ class Actions:
         mouse_move_continuous(1, -1, 10) # right and up at speed_initial 10
         ```
         """
-        mouse_move_continuous(dx_unit, dy_unit, speed_initial)
+        mouse_move_continuous(dx_unit, dy_unit, speed_initial or settings.get("user.mouse_move_continuous_speed_default"))
+
+    def mouse_move_continuous_left(speed: int = None):
+        """Move the mouse continuously left."""
+        mouse_move_continuous(-1, 0, speed or settings.get("user.mouse_move_continuous_speed_default"))
+
+    def mouse_move_continuous_right(speed: int = None):
+        """Move the mouse continuously right."""
+        mouse_move_continuous(1, 0, speed or settings.get("user.mouse_move_continuous_speed_default"))
+
+    def mouse_move_continuous_up(speed: int = None):
+        """Move the mouse continuously up."""
+        mouse_move_continuous(0, -1, speed or settings.get("user.mouse_move_continuous_speed_default"))
+
+    def mouse_move_continuous_down(speed: int = None):
+        """Move the mouse continuously down."""
+        mouse_move_continuous(0, 1, speed or settings.get("user.mouse_move_continuous_speed_default"))
 
     def mouse_move_continuous_towards(x: Union[int, float], y: Union[int, float], speed_initial: int = 2):
         """Move the mouse continuously towards an xy screen position."""
@@ -446,32 +464,37 @@ class Actions:
         """Stop continuous mouse movement with optional debounce."""
         mouse_move_continuous_stop(debounce_ms)
 
-    def mouse_tick_last_direction(distance: int = 50, duration_ms: int = 0):
+    def mouse_move_tick_last_direction(distance: int = None, duration_ms: int = 0):
         """Jump the mouse a short distance in the same direction of the last continuous movement."""
         global _last_unit_vector
+
+        distance = distance or settings.get("user.mouse_move_tick_distance")
 
         if not _last_unit_vector.x and not _last_unit_vector.y:
             return None
         return mouse_move_delta_smooth(_last_unit_vector.x * distance, _last_unit_vector.y * distance, duration_ms)
 
-    def mouse_tick_reverse_last_direction(distance: int = 50, duration_ms: int = 0):
+    def mouse_move_tick_reverse_last_direction(distance: int = None, duration_ms: int = 0):
         """Jump the mouse a short distance in the opposite direction of the last continuous movement."""
         global _last_unit_vector
+
+        distance = distance or settings.get("user.mouse_move_tick_distance")
 
         if not _last_unit_vector.x and not _last_unit_vector.y:
             return None
         return mouse_move_delta_smooth(-_last_unit_vector.x * distance, -_last_unit_vector.y * distance, duration_ms)
 
-    def mouse_tick_direction(dx: int, dy: int, distance: int = 50, duration_ms: int = 0):
+    def mouse_move_tick_direction(dx: int, dy: int, distance: int = None, duration_ms: int = 0):
         """Jump the mouse a short distance in a specific direction."""
+        distance = distance or settings.get("user.mouse_move_tick_distance")
         return mouse_move_delta_smooth(dx * distance, dy * distance, duration_ms)
 
-    def mouse_speed_increase(multipler: Union[int, float] = 2):
+    def mouse_move_speed_increase(multipler: Union[int, float] = 2):
         """Increase the speed of a current continuous movement."""
         global _mouse_continuous_speed
         _mouse_continuous_speed *= multipler
 
-    def mouse_speed_decrease(multipler: Union[int, float] = 2):
+    def mouse_move_speed_decrease(multipler: Union[int, float] = 2):
         """Decrease the speed of a current continuous movement."""
         global _mouse_continuous_speed
         _mouse_continuous_speed /= multipler

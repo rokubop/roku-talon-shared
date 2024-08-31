@@ -12,12 +12,12 @@ Combos have a timeout of `300ms`. If you define a combo, then the first sound wi
 ## Example
 
 ```talon
-parrot(pop):                 user.use_parrot_config("pop")
-parrot(hiss):                user.use_parrot_config("hiss")
-parrot(hiss:stop):           user.use_parrot_config("hiss_stop")
-parrot(shush):               user.use_parrot_config("shush")
-parrot(shush:stop):          user.use_parrot_config("shush_stop")
-parrot(cluck):               user.use_parrot_config("cluck")
+parrot(pop):                 user.parrot_config_noise("pop")
+parrot(hiss):                user.parrot_config_noise("hiss")
+parrot(hiss:stop):           user.parrot_config_noise("hiss_stop")
+parrot(shush):               user.parrot_config_noise("shush")
+parrot(shush:stop):          user.parrot_config_noise("shush_stop")
+parrot(cluck):               user.parrot_config_noise("cluck")
 ```
 
 ```py
@@ -99,8 +99,8 @@ class Actions:
 ## Actions
 | Action | Description |
 | --- | --- |
-| `use_parrot_config` | parrot noises should call this in order to use current `parrot_config` e.g. `parrot(pop): user.use_parrot_config("pop")` |
 | `parrot_config` | Return the parrot configuration for the current context. Default should be `{}`. Override this in your preferred contexts. |
+| `parrot_config_noise` | parrot noises should call this in order to use current `parrot_config` e.g. `parrot(pop): user.parrot_config_noise("pop")` |
 | `parrot_config_format_display` | Format the parrot config in a convenient tuple format for displaying in a UI. |
 | `parrot_config_event_register` | Register noise event triggered from parrot_config. |
 | `parrot_config_event_unregister` | Unregister event set by actions.user.parrot_config_event_register |

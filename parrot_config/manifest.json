@@ -11,6 +11,7 @@
     "user.parrot_config_event_register",
     "user.parrot_config_event_unregister",
     "user.parrot_config_format_display",
+    "user.parrot_config_noise",
     "user.use_parrot_config"
   ],
   "dependencies": []

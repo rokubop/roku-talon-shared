@@ -217,7 +217,7 @@ def parrot_debounce(time_ms: int, id: str, command: callable):
         cron.cancel(parrot_debounce_busy[id])
     parrot_debounce_busy[id] = cron.after(f"{time_ms}ms", lambda: (command(), parrot_debounce_disable(id)))
 
-def use_parrot_config(sound: str):
+def parrot_config_noise(sound: str):
     config = actions.user.parrot_config()
     if parrot_config_saved.parrot_config_ref != config:
         print("init parrot config")

@@ -28,9 +28,6 @@ PACKAGE_DIRS = [
     '../roku_games/talos_2',
 ]
 
-exclude_dirs = ['.git', 'scripts', '.subtrees', ['roku_games, private']]
-
-
 def find_dependencies(content, known_entities):
     """
     Find all `user.something` references that are not in the known_entities list.

@@ -1,6 +1,6 @@
 from talon import Module
 from .parrot_config import (
-    use_parrot_config,
+    parrot_config_noise,
     parrot_config_event_register,
     parrot_config_event_unregister,
 )
@@ -9,18 +9,18 @@ mod = Module()
 
 @mod.action_class
 class Actions:
-    def use_parrot_config(sound: str):
+    def parrot_config_noise(name: str):
         """
         parrot noises should call this in order to use current `parrot_config`
 
         Example:
         ```talon
-        parrot(pop):        user.use_parrot_config("pop")
-        parrot(hiss):       user.use_parrot_config("hiss")
-        parrot(hiss:stop):  user.use_parrot_config("hiss_stop")
+        parrot(pop):        user.parrot_config_noise("pop")
+        parrot(hiss):       user.parrot_config_noise("hiss")
+        parrot(hiss:stop):  user.parrot_config_noise("hiss_stop")
         ```
         """
-        use_parrot_config(sound)
+        parrot_config_noise(name)
 
     def parrot_config():
         """
@@ -101,3 +101,9 @@ class Actions:
         Unregister event set by actions.user.parrot_config_event_register
         """
         parrot_config_event_unregister(on_noise)
+
+    def use_parrot_config(noise: str):
+        """
+        DEPRECATED: use `parrot_config_noise` instead
+        """
+        parrot_config_noise(noise)

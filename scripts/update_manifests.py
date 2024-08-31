@@ -1,3 +1,11 @@
+"""
+Update Manifests
+
+This script is used to generate/update the manifest file for each
+directory at '../{folders}'. It will scan and accumulate all actions,
+modes, settings, tags, and dependencies and update the manifest.json
+"""
+
 import os
 import json
 import re
@@ -61,7 +69,8 @@ def extract_actions(content):
     actions = []
 
     class_regex = re.compile(r'@mod\.action_class\s*class\s+(\w+):')
-    def_regex = re.compile(r'^\s+def\s+(\w+)\s*\(', re.MULTILINE)
+    # Match def statements with 4 spaces of indentation (not inner functions)
+    def_regex = re.compile(r'^\s{4}def\s+(\w+)\s*\(', re.MULTILINE)
 
     for class_match in class_regex.finditer(content):
         class_name = class_match.group(1)
@@ -176,6 +185,11 @@ def create_or_update_manifest():
             known_entities = [entity.split('user.')[1] for entity in known_entities]
             deps = scan_for_non_package_user_references(full_package_dir, known_entities)
             new_manifest_data["dependencies"] = list(set(f"user.{dep}" for dep in deps))
+            new_manifest_data["settings"] = list(set(new_manifest_data["settings"]))
+            new_manifest_data["modes"] = list(set(new_manifest_data["modes"]))
+            new_manifest_data["tags"] = list(set(new_manifest_data["tags"]))
+            new_manifest_data["actions"] = list(set(new_manifest_data["actions"]))
+            new_manifest_data["lists"] = list(set(new_manifest_data["lists"]))
             for key in ["settings", "modes", "actions", "tags", "lists", "dependencies"]:
                 new_manifest_data[key].sort()
 

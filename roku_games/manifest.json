@@ -23,14 +23,11 @@
     "user.game_right_dynamic",
     "user.game_set_noise_mode",
     "user.game_up_dynamic",
-    "user.get_noise_mode_text",
-    "user.get_noise_modes_text",
     "user.noise_hiss",
     "user.noise_pop",
     "user.on_game_mode_disabled",
     "user.on_game_mode_enabled",
     "user.on_hiss",
-    "user.on_pop",
     "user.on_pop"
   ],
   "dependencies": [

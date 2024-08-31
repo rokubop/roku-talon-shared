@@ -39,14 +39,7 @@
     "user.drag_mode_show",
     "user.drag_mode_show_commands",
     "user.drag_mode_stop",
-    "user.moved",
-    "user.moved",
-    "user.moved",
     "user.pan_mode_show",
-    "user.release",
-    "user.release",
-    "user.release",
-    "user.release",
     "user.roll_mode_show"
   ],
   "dependencies": [

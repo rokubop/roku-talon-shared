@@ -1,5 +1,9 @@
 # Changelog
 
+## Sat Aug 31, 2024
+- Added manifest builder and manifests to every "package"
+  to show actions, modes, settings, tags, and dependencies
+
 ## Tue Aug 27-28, 2024
 - Add 'cam mode', 'go mode', 'pad mode' to set preferred dir
 - Add hold pad commands

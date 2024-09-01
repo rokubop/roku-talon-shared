@@ -2,37 +2,39 @@
   "name": "dynamic_noises",
   "description": "Auto-generated manifest. This is an experimental repository. WIP. Dynamic noises allow you to update noises 'pop' and 'hiss' on the fly, individually, or as a group.",
   "version": "0.1.0",
-  "lists": [
-    "user.dynamic_noise_mode"
-  ],
-  "modes": [],
-  "settings": [],
-  "tags": [
-    "user.dynamic_noises_talon_noise_override"
-  ],
-  "actions": [
-    "user.dynamic_noises",
-    "user.dynamic_noises_disable",
-    "user.dynamic_noises_enable",
-    "user.dynamic_noises_event_register",
-    "user.dynamic_noises_event_unregister",
-    "user.dynamic_noises_event_unregister_all",
-    "user.dynamic_noises_set",
-    "user.dynamic_noises_set_hiss",
-    "user.dynamic_noises_set_pop",
-    "user.dynamic_noises_tester_toggle",
-    "user.dynamic_noises_trigger",
-    "user.dynamic_noises_ui_element",
-    "user.dynamic_noises_use_mode"
-  ],
-  "dependencies": [
-    "user.ui_elements",
-    "user.ui_elements_hide",
-    "user.ui_elements_highlight",
-    "user.ui_elements_highlight_briefly",
-    "user.ui_elements_register_on_lifecycle",
-    "user.ui_elements_set_text",
-    "user.ui_elements_unhighlight",
-    "user.ui_elements_unregister_on_lifecycle"
-  ]
+  "contributes": {
+    "tags": [
+      "user.dynamic_noises_talon_noise_override"
+    ],
+    "actions": [
+      "user.dynamic_noises",
+      "user.dynamic_noises_disable",
+      "user.dynamic_noises_enable",
+      "user.dynamic_noises_event_register",
+      "user.dynamic_noises_event_unregister",
+      "user.dynamic_noises_event_unregister_all",
+      "user.dynamic_noises_set",
+      "user.dynamic_noises_set_hiss",
+      "user.dynamic_noises_set_pop",
+      "user.dynamic_noises_tester_toggle",
+      "user.dynamic_noises_trigger",
+      "user.dynamic_noises_ui_element",
+      "user.dynamic_noises_use_mode"
+    ]
+  },
+  "depends": {
+    "actions": [
+      "user.noise_trigger_hiss",
+      "user.noise_trigger_pop",
+      "user.on_pop",
+      "user.ui_elements",
+      "user.ui_elements_hide",
+      "user.ui_elements_highlight",
+      "user.ui_elements_highlight_briefly",
+      "user.ui_elements_register_on_lifecycle",
+      "user.ui_elements_set_text",
+      "user.ui_elements_unhighlight",
+      "user.ui_elements_unregister_on_lifecycle"
+    ]
+  }
 }

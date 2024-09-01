@@ -2,55 +2,58 @@
   "name": "drag_mode",
   "description": "Auto-generated manifest. This is an experimental repository. Allows you drag from one point to another using left, middle, or right click. Flexible mouse movement to and from any point. hiss stopper for precision stops.",
   "version": "0.2.0",
-  "lists": [],
-  "modes": [
-    "user.drag_mode"
-  ],
-  "settings": [
-    "user.drag_mode_default_tile_size",
-    "user.drag_mode_disable_dynamic_noises_on_grid_hide",
-    "user.drag_mode_dynamic_noises_enabled",
-    "user.drag_mode_exclude_chars",
-    "user.drag_mode_offset_x_y",
-    "user.drag_mode_tile_increment_size"
-  ],
-  "tags": [
-    "user.drag_mode_pan_mode",
-    "user.drag_mode_roll_mode"
-  ],
-  "actions": [
-    "user.drag_mode_bring",
-    "user.drag_mode_bring_to",
-    "user.drag_mode_bring_to_center",
-    "user.drag_mode_drag_and_drop",
-    "user.drag_mode_exclude_area_rect",
-    "user.drag_mode_exclude_area_targets",
-    "user.drag_mode_exclude_line",
-    "user.drag_mode_fly_towards",
-    "user.drag_mode_hide",
-    "user.drag_mode_hide_commands",
-    "user.drag_mode_isolate_area_targets",
-    "user.drag_mode_less_squares",
-    "user.drag_mode_more_squares",
-    "user.drag_mode_move_mouse",
-    "user.drag_mode_move_mouse_to_target",
-    "user.drag_mode_move_to_target_loop",
-    "user.drag_mode_pan_mode_show",
-    "user.drag_mode_reset",
-    "user.drag_mode_roll_mode_show",
-    "user.drag_mode_show",
-    "user.drag_mode_show_commands",
-    "user.drag_mode_stop"
-  ],
-  "dependencies": [
-    "user.dynamic_noises_disable",
-    "user.dynamic_noises_enable",
-    "user.dynamic_noises_set_hiss",
-    "user.mouse_move_continuous_stop",
-    "user.mouse_move_continuous_towards",
-    "user.mouse_move_from_to",
-    "user.mouse_move_queue",
-    "user.mouse_move_to",
-    "user.ui_elements"
-  ]
+  "contributes": {
+    "modes": [
+      "user.drag_mode"
+    ],
+    "settings": [
+      "user.drag_mode_default_tile_size",
+      "user.drag_mode_disable_dynamic_noises_on_grid_hide",
+      "user.drag_mode_dynamic_noises_enabled",
+      "user.drag_mode_exclude_chars",
+      "user.drag_mode_offset_x_y",
+      "user.drag_mode_tile_increment_size"
+    ],
+    "tags": [
+      "user.drag_mode_pan_mode",
+      "user.drag_mode_roll_mode"
+    ],
+    "actions": [
+      "user.drag_mode_bring",
+      "user.drag_mode_bring_to",
+      "user.drag_mode_bring_to_center",
+      "user.drag_mode_drag_and_drop",
+      "user.drag_mode_exclude_area_rect",
+      "user.drag_mode_exclude_area_targets",
+      "user.drag_mode_exclude_line",
+      "user.drag_mode_fly_towards",
+      "user.drag_mode_hide",
+      "user.drag_mode_hide_commands",
+      "user.drag_mode_isolate_area_targets",
+      "user.drag_mode_less_squares",
+      "user.drag_mode_more_squares",
+      "user.drag_mode_move_mouse",
+      "user.drag_mode_move_mouse_to_target",
+      "user.drag_mode_move_to_target_loop",
+      "user.drag_mode_pan_mode_show",
+      "user.drag_mode_reset",
+      "user.drag_mode_roll_mode_show",
+      "user.drag_mode_show",
+      "user.drag_mode_show_commands",
+      "user.drag_mode_stop"
+    ]
+  },
+  "depends": {
+    "actions": [
+      "user.dynamic_noises_disable",
+      "user.dynamic_noises_enable",
+      "user.dynamic_noises_set_hiss",
+      "user.mouse_move_continuous_stop",
+      "user.mouse_move_continuous_towards",
+      "user.mouse_move_from_to",
+      "user.mouse_move_queue",
+      "user.mouse_move_to",
+      "user.ui_elements"
+    ]
+  }
 }

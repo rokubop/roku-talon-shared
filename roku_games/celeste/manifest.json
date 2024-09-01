@@ -2,36 +2,46 @@
   "name": "celeste",
   "description": "Auto-generated manifest.",
   "version": "0.1.0",
-  "lists": [],
-  "modes": [],
-  "settings": [],
-  "tags": [],
-  "actions": [
-    "user.game_celeste_set_jump_2"
-  ],
-  "dependencies": [
-    "user.game_event_register_on_key",
-    "user.game_event_unregister_on_key",
-    "user.game_key",
-    "user.game_key_hold",
-    "user.game_key_toggle",
-    "user.game_mode_disable",
-    "user.game_mode_enable",
-    "user.game_move_dir_hold_down",
-    "user.game_move_dir_hold_down_horizontal",
-    "user.game_move_dir_hold_last_horizontal",
-    "user.game_move_dir_hold_left",
-    "user.game_move_dir_hold_right",
-    "user.game_move_dir_hold_up",
-    "user.game_move_dir_hold_up_horizontal",
-    "user.game_state_switch_horizontal",
-    "user.game_stopper",
-    "user.parrot_config_event_register",
-    "user.parrot_config_event_unregister",
-    "user.parrot_config_format_display",
-    "user.ui_elements",
-    "user.ui_elements_highlight",
-    "user.ui_elements_set_text",
-    "user.ui_elements_unhighlight"
-  ]
+  "contributes": {
+    "actions": [
+      "user.game_celeste_set_jump_2"
+    ]
+  },
+  "depends": {
+    "modes": [
+      "user.game"
+    ],
+    "actions": [
+      "user.game_event_register_on_key",
+      "user.game_event_unregister_on_key",
+      "user.game_key",
+      "user.game_key_hold",
+      "user.game_key_toggle",
+      "user.game_mode_disable",
+      "user.game_mode_enable",
+      "user.game_move_dir_hold_down",
+      "user.game_move_dir_hold_down_horizontal",
+      "user.game_move_dir_hold_last_horizontal",
+      "user.game_move_dir_hold_left",
+      "user.game_move_dir_hold_right",
+      "user.game_move_dir_hold_up",
+      "user.game_move_dir_hold_up_horizontal",
+      "user.game_state_switch_horizontal",
+      "user.game_stopper",
+      "user.on_game_mode_disabled",
+      "user.on_game_mode_enabled",
+      "user.parrot_config",
+      "user.parrot_config_event_register",
+      "user.parrot_config_event_unregister",
+      "user.parrot_config_format_display",
+      "user.pedal_center_down",
+      "user.pedal_center_up",
+      "user.pedal_left_down",
+      "user.pedal_left_up",
+      "user.ui_elements",
+      "user.ui_elements_highlight",
+      "user.ui_elements_set_text",
+      "user.ui_elements_unhighlight"
+    ]
+  }
 }

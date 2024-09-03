@@ -2,24 +2,28 @@
   "name": "sheepy",
   "description": "Auto-generated manifest.",
   "version": "0.1.0",
-  "lists": [],
-  "modes": [],
-  "settings": [],
-  "tags": [],
-  "actions": [],
-  "dependencies": [
-    "user.game_event_register_on_key",
-    "user.game_event_unregister_on_key",
-    "user.game_key",
-    "user.game_key_hold",
-    "user.game_mode_disable",
-    "user.game_move_dir_hold_down",
-    "user.game_move_dir_hold_left",
-    "user.game_move_dir_hold_right",
-    "user.game_move_dir_hold_up",
-    "user.game_stopper",
-    "user.parrot_config_format_display",
-    "user.ui_elements",
-    "user.ui_elements_highlight_briefly"
-  ]
+  "contributes": {},
+  "depends": {
+    "modes": [
+      "user.game"
+    ],
+    "actions": [
+      "user.game_event_register_on_key",
+      "user.game_event_unregister_on_key",
+      "user.game_key",
+      "user.game_key_hold",
+      "user.game_mode_disable",
+      "user.game_move_dir_hold_down",
+      "user.game_move_dir_hold_left",
+      "user.game_move_dir_hold_right",
+      "user.game_move_dir_hold_up",
+      "user.game_stopper",
+      "user.on_game_mode_disabled",
+      "user.on_game_mode_enabled",
+      "user.parrot_config",
+      "user.parrot_config_format_display",
+      "user.ui_elements",
+      "user.ui_elements_highlight_briefly"
+    ]
+  }
 }

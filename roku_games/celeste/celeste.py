@@ -179,5 +179,5 @@ class Actions:
         """set jump 2 ms"""
         global jump_secondary_ms
         jump_secondary_ms = number
-        actions.user.ui_elements_set_text("jump2", f"{jump_secondary_ms}ms")
         actions.user.game_mode_enable()
+        cron.after("1s", lambda: actions.user.ui_elements_set_text("jump2", f"{jump_secondary_ms}ms"))

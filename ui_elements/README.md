@@ -10,80 +10,68 @@ This is an experimental repository for making any generic UI in HTML-like syntax
 - `input_text`
 
 ## Usage
-First we pick the elements we want to use. This is similar to an import statement.
+Pick the elements you want to use. Wrap everything with `screen`. Use `.show()` to show.
 ```py
 (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
-```
 
-The outermost layer must be the screen component
-```py
 my_ui = screen()[
     div()[
-        ...
+        text("Hello world")
     ]
 ]
+
+my_ui.show()
 ```
 
 To define css, we put it inside of the **parentheses**. To define children, we put it inside the **square brackets**.
 ```py
 my_ui = screen(align_items="flex_end", justify_content="center")[
-    div()[
-        text("Hello world")
+    div(gap=24)[
+        text("Hello world", font_size=24, color="FF0000"),
+        text("Cool")
     ]
 ]
 ```
 
-Now we just need to show it. Only the `screen` property has `.show()` method.
+Show and hide
 ```py
 def show_ui():
-    my_ui = screen()[
+    my_ui = screen(id="commands")[
         div()[
-            text("Hello world")
+            ...
         ]
     ]
     my_ui.show()
 
 def hide_ui():
     actions.user.ui_elements_hide_all()
-```
 
-## Full example
-```py
-def show_ui():
-    (div, text, screen, button) = actions.user.ui_elements(["div", "text", "screen", "button"])
-    my_ui = screen(align_items="flex_end", justify_content="center")[
-        div(id="box", padding=16, background_color="FF000088")[
-            text("Hello world", color="FFFFFF"),
-            text("Test", id="test", font_size=24),
-        ]
-    ]
-    my_ui.show()
+    # or
+    actions.user.ui_elements_hide("commands")
 
-def hide_ui():
-    actions.user.ui_elements_hide_all()
+
 ```
 
 ## Box Model
-ui_elements have the same box model as normal HTML, with `padding`, `margin`, `border`, and `width` and `height`.
+ui_elements have the same box model as normal HTML, with `padding`, `margin`, `border`, and `width` and `height` and operate under `box-sizing: border-box` assumption.
 
 ## Alignment
-All components use flexbox.
-However by default components are `flex_direction="column"` instead of `"row"`. This means when you don't provide anything, it will act like normal HTML where children are stacked vertically.
+all ui_elements operate under `display: flex` assumption, and default to `flex_direction="column"`. This means when you don't provide anything, it will act like normal HTML where children are stacked vertically.
 
 You can look up CSS flexbox guide for learning more about alignment. Here are some examples:
 
 ```py
 # children of screen will be bottom right
-screen(align_items="flex_end", justify_content="flex_end")[]
+screen(align_items="flex_end", justify_content="flex_end")
 
 # children of screen will be center
-screen(align_items="center", justify_content="center")[]
+screen(align_items="center", justify_content="center")
 
 # children of screen will be top left
-screen(align_items="flex_start", justify_content="flex_start")[]
+screen(align_items="flex_start", justify_content="flex_start")
 
 # children of screen will be top right
-screen(flex_direction="row", align_items="flex_start", justify_content="flex_end")[]
+screen(flex_direction="row", align_items="flex_start", justify_content="flex_end")
 
 # Use margin to offset
 div(margin_top=16)[
@@ -102,8 +90,6 @@ Then we can use this action to update the text:
 actions.user.ui_elements_update_text("test", "New text")
 ```
 
-
-
 ## Highlighting elements
 We must give a unique id to the thing we want to highlight.
 ```py
@@ -117,13 +103,9 @@ We can then use these actions to trigger a highlight or unhighlight:
 actions.user.ui_elements_highlight("box")
 actions.user.ui_elements_highlight_briefly("box")
 actions.user.ui_elements_unhighlight("box")
-```
 
-We can customize the highlight color with custom css prop:
-```py
-div(id="box", highlight_color="FF0000")[
-    text("Hello world"),
-]
+# highlight color FF0000 with transparency of aa
+actions.user.ui_elements_highlight_briefly("box", "FF0000aa")
 ```
 
 ## Buttons
@@ -187,6 +169,23 @@ screen(screen=2, align_items="flex_end", justify_content="center")[
 ]
 ```
 
+## On mount
+
+It it takes time to render the UI, you can use `on_mount` to know when it's done.
+
+```py
+def on_mount():
+    print("Mounted")
+
+my_ui = screen()[
+    div()[
+        text("Hello world")
+    ]
+]
+
+my_ui.show(on_mount)
+```
+
 ## CSS Options
 
 | CSS Property | Type |
@@ -194,8 +193,12 @@ screen(screen=2, align_items="flex_end", justify_content="center")[
 | align_items | `'flex_start'`, `'flex_end'`, `'center'` |
 | background_color | `str` - 6-digit hexadecimal with 2 optional digits for opacity e.g. `'FF0000'` or `FF000088` for opacity of `88` from `00` to `FF` |
 | border_color | `str` |
-| border_radius | `int` |
-| border_width | `int` |
+| border_radius | `int` - for rounded corners |
+| border_bottom | `int` - border bottom only width |
+| border_left | `int` - border left only width |
+| border_right | `int` - border right only width |
+| border_top | `int` - border top only width |
+| border_width | `int` - for border on all sides |
 | bottom | `int` |
 | color | `str` - 6-digit hexadecimal with 2 optional digits for opacity e.g. `'FF0000'` or `FF000088` for opacity of `88` from `00` to `FF` |
 | flex_direction | `'row'`, `'column'` |

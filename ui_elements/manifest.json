@@ -1,7 +1,7 @@
 {
   "name": "ui_elements",
   "description": "Auto-generated manifest. This is an experimental repository for making any generic UI in HTML-like syntax.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "contributes": {
     "actions": [
       "user.ui_elements",

@@ -36,20 +36,24 @@ class BoxModelSpacing:
 class BoxModelLayout:
     margin_spacing: BoxModelSpacing
     padding_spacing: BoxModelSpacing
+    border_spacing: BoxModelSpacing
     margin_rect: Rect
     padding_rect: Rect
+    border_rect: Rect
     content_rect: Rect
     content_children_rect: Rect
 
-    def __init__(self, x: int, y: int, margin_spacing: BoxModelSpacing, padding_spacing: BoxModelSpacing, width: int = None, height: int = None):
+    def __init__(self, x: int, y: int, margin_spacing: BoxModelSpacing, padding_spacing: BoxModelSpacing, border_spacing: BoxModelSpacing, width: int = None, height: int = None):
         self.margin_spacing = margin_spacing
         self.padding_spacing = padding_spacing
+        self.border_spacing = border_spacing
         self.margin_rect = Rect(x, y, 0, 0)
-        self.padding_rect = Rect(x + margin_spacing.left, y + margin_spacing.top, width or 0, height or 0)
-        content_x = x + margin_spacing.left + padding_spacing.left
-        content_y = y + margin_spacing.top + padding_spacing.top
-        content_width = width - padding_spacing.left - padding_spacing.right if width else 0
-        content_height = height - padding_spacing.top - padding_spacing.bottom if height else 0
+        self.border_rect = Rect(x + margin_spacing.left, y + margin_spacing.top, width or 0, height or 0)
+        self.padding_rect = Rect(x + margin_spacing.left + border_spacing.left, y + margin_spacing.top + border_spacing.top, width - border_spacing.left - border_spacing.right if width else 0, height - border_spacing.top - border_spacing.bottom if height else 0)
+        content_x = x + margin_spacing.left + border_spacing.left + padding_spacing.left
+        content_y = y + margin_spacing.top + margin_spacing.top + padding_spacing.top
+        content_width = width - padding_spacing.left - padding_spacing.right - border_spacing.left - border_spacing.right if width else 0
+        content_height = height - padding_spacing.top - padding_spacing.bottom - border_spacing.top - border_spacing.bottom if height else 0
         self.content_rect = Rect(content_x, content_y, content_width, content_height)
         self.content_children_rect = Rect(self.content_rect.x, self.content_rect.y, 0, 0)
 
@@ -58,16 +62,20 @@ class BoxModelLayout:
         grow_rect(self.content_rect, rect)
         self.padding_rect.width = self.content_rect.width + self.padding_spacing.left + self.padding_spacing.right
         self.padding_rect.height = self.content_rect.height + self.padding_spacing.top + self.padding_spacing.bottom
+        self.border_rect.width = self.padding_rect.width + self.border_spacing.left + self.border_spacing.right
+        self.border_rect.height = self.padding_rect.height + self.border_spacing.top + self.border_spacing.bottom
         self.margin_rect.width = self.padding_rect.width + self.margin_spacing.left + self.margin_spacing.right
         self.margin_rect.height = self.padding_rect.height + self.margin_spacing.top + self.margin_spacing.bottom
 
     def prepare_render(self, cursor: Point2d, flex_direction: str = "column", align_items: str = "flex_start", justify_content: str = "flex_start"):
         self.margin_rect.x = cursor.x
         self.margin_rect.y = cursor.y
-        self.padding_rect.x = cursor.x + self.margin_spacing.left
-        self.padding_rect.y = cursor.y + self.margin_spacing.top
-        self.content_rect.x = cursor.x + self.margin_spacing.left + self.padding_spacing.left
-        self.content_rect.y = cursor.y + self.margin_spacing.top + self.padding_spacing.top
+        self.border_rect.x = cursor.x + self.margin_spacing.left
+        self.border_rect.y = cursor.y + self.margin_spacing.top
+        self.padding_rect.x = cursor.x + self.margin_spacing.left + self.border_spacing.left
+        self.padding_rect.y = cursor.y + self.margin_spacing.top + self.border_spacing.top
+        self.content_rect.x = cursor.x + self.margin_spacing.left + self.border_spacing.left + self.padding_spacing.left
+        self.content_rect.y = cursor.y + self.margin_spacing.top + self.border_spacing.top + self.padding_spacing.top
         self.content_children_rect.x = self.content_rect.x
         self.content_children_rect.y = self.content_rect.y
 
@@ -96,6 +104,10 @@ class Margin(BoxModelSpacing):
 
 @dataclass
 class Padding(BoxModelSpacing):
+    pass
+
+@dataclass
+class Border(BoxModelSpacing):
     pass
 
 def get_screen(index: int = None) -> Screen:
@@ -153,7 +165,9 @@ def parse_box_model(model_type: BoxModelSpacing, **kwargs) -> BoxModelSpacing:
     model_name_x = f'{model_name}_x'
     model_name_y = f'{model_name}_y'
 
-    if model_name in kwargs:
+    if "border_width" in kwargs:
+        model.top = model.right = model.bottom = model.left = kwargs["border_width"]
+    elif model_name in kwargs:
         all_sides_value = kwargs[model_name]
         model.top = model.right = model.bottom = model.left = all_sides_value
 
@@ -176,6 +190,7 @@ class UIOptionsDict(TypedDict):
     border_color: str
     border_radius: int
     border_width: int
+    border: Border
     bottom: int
     color: str
     flex_direction: str
@@ -216,7 +231,8 @@ class UIOptions:
     background_color: str = None
     border_color: str = "FF0000"
     border_radius: int = 0
-    border_width: int = 0
+    border_width: int = None
+    border: Border = Border(0, 0, 0, 0)
     bottom: Optional[int] = None
     top: Optional[int] = None
     left: Optional[int] = None
@@ -255,6 +271,7 @@ class UIOptions:
 
         self.padding = parse_box_model(Padding, **{k: v for k, v in kwargs.items() if 'padding' in k})
         self.margin = parse_box_model(Margin, **{k: v for k, v in kwargs.items() if 'margin' in k})
+        self.border = parse_box_model(Border, **{k: v for k, v in kwargs.items() if 'border' in k})
 
 @dataclass
 class UITextOptions(UIOptions):
@@ -362,7 +379,7 @@ class UIBox(UIWithChildren):
         self.debug_colors = iter(cycle(["red", "green", "blue", "yellow", "purple", "orange", "cyan", "magenta"]))
 
     def virtual_render(self, c: SkiaCanvas, cursor: Cursor):
-        self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.width, self.options.height)
+        self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.border, self.options.width, self.options.height)
         cursor.virtual_move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
         last_cursor = Point2d(cursor.virtual_x, cursor.virtual_y)
         for i, child in enumerate(self.children):
@@ -405,7 +422,7 @@ class UIBox(UIWithChildren):
                 "options": self.options,
                 "builder_id": builder_options["id"]
             }
-        cursor.move_to(self.box_model.padding_rect.x, self.box_model.padding_rect.y)
+        cursor.move_to(self.box_model.border_rect.x, self.box_model.border_rect.y)
 
         if debug_points:
             c.paint.color = "red"
@@ -413,32 +430,56 @@ class UIBox(UIWithChildren):
         if debug_numbers:
             self.draw_debug_number(c, cursor)
 
-        if self.options.border_width:
-            c.paint.color = self.options.border_color
-            c.paint.style = c.paint.Style.STROKE
-            bordered_rect = Rect(
-                self.box_model.padding_rect.x - self.options.border_width,
-                self.box_model.padding_rect.y - self.options.border_width,
-                self.box_model.padding_rect.width + self.options.border_width * 2,
-                self.box_model.padding_rect.height + self.options.border_width * 2)
+        is_uniform_border = True
+        border_spacing = self.box_model.border_spacing
+        has_border = border_spacing.left or border_spacing.top or border_spacing.right or border_spacing.bottom
+        if has_border:
+            is_uniform_border = border_spacing.left == border_spacing.top == border_spacing.right == border_spacing.bottom
 
-            # for larger border width - but this is not quite right
-            # c.paint.stroke_width = self.options.border_width
-            # bordered_rect = Rect(
-            #     self.box_model.padding_rect.x - self.options.border_width / 2 - 1,
-            #     self.box_model.padding_rect.y - self.options.border_width / 2 - 1,
-            #     self.box_model.padding_rect.width + self.options.border_width + 1,
-            #     self.box_model.padding_rect.height + self.options.border_width + 1)
+            if is_uniform_border:
+                border_width = border_spacing.left
+                c.paint.color = self.options.border_color
+                c.paint.style = c.paint.Style.STROKE
+                c.paint.stroke_width = border_width
 
-            if self.options.border_radius:
-                c.draw_rrect(RoundRect.from_rect(bordered_rect, x=self.options.border_radius, y=self.options.border_radius))
+                bordered_rect = Rect(
+                    self.box_model.padding_rect.x - border_width / 2,
+                    self.box_model.padding_rect.y - border_width / 2,
+                    self.box_model.padding_rect.width + border_width,
+                    self.box_model.padding_rect.height + border_width,
+                )
+
+                if self.options.border_radius:
+                    c.draw_rrect(RoundRect.from_rect(bordered_rect, x=self.options.border_radius + border_width / 2, y=self.options.border_radius + border_width / 2))
+                else:
+                    c.draw_rect(bordered_rect)
             else:
-                c.draw_rect(bordered_rect)
+                c.paint.color = self.options.border_color
+                c.paint.style = c.paint.Style.STROKE
+                b_rect, p_rect = self.box_model.border_rect, self.box_model.padding_rect
+                if border_spacing.left:
+                    c.paint.stroke_width = border_spacing.left
+                    half = border_spacing.left / 2
+                    c.draw_line(b_rect.x + half, p_rect.y, b_rect.x + half, p_rect.y + p_rect.height)
+                if border_spacing.right:
+                    c.paint.stroke_width = border_spacing.right
+                    half = border_spacing.right / 2
+                    c.draw_line(b_rect.x + b_rect.width - half, p_rect.y, b_rect.x + b_rect.width - half, p_rect.y + p_rect.height)
+                if border_spacing.top:
+                    c.paint.stroke_width = border_spacing.top
+                    half = border_spacing.top / 2
+                    c.draw_line(p_rect.x, b_rect.y + half, p_rect.x + p_rect.width, b_rect.y + half)
+                if border_spacing.bottom:
+                    c.paint.stroke_width = border_spacing.bottom
+                    half = border_spacing.bottom / 2
+                    c.draw_line(p_rect.x, b_rect.y + b_rect.height - half, p_rect.x + p_rect.width, b_rect.y + b_rect.height - half)
+
         c.paint.style = c.paint.Style.FILL
 
+        cursor.move_to(self.box_model.padding_rect.x, self.box_model.padding_rect.y)
         if self.options.background_color:
             c.paint.color = self.options.background_color
-            if self.options.border_radius:
+            if self.options.border_radius and is_uniform_border:
                 c.draw_rrect(RoundRect.from_rect(self.box_model.padding_rect, x=self.options.border_radius, y=self.options.border_radius))
             else:
                 c.draw_rect(self.box_model.padding_rect)
@@ -579,7 +620,7 @@ class UIText:
         c.draw_text(str(self.debug_number), cursor.x, cursor.y)
 
     def virtual_render(self, c: SkiaCanvas, cursor: Cursor):
-        self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.width, self.options.height)
+        self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.border, self.options.width, self.options.height)
         cursor.virtual_move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
         c.paint.textsize = self.options.font_size
         c.paint.font.embolden = True if self.options.font_weight == "bold" else False
@@ -691,7 +732,7 @@ class UIInputText:
         c.draw_text(str(self.debug_number), cursor.x, cursor.y)
 
     def virtual_render(self, c: SkiaCanvas, cursor: Cursor):
-        self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.width, self.options.height)
+        self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.border, self.options.width, self.options.height)
         cursor.virtual_move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
         c.paint.textsize = self.options.font_size
         self.box_model.accumulate_dimensions(Rect(cursor.virtual_x, cursor.virtual_y, self.width, self.height))
@@ -992,22 +1033,24 @@ class UIBuilder(UIBox):
             self.static_canvas.close()
             self.static_canvas = None
 
+        if self.dynamic_canvas:
             self.dynamic_canvas.unregister("draw", self.on_draw_dynamic)
             self.dynamic_canvas.hide()
             self.dynamic_canvas.close()
             self.dynamic_canvas = None
 
+        if self.highlight_canvas:
             self.highlight_canvas.unregister("draw", self.on_draw_highlight)
             self.highlight_canvas.hide()
             self.highlight_canvas.close()
             self.highlight_canvas = None
 
-            if self.blockable_canvases:
-                for canvas in self.blockable_canvases:
-                    canvas.unregister("mouse", self.on_mouse)
-                    canvas.hide()
-                    canvas.close()
-                self.blockable_canvases = []
+        if self.blockable_canvases:
+            for canvas in self.blockable_canvases:
+                canvas.unregister("mouse", self.on_mouse)
+                canvas.hide()
+                canvas.close()
+            self.blockable_canvases = []
 
         for id in list(inputs):
             inputs[id].hide()
@@ -1033,6 +1076,10 @@ class UIProps:
     border_color: str
     border_radius: int
     border_width: int
+    border_top: int
+    border_right: int
+    border_bottom: int
+    border_left: int
     bottom: int
     top: int
     left: int

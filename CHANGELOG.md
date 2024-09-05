@@ -1,23 +1,22 @@
 # Changelog
 
-## Sat Aug 31, 2024
+## Sep week 1, 2024
+- Added `border_bottom`, `border_top`, `border_left`, `border_right` to `ui_elements`
+
+## Aug week 5 2024
 - Added manifest builder and manifests to every "package"
   to show actions, modes, settings, tags, and dependencies
-
-## Tue Aug 27-28, 2024
 - Add 'cam mode', 'go mode', 'pad mode' to set preferred dir
 - Add hold pad commands
 - Add left_thumb, right_thumb, view, guide, menu buttons for xbox
 - Simplify and automate the noise mode binding process
-
-Breaking Changes
-- Rename `dynamic_actions_*` to `dynamic_noises_*`
-
-## Sun Aug 25, 2024
 - Fixed `ui_elements` not highlighting
 - Fixed `text_input` not returning correct value
 - Show red errors for bad noise bindings for `dynamic_actions`
 - Add `ui_elements` components specific to game and noises. `game_ui_elements_` and `dynamic_actions_ui_element`
+
+Breaking Changes
+- Rename `dynamic_actions_*` to `dynamic_noises_*`
 
 ## Fri Aug 23, 2024
 ### New Features

@@ -1,4 +1,4 @@
-app: rdr2
+.tar.app: rdr2
 mode: user.game
 -
 
@@ -44,20 +44,23 @@ wish {user.game_xbox_button}: skip()
 {user.dynamic_noise_mode}: user.dynamic_noises_use_mode(dynamic_noise_mode)
 
 # actions
-weapon: user.game_xbox_button_press('lb')
+weapon | gun: user.game_xbox_button_press('lb')
 wheel: user.rdr2_wheel()
-jump: user.game_xbox_button_press('x')
-reload | punch: user.game_xbox_button_press('x', 200)
-aim | target: user.game_xbox_button_hold('lt')
+jump | greet: user.game_xbox_button_press('x')
+reload | punch: user.game_xbox_button_press('b', 200)
+aim | target | talk: user.game_xbox_button_hold('lt')
 shoot: user.game_xbox_button_hold('rt', 200)
+skin | loot | hitch: user.game_xbox_button_hold('y')
+stow: user.game_xbox_button_hold('x')
 pick: user.game_xbox_button_hold('lb')
 call: user.game_xbox_button_press('dpad_up')
 run: user.game_xbox_button_hold('a')
+sell | satchel: user.game_xbox_button_hold('dpad_right')
 hide: user.game_xbox_button_press('rb')
 crouch: user.game_xbox_button_press('left_thumb')
-(dead | dot | did) (eye | I):
-    user.game_xbox_button_press('left_thumb')
-    user.game_xbox_button_press('right_thumb')
+scope: user.game_xbox_button_press('dpad_down')
+
+(dead | dot | did) (eye | I): user.game_xbox_button_press('right_thumb')
 
 halt | stop:
     user.game_stopper()

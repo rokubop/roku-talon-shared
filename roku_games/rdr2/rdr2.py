@@ -37,8 +37,8 @@ dynamic_noises = {
         "pop": ("RT", lambda: actions.user.game_xbox_button_press('rt')),
     },
     "brawler": {
-        **default,
-        "hiss": ("toggle B", lambda: actions.user.game_xbox_button_toggle('b')),
+        "pop": ("B", lambda: actions.user.game_xbox_button_press('b')),
+        "hiss": ("toggle x", lambda: actions.user.game_xbox_button_toggle('x')),
     },
     "repeater": {
         **default,

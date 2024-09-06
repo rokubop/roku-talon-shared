@@ -1,6 +1,7 @@
 # Changelog
 
 ## Sep week 1, 2024
+- Add `flex` for things like `flex: 1` for full width
 - Added `border_bottom`, `border_top`, `border_left`, `border_right` to `ui_elements`
 
 ## Aug week 5 2024

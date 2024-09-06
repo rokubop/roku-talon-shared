@@ -73,10 +73,8 @@ screen(align_items="flex_start", justify_content="flex_start")
 # children of screen will be top right
 screen(flex_direction="row", align_items="flex_start", justify_content="flex_end")
 
-# Use margin to offset
-div(margin_top=16)[
-    text("Hello world")
-]
+# full width or height depending on flex_direction
+div(flex=1)
 ```
 
 ## Updating text
@@ -201,6 +199,7 @@ my_ui.show(on_mount)
 | border_width | `int` - for border on all sides |
 | bottom | `int` |
 | color | `str` - 6-digit hexadecimal with 2 optional digits for opacity e.g. `'FF0000'` or `FF000088` for opacity of `88` from `00` to `FF` |
+| flex | `int` - 1 for full width |
 | flex_direction | `'row'`, `'column'` |
 | font_size | `int` - for text |
 | font_weight | `str` - e.g. `'bold'` |

@@ -10,11 +10,12 @@ from dataclasses import dataclass, fields
 from talon.experimental.textarea import DarkThemeLabels, TextArea
 import uuid
 
-debug_draw_step_by_step = False
-debug_points = False
-debug_numbers = False
+debug_enabled = False
+debug_draw_step_by_step = True
+debug_points = True
+debug_numbers = True
 debug_current_step = 0
-debug_start_step = 20
+debug_start_step = 10
 render_step = 0
 ids = {}
 builders_core = {}
@@ -47,7 +48,7 @@ class BoxModelLayout:
         self.margin_spacing = margin_spacing
         self.padding_spacing = padding_spacing
         self.border_spacing = border_spacing
-        self.margin_rect = Rect(x, y, 0, 0)
+        self.margin_rect = Rect(x, y, width or 0, height or 0)
         self.border_rect = Rect(x + margin_spacing.left, y + margin_spacing.top, width or 0, height or 0)
         self.padding_rect = Rect(x + margin_spacing.left + border_spacing.left, y + margin_spacing.top + border_spacing.top, width - border_spacing.left - border_spacing.right if width else 0, height - border_spacing.top - border_spacing.bottom if height else 0)
         content_x = x + margin_spacing.left + border_spacing.left + padding_spacing.left
@@ -193,6 +194,7 @@ class UIOptionsDict(TypedDict):
     border: Border
     bottom: int
     color: str
+    flex: int
     flex_direction: str
     justify_content: str
     highlight_color: str
@@ -238,6 +240,7 @@ class UIOptions:
     left: Optional[int] = None
     right: Optional[int] = None
     color: str = "FFFFFF"
+    flex: int = None
     flex_direction: str = "column"
     gap: int = None
     height: int = 0
@@ -374,31 +377,56 @@ class UIBox(UIWithChildren):
         self.type = "div"
         self.id = self.options.id or None
         self.highlight_color = self.options.highlight_color or None
+        self.is_uniform_border = True
         self.debug_number = 0
         self.debug_color = "red"
         self.debug_colors = iter(cycle(["red", "green", "blue", "yellow", "purple", "orange", "cyan", "magenta"]))
+
+    def virtual_render_child(self, c: SkiaCanvas, cursor: Cursor, child: UIWithChildren, i: int, move_after_last_child = True):
+        gap = self.options.gap or 0
+        if self.options.gap is None and child.type == "text" and self.children[i - 1].type == "text":
+            gap = 16
+        a_cursor = Point2d(cursor.virtual_x, cursor.virtual_y)
+        rect = child.virtual_render(c, cursor)
+        cursor.virtual_move_to(a_cursor.x, a_cursor.y)
+        if move_after_last_child or i != len(self.children) - 1:
+            if self.options.flex_direction == "column":
+                cursor.virtual_move_to(cursor.virtual_x, cursor.virtual_y + rect.height + gap)
+            elif self.options.flex_direction == "row":
+                cursor.virtual_move_to(cursor.virtual_x + rect.width + gap, cursor.virtual_y)
+        self.box_model.accumulate_dimensions(rect)
 
     def virtual_render(self, c: SkiaCanvas, cursor: Cursor):
         self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.border, self.options.width, self.options.height)
         cursor.virtual_move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
         last_cursor = Point2d(cursor.virtual_x, cursor.virtual_y)
+
+        flex_children = []
         for i, child in enumerate(self.children):
-            gap = self.options.gap or 0
-            if self.options.gap is None and child.type == "text" and self.children[i - 1].type == "text":
-                gap = 16
-            a_cursor = Point2d(cursor.virtual_x, cursor.virtual_y)
-            rect = child.virtual_render(c, cursor)
-            cursor.virtual_move_to(a_cursor.x, a_cursor.y)
-            if i != len(self.children) - 1:
-                if self.options.flex_direction == "column":
-                    cursor.virtual_move_to(cursor.virtual_x, cursor.virtual_y + rect.height + gap)
-                elif self.options.flex_direction == "row":
-                    cursor.virtual_move_to(cursor.virtual_x + rect.width + gap, cursor.virtual_y)
-            self.box_model.accumulate_dimensions(rect)
+            if child.options.flex:
+                flex_children.append(child)
+                continue
+            self.virtual_render_child(c, cursor, child, i, move_after_last_child=True)
+
+        if flex_children:
+            flex_weights = self.calculate_flex_weights(flex_children)
+            remaining_width = self.box_model.content_rect.width - self.box_model.content_children_rect.width
+            remaining_height = self.box_model.content_rect.height - self.box_model.content_children_rect.height
+
+            for i, child in enumerate(flex_children):
+                if self.options.flex_direction == "row":
+                    child.options.width = remaining_width * flex_weights[i]
+                elif self.options.flex_direction == "column":
+                    child.options.height = remaining_height * flex_weights[i]
+                self.virtual_render_child(c, cursor, child, i, move_after_last_child=False)
 
         cursor.virtual_move_to(last_cursor.x, last_cursor.y)
 
         return self.box_model.margin_rect
+
+    def calculate_flex_weights(self, flex_children):
+        total_flex = sum(child.options.flex for child in flex_children)
+        return [child.options.flex / total_flex for child in flex_children]
 
     def draw_debug_number(self, c: SkiaCanvas, cursor: Cursor, new_color = False):
         if new_color:
@@ -409,34 +437,15 @@ class UIBox(UIWithChildren):
 
         c.draw_text(str(self.debug_number), cursor.x, cursor.y)
 
-    def render(self, c: SkiaCanvas, cursor: Cursor, builder_options: any):
-        global ids, debug_current_step, render_step, debug_numbers, debug_points, debug_draw_step_by_step
-        render_step += 1
-        if debug_current_step and render_step >= debug_current_step:
-            return self.box_model.margin_rect
-
-        self.box_model.prepare_render(cursor, self.options.flex_direction, self.options.align_items, self.options.justify_content)
-        if self.id:
-            ids[self.id] = {
-                "box_model": self.box_model,
-                "options": self.options,
-                "builder_id": builder_options["id"]
-            }
+    def render_borders(self, c: SkiaCanvas, cursor: Cursor):
         cursor.move_to(self.box_model.border_rect.x, self.box_model.border_rect.y)
-
-        if debug_points:
-            c.paint.color = "red"
-            c.draw_circle(cursor.x, cursor.y, 2)
-        if debug_numbers:
-            self.draw_debug_number(c, cursor)
-
-        is_uniform_border = True
+        self.is_uniform_border = True
         border_spacing = self.box_model.border_spacing
         has_border = border_spacing.left or border_spacing.top or border_spacing.right or border_spacing.bottom
         if has_border:
-            is_uniform_border = border_spacing.left == border_spacing.top == border_spacing.right == border_spacing.bottom
+            self.is_uniform_border = border_spacing.left == border_spacing.top == border_spacing.right == border_spacing.bottom
 
-            if is_uniform_border:
+            if self.is_uniform_border:
                 border_width = border_spacing.left
                 c.paint.color = self.options.border_color
                 c.paint.style = c.paint.Style.STROKE
@@ -474,29 +483,50 @@ class UIBox(UIWithChildren):
                     half = border_spacing.bottom / 2
                     c.draw_line(p_rect.x, b_rect.y + b_rect.height - half, p_rect.x + p_rect.width, b_rect.y + b_rect.height - half)
 
+    def render_background(self, c: SkiaCanvas, cursor: Cursor):
         c.paint.style = c.paint.Style.FILL
 
         cursor.move_to(self.box_model.padding_rect.x, self.box_model.padding_rect.y)
         if self.options.background_color:
             c.paint.color = self.options.background_color
-            if self.options.border_radius and is_uniform_border:
+            if self.options.border_radius and self.is_uniform_border:
                 c.draw_rrect(RoundRect.from_rect(self.box_model.padding_rect, x=self.options.border_radius, y=self.options.border_radius))
             else:
                 c.draw_rect(self.box_model.padding_rect)
 
+    def debugger_should_continue(self, c: SkiaCanvas, cursor: Cursor):
+        global debug_enabled, debug_current_step, render_step, debug_points, debug_numbers, debug_draw_step_by_step
+        if not debug_enabled:
+            return False
 
+        has_continue = False
+        if debug_draw_step_by_step:
+                render_step += 1
+                if debug_current_step and render_step >= debug_current_step:
+                    has_continue = True
+        return has_continue
+
+    def debugger(self, c: SkiaCanvas, cursor: Cursor, incrememnt_step: bool = False, new_color = False, is_breakpoint = True):
+        """Add circles and numbers and the ability to render step by step. Returns the current view state if it should be rendered."""
+        global debug_enabled, debug_current_step, render_step, debug_numbers, debug_points, debug_draw_step_by_step
+
+        if not debug_enabled:
+            return None
+
+        if incrememnt_step and debug_draw_step_by_step:
+            render_step += 1
+            if debug_current_step and render_step >= debug_current_step:
+                return self.box_model.margin_rect
+        if debug_points:
+            c.paint.color = "red"
+            c.draw_circle(cursor.x, cursor.y, 2)
+        if debug_numbers:
+            self.draw_debug_number(c, cursor, new_color)
+
+        return None
+
+    def move_cursor_to_align_axis_before_children_render(self, cursor: Cursor):
         cursor.move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
-
-        # if debug_draw_step_by_step:
-        #     render_step += 1
-        #     if debug_current_step and render_step >= debug_current_step:
-        #         return self.box_model.margin_rect
-        # if debug_points:
-        #     c.paint.color = "red"
-        #     c.draw_circle(cursor.x, cursor.y, 2)
-        # if debug_numbers:
-        #     self.draw_debug_number(c, cursor)
-
         if self.options.flex_direction == "row":
             if self.options.align_items == "center":
                 cursor.move_to(cursor.x, cursor.y + self.box_model.content_children_rect.height // 2)
@@ -508,35 +538,62 @@ class UIBox(UIWithChildren):
             elif self.options.align_items == "flex_end":
                 cursor.move_to(cursor.x + self.box_model.content_children_rect.width, cursor.y)
 
-        # if debug_points:
-        #     c.paint.color = "red"
-        #     c.draw_circle(cursor.x, cursor.y, 2)
-        # if debug_numbers:
-        #     self.draw_debug_number(c, cursor)
+    def move_cursor_to_top_left_child_based_on_align_axis(self, cursor: Cursor, child):
+        if self.options.flex_direction == "row":
+            if self.options.align_items == "center":
+                cursor.move_to(cursor.x, cursor.y - child.box_model.margin_rect.height // 2)
+            elif self.options.align_items == "flex_end":
+                cursor.move_to(cursor.x, cursor.y - child.box_model.margin_rect.height)
+
+        elif self.options.flex_direction == "column":
+            if self.options.align_items == "center":
+                cursor.move_to(cursor.x - child.box_model.margin_rect.width // 2, cursor.y)
+            elif self.options.align_items == "flex_end":
+                cursor.move_to(cursor.x - child.box_model.margin_rect.width, cursor.y)
+
+    def move_cursor_from_top_left_child_to_next_child_along_align_axis(self, cursor: Cursor, child, rect: Rect, gap = 0):
+        if self.options.flex_direction == "row":
+            if self.options.align_items == "center":
+                cursor.move_to(cursor.x, cursor.y + child.box_model.margin_rect.height // 2)
+            elif self.options.align_items == "flex_end":
+                cursor.move_to(cursor.x, cursor.y + child.box_model.margin_rect.height)
+            cursor.move_to(cursor.x + rect.width + gap, cursor.y)
+        else:
+            if self.options.align_items == "center":
+                cursor.move_to(cursor.x + child.box_model.margin_rect.width // 2, cursor.y)
+            elif self.options.align_items == "flex_end":
+                cursor.move_to(cursor.x + child.box_model.margin_rect.width, cursor.y)
+            cursor.move_to(cursor.x, cursor.y + rect.height + gap)
+
+    def render(self, c: SkiaCanvas, cursor: Cursor, builder_options: any):
+        global ids
+
+        if view_state := self.debugger(c, cursor, True):
+            return view_state
+
+        self.box_model.prepare_render(cursor, self.options.flex_direction, self.options.align_items, self.options.justify_content)
+        if self.id:
+            ids[self.id] = {
+                "box_model": self.box_model,
+                "options": self.options,
+                "builder_id": builder_options["id"]
+            }
+
+        # self.debugger(c, cursor)
+        self.render_borders(c, cursor)
+        self.render_background(c, cursor)
+        # if view_state := self.debugger(c, cursor, True):
+        #     return view_state
+        self.move_cursor_to_align_axis_before_children_render(cursor)
+        # self.debugger(c, cursor)
 
         last_cursor = Point2d(cursor.x, cursor.y)
         for i, child in enumerate(self.children):
-            if debug_draw_step_by_step:
-                render_step += 1
-                if debug_current_step and render_step >= debug_current_step:
-                    continue
+            if self.debugger_should_continue(c, cursor):
+                continue
 
-            if self.options.flex_direction == "row":
-                if self.options.align_items == "center":
-                    cursor.move_to(cursor.x, cursor.y - child.box_model.margin_rect.height // 2)
-                elif self.options.align_items == "flex_end":
-                    cursor.move_to(cursor.x, cursor.y - child.box_model.margin_rect.height)
-            elif self.options.flex_direction == "column":
-                if self.options.align_items == "center":
-                    cursor.move_to(cursor.x - child.box_model.margin_rect.width // 2, cursor.y)
-                elif self.options.align_items == "flex_end":
-                    cursor.move_to(cursor.x - child.box_model.margin_rect.width, cursor.y)
-
-            # if debug_points:
-            #     c.paint.color = "red"
-            #     c.draw_circle(cursor.x, cursor.y, 2)
-            # if debug_numbers:
-            #     self.draw_debug_number(c, cursor, new_color=True)
+            self.move_cursor_to_top_left_child_based_on_align_axis(cursor, child)
+            # self.debugger(c, cursor, new_color=True)
 
             child_last_cursor = Point2d(cursor.x, cursor.y)
             rect = child.render(c, cursor, builder_options)
@@ -545,46 +602,21 @@ class UIBox(UIWithChildren):
             if i == len(self.children) - 1:
                 break
 
-            if debug_draw_step_by_step:
-                render_step += 1
-                if debug_current_step and render_step >= debug_current_step:
-                    continue
+            # if self.debugger_should_continue(c, cursor):
+            #     continue
 
             gap = self.options.gap or 0
             if self.options.gap is None and child.type == "text" and self.children[i + 1].type == "text":
                 gap = 16
 
-            if self.options.flex_direction == "row":
-                if self.options.align_items == "center":
-                    cursor.move_to(cursor.x, cursor.y + child.box_model.margin_rect.height // 2)
-                elif self.options.align_items == "flex_end":
-                    cursor.move_to(cursor.x, cursor.y + child.box_model.margin_rect.height)
-                cursor.move_to(cursor.x + rect.width + gap, cursor.y)
-            else:
-                if self.options.align_items == "center":
-                    cursor.move_to(cursor.x + child.box_model.margin_rect.width // 2, cursor.y)
-                elif self.options.align_items == "flex_end":
-                    cursor.move_to(cursor.x + child.box_model.margin_rect.width, cursor.y)
-                cursor.move_to(cursor.x, cursor.y + rect.height + gap)
+            self.move_cursor_from_top_left_child_to_next_child_along_align_axis(cursor, child, rect, gap)
+            # self.debugger(c, cursor)
 
-            # if debug_points:
-            #     c.paint.color = "red"
-            #     c.draw_circle(cursor.x, cursor.y, 2)
-            # if debug_numbers:
-            #     self.draw_debug_number(c, cursor)
-
-        # if debug_draw_step_by_step:
-        #     render_step += 1
-        #     if debug_current_step and render_step >= debug_current_step:
-        #         return self.box_model.margin_rect
+        # if view_state := self.debugger(c, cursor, True):
+        #     return view_state
 
         cursor.move_to(last_cursor.x, last_cursor.y)
-
-        # if debug_points:
-        #     c.paint.color = "red"
-        #     c.draw_circle(cursor.x, cursor.y, 2)
-        # if debug_numbers:
-        #     self.draw_debug_number(c, cursor)
+        # self.debugger(c, cursor)
 
         return self.box_model.margin_rect
 
@@ -619,27 +651,28 @@ class UIText:
 
         c.draw_text(str(self.debug_number), cursor.x, cursor.y)
 
-    def virtual_render(self, c: SkiaCanvas, cursor: Cursor):
-        self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.border, self.options.width, self.options.height)
-        cursor.virtual_move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
-        c.paint.textsize = self.options.font_size
-        c.paint.font.embolden = True if self.options.font_weight == "bold" else False
-        self.text_width = c.paint.measure_text(self.text)[1].width
-        self.text_height = c.paint.measure_text("E")[1].height
-        self.box_model.accumulate_dimensions(Rect(cursor.virtual_x, cursor.virtual_y, self.text_width, self.text_height))
-        return self.box_model.margin_rect
+    def debugger(self, c: SkiaCanvas, cursor: Cursor, incrememnt_step: bool = False, new_color = False, is_breakpoint = True):
+        """Add circles and numbers and the ability to render step by step. Returns the current view state if it should be rendered."""
+        global debug_enabled, debug_current_step, render_step, debug_numbers, debug_points, debug_draw_step_by_step
 
-    def render(self, c: SkiaCanvas, cursor: Cursor, builder_options: dict[str, any]):
-        global ids, state, buttons, debug_current_step, render_step, debug_points, debug_numbers, debug_draw_step_by_step
-        render_now = True
+        if not debug_enabled:
+            return None
 
-        if debug_draw_step_by_step:
+        if incrememnt_step and debug_draw_step_by_step:
             render_step += 1
             if debug_current_step and render_step >= debug_current_step:
                 return self.box_model.margin_rect
+        if debug_points:
+            c.paint.color = "red"
+            c.draw_circle(cursor.x, cursor.y, 2)
+        if debug_numbers:
+            self.draw_debug_number(c, cursor, new_color)
 
-        self.box_model.prepare_render(cursor, self.options.flex_direction, self.options.align_items, self.options.justify_content)
+        return None
 
+    def init_state(self, builder_options: dict[str, any]):
+        global ids, state, buttons
+        render_now = True
         if self.id:
             ids[self.id] = {
                 "box_model": self.box_model,
@@ -655,19 +688,22 @@ class UIText:
             if not state["text"].get(self.id):
                 state["text"][self.id] = self.text
             render_now = False
+        return render_now
+
+    def virtual_render(self, c: SkiaCanvas, cursor: Cursor):
+        self.box_model = BoxModelLayout(cursor.virtual_x, cursor.virtual_y, self.options.margin, self.options.padding, self.options.border, self.options.width, self.options.height)
+        cursor.virtual_move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
+        c.paint.textsize = self.options.font_size
+        c.paint.font.embolden = True if self.options.font_weight == "bold" else False
+        self.text_width = c.paint.measure_text(self.text)[1].width
+        self.text_height = c.paint.measure_text("E")[1].height
+        self.box_model.accumulate_dimensions(Rect(cursor.virtual_x, cursor.virtual_y, self.text_width, self.text_height))
+        return self.box_model.margin_rect
+
+    def render_background(self, c: SkiaCanvas, cursor: Cursor):
         cursor.move_to(self.box_model.padding_rect.x, self.box_model.padding_rect.y)
-
-        if debug_points:
-            c.paint.color = "red"
-            c.draw_circle(cursor.x, cursor.y, 2)
-        if debug_draw_step_by_step:
-            render_step += 1
-            if debug_current_step and render_step >= debug_current_step:
-                return self.box_model.margin_rect
-        if debug_numbers:
-            self.draw_debug_number(c, cursor)
-
         if self.options.background_color:
+            c.paint.style = c.paint.Style.FILL
             c.paint.color = self.options.background_color
 
             if self.options.border_radius:
@@ -675,6 +711,20 @@ class UIText:
                 c.draw_rrect(options)
             else:
                 c.draw_rect(self.box_model.padding_rect)
+
+    def render(self, c: SkiaCanvas, cursor: Cursor, builder_options: dict[str, any]):
+        global ids
+
+        if view_state := self.debugger(c, cursor, True):
+            return view_state
+
+        self.box_model.prepare_render(cursor, self.options.flex_direction, self.options.align_items, self.options.justify_content)
+        render_now = self.init_state(builder_options)
+
+        if view_state := self.debugger(c, cursor, True):
+            return view_state
+
+        self.render_background(c, cursor)
 
         cursor.move_to(self.box_model.content_children_rect.x, self.box_model.content_children_rect.y)
         if self.id:
@@ -685,15 +735,9 @@ class UIText:
 
         if render_now:
             draw_text_simple(c, self.text, self.options, cursor.x, cursor.y + self.text_height)
-        # if debug_points:
-        #     c.paint.color = "red"
-        #     c.draw_circle(cursor.x, cursor.y, 2)
-        # if debug_draw_step_by_step:
-        #     render_step += 1
-        #     if debug_current_step and render_step >= debug_current_step:
-        #         return self.box_model.margin_rect
-        # if debug_numbers:
-        #     self.draw_debug_number(c, cursor)
+
+        if view_state := self.debugger(c, cursor, True):
+            return view_state
 
         return self.box_model.margin_rect
 
@@ -1085,6 +1129,7 @@ class UIProps:
     left: int
     right: int
     color: str
+    flex: int
     flex_direction: str
     font_size: int
     font_weight: str

@@ -54,14 +54,18 @@ skin | loot | hitch: user.game_xbox_button_hold('y')
 stow: user.game_xbox_button_hold('x')
 pick: user.game_xbox_button_hold('lb')
 call: user.game_xbox_button_press('dpad_up')
-run: user.game_xbox_button_hold('a')
+run: 
+    user.game_xbox_left_stick_hold_dir("up")
+    user.game_xbox_button_hold('a')
 sell | satchel: user.game_xbox_button_hold('dpad_right')
 hide: user.game_xbox_button_press('rb')
 crouch: user.game_xbox_button_press('left_thumb')
 scope: user.game_xbox_button_press('dpad_down')
 
-(dead | dot | did) (eye | I): user.game_xbox_button_press('right_thumb')
-
+(dead | dot | did) (eye | I): 
+    user.game_xbox_button_press('right_thumb')
+    user.game_xbox_button_press('left_thumb')
+    
 halt | stop:
     user.game_stopper()
     user.game_xbox_stopper()

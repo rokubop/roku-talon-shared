@@ -105,11 +105,11 @@ default_config = {
     "tut mm":     ("", dash_backward_down),
     "tut ee":     ("skip scene", skip_scene),
     "tut cluck":  ("return map", return_map),
-    "tut pop":    ("restart chapter", restart_chapter),
     "cluck":      ("load", lambda: (actions.key("f8"), actions.user.game_stopper())),
     "cluck cluck":("save", lambda: actions.key("f7")),
     "cluck ee":   ("clear", lambda: actions.key("f4")),
     "cluck guh":  ("debug", lambda: actions.key("f6")),
+    "cluck pop":  ("restart chapter", restart_chapter),
     "foot 1":     ("grab"),
     "foot 2":     ("move mode"),
     "<number>":   ("set jump2")

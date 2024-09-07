@@ -1,8 +1,10 @@
-from talon import Module, actions, cron, ui, ctrl
+from talon import Module, actions, cron, ui, ctrl, settings
 import re
 mod = Module()
 
 event_subscribers = []
+
+mod.setting("parrot_config_combo_window", type=int, default=300, desc="The time window to wait for a combo to complete")
 
 def get_base_noise(noise):
     """The part before colon or @ e.g.'pop' in 'pop:db_170' or 'pop@top'"""
@@ -118,6 +120,7 @@ class ParrotConfig():
         self.combo_job = None
         self.base_noises = None
         self.pending_combo = None
+        self.combo_window = "300ms"
 
     def setup(self, parrot_config):
         if self.combo_job:
@@ -128,6 +131,8 @@ class ParrotConfig():
         self.parrot_config_ref = parrot_config
         commands = parrot_config.get("commands", {}) if "commands" in parrot_config else parrot_config
         self.immediate_commands, self.delayed_commands, self.base_noises = categorize_commands(commands)
+        combo_window = settings.get("user.parrot_config_combo_window", 300)
+        self.combo_window = f"{combo_window}ms"
 
     def _delayed_combo_execute(self):
         if self.combo_job:
@@ -163,7 +168,7 @@ class ParrotConfig():
         if self.combo_chain in self.delayed_commands:
             # print(f"match for {self.combo_chain}")
             self.pending_combo = self.combo_chain
-            self.combo_job = cron.after("300ms", self._delayed_combo_execute)
+            self.combo_job = cron.after(self.combo_window, self._delayed_combo_execute)
         elif self.combo_chain in self.immediate_commands:
             # print(f"match for {self.combo_chain}")
             action = self.immediate_commands[self.combo_chain][1]
@@ -185,7 +190,7 @@ class ParrotConfig():
             self.pending_combo = None
         else:
             # print(f"no match for {self.combo_chain}")
-            self.combo_job = cron.after("300ms", self._delayed_potential_combo)
+            self.combo_job = cron.after(self.combo_window, self._delayed_potential_combo)
 
 # todo: try using the user's direct reference instead
 parrot_config_saved = ParrotConfig()

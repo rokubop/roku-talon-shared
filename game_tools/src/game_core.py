@@ -281,8 +281,9 @@ def stopper():
 
 def mouse_reset_center_y():
     """Reset the mouse to the center of the screen."""
-    actions.user.mouse_move_delta_degrees(0, 180, 100)
-    actions.user.mouse_move_queue(lambda: actions.user.mouse_move_delta_degrees(0, -90, 100))
+
+    game_mouse_move_degrees(0, 180, 100)
+    actions.user.mouse_move_smooth_queue(lambda: game_mouse_move_degrees(0, -90, 100))
 
 def on_calibrate_x_360_tick(value):
     actions.skip()
@@ -298,30 +299,30 @@ def on_calibrate_y_90_tick(value):
 #     if value.type == "stop":
 #         _last_calibrate_value_y -= value.dy
 
-def mouse_calibrate_x_360(dx360: int):
+def game_calibrate_x_360(dx360: int):
     actions.skip()
 #     """Calibrate a 360 spin"""
 #     global _last_calibrate_value_x
 #     _last_calibrate_value_x = 0
-#     actions.user.mouse_move_delta_smooth(dx360, 0, 1000, on_calibrate_x_360_tick, mouse_api_type="windows")
+#     actions.user.mouse_move_smooth_delta(dx360, 0, 1000, on_calibrate_x_360_tick, mouse_api_type="windows")
 
 def game_calibrate_x_360_adjust_last(dx: int):
     actions.skip()
 #     """Add or subtract to the last x calibration."""
-#     actions.user.mouse_move_delta_smooth(dx, 0, 500, on_calibrate_x_360_tick, mouse_api_type="windows")
+#     actions.user.mouse_move_smooth_delta(dx, 0, 500, on_calibrate_x_360_tick, mouse_api_type="windows")
 
 def game_calibrate_y_90_adjust_last(dy: int):
     actions.skip()
 #     """Add or subtract to the last x calibration."""
-#     actions.user.mouse_move_delta_smooth(0, dy, 500, on_calibrate_y_90_tick, mouse_api_type="windows")
+#     actions.user.mouse_move_smooth_delta(0, dy, 500, on_calibrate_y_90_tick, mouse_api_type="windows")
 
-def mouse_calibrate_90_y(dy_90: int):
+def game_calibrate_90_y(dy_90: int):
     actions.skip()
 #     """Calibrate looking down to the ground and looking up to center."""
 #     global _last_calibrate_value_y
 #     _last_calibrate_value_y = 0
-#     actions.user.mouse_move_delta_smooth(0, dy_90 * 2, 100, mouse_api_type="windows")
-#     actions.user.mouse_move_queue(lambda: actions.user.mouse_move_delta_smooth(0, -dy_90, 100, on_calibrate_y_90_tick, mouse_api_type="windows"))
+#     actions.user.mouse_move_smooth_delta(0, dy_90 * 2, 100, mouse_api_type="windows")
+#     actions.user.mouse_move_smooth_queue(lambda: actions.user.mouse_move_smooth_delta(0, -dy_90, 100, on_calibrate_y_90_tick, mouse_api_type="windows"))
 
 def game_key_up(key):
     global _key_up_pending_jobs
@@ -373,17 +374,23 @@ def get_held_mouse_buttons():
     """Get the held mouse buttons"""
     return _held_mouse_buttons
 
+def game_mouse_move_degrees(dx_degrees: int, dy_degrees: int, duration_ms = None, callback_stop = None):
+    dx_360 = settings.get("user.game_calibrate_x_360")
+    dy_90 = settings.get("user.game_calibrate_y_90")
+    dx_total = dx_360 / 360 * dx_degrees
+    dy_total = dy_90 / 90 * dy_degrees
+    actions.user.mouse_move_smooth_delta(dx_total, dy_total, duration_ms, callback_stop=callback_stop)
+
 def mouse_move_deg(deg_x: int, deg_y: int, mouse_button: int = None):
-    action_duration_ms = settings.get("user.game_camera_snap_speed_ms")
     if mouse_button is not None:
         mouse_hold(mouse_button)
 
         def on_stop():
             mouse_release(mouse_button)
 
-        actions.user.mouse_move_delta_degrees(deg_x, deg_y, action_duration_ms, mouse_api_type="windows", callback_stop=on_stop)
+        game_mouse_move_degrees(deg_x, deg_y, callback_stop=on_stop)
     else:
-        actions.user.mouse_move_delta_degrees(deg_x, deg_y, action_duration_ms, mouse_api_type="windows")
+        game_mouse_move_degrees(deg_x, deg_y)
 
 def mouse_move_continuous(x: int, y: int, speed: int, mouse_button: int = None):
     if mouse_button is not None:

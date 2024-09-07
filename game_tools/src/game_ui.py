@@ -221,7 +221,7 @@
 # class Actions:
 #     def game_ui_show_calibrate_x():
 #         """Show the calibrate x modal"""
-#         current_value = settings.get("user.game_calibrate_x_360")
+#         current_value = settings.get("user.mouse_move_calibrate_x_360")
 #         builder = actions.user.ui_flexbox_builder({
 #             'id': 'main',
 #             'align': 'top_left',
@@ -259,7 +259,7 @@
 
 #     def game_ui_show_calibrate_y():
 #         """Show the calibrate y modal"""
-#         current_value = settings.get("user.game_calibrate_y_90")
+#         current_value = settings.get("user.mouse_move_calibrate_y_90")
 #         builder = actions.user.ui_flexbox_builder({
 #             'id': 'main',
 #             'align': 'top_left',

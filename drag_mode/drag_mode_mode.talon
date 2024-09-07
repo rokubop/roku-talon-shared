@@ -31,7 +31,7 @@ center <user.drag_mode_target>: user.drag_mode_bring_to_center(drag_mode_target,
 
 swipe <user.drag_mode_target> left:
     user.drag_mode_move_mouse(drag_mode_target)
-    user.mouse_move_delta_smooth(-200, 0)
+    user.mouse_move_smooth_delta(-200, 0)
 
 drag (grid | mode | off | hide): user.drag_mode_hide()
 ^grid (hide | close | off)$: user.drag_mode_hide()
@@ -68,13 +68,13 @@ mouse stop: user.mouse_stop()
 stop | halt: user.drag_mode_stop()
 
 tick: user.mouse_move_tick_last_direction()
-tick down: user.mouse_move_tick_direction(0, 1)
-tick up: user.mouse_move_tick_direction(0, -1)
-tick left: user.mouse_move_tick_direction(-1, 0)
-tick right: user.mouse_move_tick_direction(1, 0)
+tick down: user.mouse_move_tick(0, 1)
+tick up: user.mouse_move_tick(0, -1)
+tick left: user.mouse_move_tick(-1, 0)
+tick right: user.mouse_move_tick(1, 0)
 tick back: user.mouse_move_tick_reverse_last_direction()
-gear up: user.mouse_move_speed_increase()
-gear down: user.mouse_move_speed_decrease()
+gear up: user.mouse_move_continuous_speed_increase()
+gear down: user.mouse_move_continuous_speed_decrease()
 
 <user.drag_mode_target> up:
     user.drag_mode_move_mouse(drag_mode_target)

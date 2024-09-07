@@ -1,7 +1,7 @@
 {
   "name": "drag_mode",
   "description": "Auto-generated manifest. This is an experimental repository. Allows you drag from one point to another using left, middle, or right click. Flexible mouse movement to and from any point. hiss stopper for precision stops.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "contributes": {
     "modes": [
       "user.drag_mode"
@@ -50,9 +50,9 @@
       "user.dynamic_noises_set_hiss",
       "user.mouse_move_continuous_stop",
       "user.mouse_move_continuous_towards",
-      "user.mouse_move_from_to",
-      "user.mouse_move_queue",
-      "user.mouse_move_to",
+      "user.mouse_move_smooth_from_to",
+      "user.mouse_move_smooth_queue",
+      "user.mouse_move_smooth_to",
       "user.ui_elements"
     ]
   }

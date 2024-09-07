@@ -1,7 +1,7 @@
 {
   "name": "hi_fi_rush",
   "description": "Auto-generated manifest.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "contributes": {},
   "depends": {
     "modes": [
@@ -26,10 +26,10 @@
       "user.mouse_move_continuous_down",
       "user.mouse_move_continuous_left",
       "user.mouse_move_continuous_right",
+      "user.mouse_move_continuous_speed_decrease",
+      "user.mouse_move_continuous_speed_increase",
       "user.mouse_move_continuous_stop",
       "user.mouse_move_continuous_up",
-      "user.mouse_move_speed_decrease",
-      "user.mouse_move_speed_increase",
       "user.mouse_move_tick_last_direction",
       "user.mouse_move_tick_reverse_last_direction",
       "user.on_game_mode_disabled",

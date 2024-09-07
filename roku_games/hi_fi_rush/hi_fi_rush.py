@@ -84,8 +84,8 @@ nav_config = {
     "palate": ("repeat", actions.user.mouse_move_tick_last_direction),
     "tut":    ("reverse", actions.user.mouse_move_tick_reverse_last_direction),
     "ee":     ("stop", actions.user.mouse_move_continuous_stop),
-    "t":      ("slow", actions.user.mouse_move_speed_decrease),
-    "guh":    ("fast", actions.user.mouse_move_speed_increase),
+    "t":      ("slow", actions.user.mouse_move_continuous_speed_decrease),
+    "guh":    ("fast", actions.user.mouse_move_continuous_speed_increase),
     "er":     ("exit mode", rpg_mouse_mode_disable),
 }
 

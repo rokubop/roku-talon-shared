@@ -135,7 +135,7 @@ def next_pos(target: str, drag: bool=False):
         if drag and ev.type == "stop":
             actions.mouse_click(button=0, up=True)
 
-    return actions.user.mouse_move_to(pos.x, pos.y, callback_tick=callback)
+    return actions.user.mouse_move_smooth_to(pos.x, pos.y, callback_tick=callback)
 
 def next_target(target: str, drag: bool=False):
     pos = grid_pos_map[target]
@@ -204,7 +204,7 @@ class Actions:
     def drag_mode_move_mouse_to_target(target: str):
         """Move the mouse to the grid position"""
         pos = grid_pos_map[target]
-        actions.user.mouse_move_to(pos.x, pos.y)
+        actions.user.mouse_move_smooth_to(pos.x, pos.y)
 
     def drag_mode_fly_towards(target: str):
         """Move the mouse to the grid position"""
@@ -230,20 +230,20 @@ class Actions:
         """Move the mouse to the grid position"""
         actual_targets = targets[0]
         pos = grid_pos_map[actual_targets[0]]
-        actions.user.mouse_move_to(pos.x, pos.y)
+        actions.user.mouse_move_smooth_to(pos.x, pos.y)
         for target in islice(actual_targets, 1, None):
-            actions.user.mouse_move_queue(next_target(target))
+            actions.user.mouse_move_smooth_queue(next_target(target))
 
     # def drag_mode_drag_to_target_loop(targets: list[list[str]], button: int = 0):
     #     """Move the mouse to the grid position"""
     #     actual_targets = targets[0]
     #     pos = grid_pos_map[actual_targets[0]]
-    #     actions.user.mouse_move_to(pos.x, pos.y, callback_tick=lambda ev: ctrl.mouse_click(button=button, down=True) if ev.type == "stop" else None)
+    #     actions.user.mouse_move_smooth_to(pos.x, pos.y, callback_tick=lambda ev: ctrl.mouse_click(button=button, down=True) if ev.type == "stop" else None)
     #     for i, target in enumerate(islice(actual_targets, 1, None)):
     #         if i == len(actual_targets) - 1:
-    #             actions.user.mouse_move_queue(next_target(target, True))
+    #             actions.user.mouse_move_smooth_queue(next_target(target, True))
     #         else:
-    #             actions.user.mouse_move_queue(next_target(target))
+    #             actions.user.mouse_move_smooth_queue(next_target(target))
 
     def drag_mode_drag_and_drop(target_one: str, target_two: str, button: int = 0):
         """Drag and drop from target one to target two"""
@@ -255,9 +255,9 @@ class Actions:
 
         def moved():
             ctrl.mouse_click(button=button, down=True)
-            actions.user.mouse_move_from_to(start_pos.x, start_pos.y, target_pos.x, target_pos.y, 200, callback_stop=release)
+            actions.user.mouse_move_smooth_from_to(start_pos.x, start_pos.y, target_pos.x, target_pos.y, 200, callback_stop=release)
 
-        actions.user.mouse_move_to(start_pos.x, start_pos.y, 200, callback_stop=moved)
+        actions.user.mouse_move_smooth_to(start_pos.x, start_pos.y, 200, callback_stop=moved)
 
     def drag_mode_bring_to_center(target: str, button: int = 0):
         """Center the target"""
@@ -270,9 +270,9 @@ class Actions:
 
         def moved():
             ctrl.mouse_click(button=button, down=True)
-            actions.user.mouse_move_from_to(start_pos.x, start_pos.y, end_pos_x, end_pos_y, 200, callback_stop=release)
+            actions.user.mouse_move_smooth_from_to(start_pos.x, start_pos.y, end_pos_x, end_pos_y, 200, callback_stop=release)
 
-        actions.user.mouse_move_to(start_pos.x, start_pos.y, 200, callback_stop=moved)
+        actions.user.mouse_move_smooth_to(start_pos.x, start_pos.y, 200, callback_stop=moved)
 
     def drag_mode_exclude_area_targets(target_one: str, target_two: str):
         """Exclude the grid of numbers from target one to target two"""
@@ -320,9 +320,9 @@ class Actions:
         def moved(ev):
             if ev.type == "stop":
                 ctrl.mouse_click(button=button, down=True)
-                actions.user.mouse_move_from_to(target_pos.x, target_pos.y, x, y, 200, callback_tick=release)
+                actions.user.mouse_move_smooth_from_to(target_pos.x, target_pos.y, x, y, 200, callback_tick=release)
 
-        actions.user.mouse_move_to(target_pos.x, target_pos.y, 200, callback_tick=moved)
+        actions.user.mouse_move_smooth_to(target_pos.x, target_pos.y, 200, callback_tick=moved)
 
     def drag_mode_bring_to(target: str, button: int = 0):
         """Bring the target to current mouse position"""
@@ -333,7 +333,7 @@ class Actions:
                 ctrl.mouse_click(button=button, up=True)
 
         ctrl.mouse_click(button=button, down=True)
-        actions.user.mouse_move_from_to(x, y, target_pos.x, target_pos.y, callback_tick=release)
+        actions.user.mouse_move_smooth_from_to(x, y, target_pos.x, target_pos.y, callback_tick=release)
 
 
     def drag_mode_reset():

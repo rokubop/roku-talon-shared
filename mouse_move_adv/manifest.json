@@ -1,11 +1,14 @@
 {
   "name": "mouse_move_adv",
-  "description": "Auto-generated manifest. This is an experimental repository. WIP. action names may change in the future. This is used for helping you turn in game and drag commands.",
-  "version": "0.1.0",
+  "description": "This is an experimental repository. WIP. action names may change in the future. This is used for helping you turn in game and drag commands.",
+  "version": "0.2.2",
   "contributes": {
     "settings": [
       "user.mouse_move_api",
+      "user.mouse_move_calibrate_x_360",
+      "user.mouse_move_calibrate_y_90",
       "user.mouse_move_continuous_speed_default",
+      "user.mouse_move_smooth_duration",
       "user.mouse_move_tick_distance"
     ],
     "actions": [
@@ -13,32 +16,32 @@
       "user.mouse_move_continuous_down",
       "user.mouse_move_continuous_left",
       "user.mouse_move_continuous_right",
+      "user.mouse_move_continuous_speed",
+      "user.mouse_move_continuous_speed_decrease",
+      "user.mouse_move_continuous_speed_increase",
       "user.mouse_move_continuous_stop",
       "user.mouse_move_continuous_towards",
       "user.mouse_move_continuous_up",
-      "user.mouse_move_delta_degrees",
-      "user.mouse_move_delta_smooth",
-      "user.mouse_move_dir_change_event_register",
-      "user.mouse_move_dir_change_event_unregister",
+      "user.mouse_move_event_dir_change_register",
+      "user.mouse_move_event_dir_change_unregister",
       "user.mouse_move_event_register",
       "user.mouse_move_event_unregister",
       "user.mouse_move_event_unregister_all",
-      "user.mouse_move_from",
-      "user.mouse_move_from_to",
       "user.mouse_move_info",
-      "user.mouse_move_queue",
-      "user.mouse_move_speed_decrease",
-      "user.mouse_move_speed_increase",
-      "user.mouse_move_tick_direction",
+      "user.mouse_move_smooth_delta",
+      "user.mouse_move_smooth_delta_degrees",
+      "user.mouse_move_smooth_from",
+      "user.mouse_move_smooth_from_to",
+      "user.mouse_move_smooth_queue",
+      "user.mouse_move_smooth_to",
+      "user.mouse_move_tick",
+      "user.mouse_move_tick_down",
       "user.mouse_move_tick_last_direction",
+      "user.mouse_move_tick_left",
       "user.mouse_move_tick_reverse_last_direction",
-      "user.mouse_move_to"
+      "user.mouse_move_tick_right",
+      "user.mouse_move_tick_up"
     ]
   },
-  "depends": {
-    "settings": [
-      "user.game_calibrate_x_360",
-      "user.game_calibrate_y_90"
-    ]
-  }
+  "depends": {}
 }

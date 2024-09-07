@@ -106,4 +106,5 @@ class Actions:
         """
         DEPRECATED: use `parrot_config_noise` instead
         """
+        print("DEPRECATED: `use_parrot_config`. use `parrot_config_noise` instead")
         parrot_config_noise(noise)

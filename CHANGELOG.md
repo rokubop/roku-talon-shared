@@ -4,6 +4,9 @@
 - Add `flex` for things like `flex: 1` for full width
 - Added `border_bottom`, `border_top`, `border_left`, `border_right` to `ui_elements`
 
+BREAKING CHANGES
+- change various names in `mouse_move_adv` to `mouse_move_continuous_` or `mouse_move_smooth_`
+
 ## Aug week 5 2024
 - Added manifest builder and manifests to every "package"
   to show actions, modes, settings, tags, and dependencies
@@ -16,7 +19,7 @@
 - Show red errors for bad noise bindings for `dynamic_actions`
 - Add `ui_elements` components specific to game and noises. `game_ui_elements_` and `dynamic_actions_ui_element`
 
-Breaking Changes
+BREAKING CHANGES
 - Rename `dynamic_actions_*` to `dynamic_noises_*`
 
 ## Fri Aug 23, 2024

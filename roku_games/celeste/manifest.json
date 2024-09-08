@@ -1,7 +1,7 @@
 {
   "name": "celeste",
   "description": "Auto-generated manifest.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "contributes": {
     "actions": [
       "user.game_celeste_set_jump_2"

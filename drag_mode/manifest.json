@@ -1,6 +1,6 @@
 {
   "name": "drag_mode",
-  "description": "Auto-generated manifest. This is an experimental repository. Allows you drag from one point to another using left, middle, or right click. Flexible mouse movement to and from any point. hiss stopper for precision stops.",
+  "description": "This is an experimental repository. Allows you drag from one point to another using left, middle, or right click. Flexible mouse movement to and from any point. hiss stopper for precision stops.",
   "version": "0.2.1",
   "contributes": {
     "modes": [

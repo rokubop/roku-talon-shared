@@ -90,7 +90,7 @@ UI components built with `ui_elements` that you can place inside of other `ui_el
 
 | **Action** | **Action** | **Action** |
 |------------|------------|------------|
-| game_ui_element_arrows_dpad (WIP) | game_ui_element_wasd_dpad (WIP) | game_ui_element_xbox_left_stick |
+| game_ui_element_arrows (WIP) | game_ui_element_wasd (WIP) | game_ui_element_xbox_left_stick |
 | game_ui_element_xbox_right_stick | game_ui_element_xbox_primary_buttons | game_ui_element_xbox_dpad |
 | game_ui_element_xbox_left_trigger | game_ui_element_xbox_right_trigger |  game_ui_element_xbox_left_bumper |
 | game_ui_element_xbox_right_bumper |

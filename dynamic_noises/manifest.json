@@ -1,6 +1,6 @@
 {
   "name": "dynamic_noises",
-  "description": "Auto-generated manifest. This is an experimental repository. WIP. Dynamic noises allow you to update noises 'pop' and 'hiss' on the fly, individually, or as a group.",
+  "description": "This is an experimental repository. WIP. Dynamic noises allow you to update noises 'pop' and 'hiss' on the fly, individually, or as a group.",
   "version": "0.1.0",
   "contributes": {
     "tags": [

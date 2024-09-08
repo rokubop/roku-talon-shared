@@ -366,12 +366,12 @@ def events_init(type: str):
 
 @mod.action_class
 class Actions:
-    def game_ui_element_arrows_dpad(size: int = 30, props: dict = None):
+    def game_ui_element_arrows(size: int = 30, props: dict = None):
         """game ui element arrows dpad"""
         events_init("keys")
         return game_ui_elements_keys_dpad(wasd=False, size=size)
 
-    def game_ui_element_wasd_dpad(size: int = 30):
+    def game_ui_element_wasd(size: int = 30):
         """game ui element WASD dpad"""
         events_init("keys")
         return game_ui_elements_keys_dpad(wasd=True, size=size)

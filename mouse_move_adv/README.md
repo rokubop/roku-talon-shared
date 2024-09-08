@@ -14,7 +14,6 @@ Mouse movement actions for Talon using a delta (dx, dy) or position(s) (x, y) ov
 | `mouse_move_continuous_speed_increase` | Increase the speed of a current continuous movement.|
 | `mouse_move_continuous_speed_decrease` | Decrease the speed of a current continuous movement.|
 | `mouse_move_smooth_delta` | Move the mouse over a delta with control over the curve type, duration, mouse api type, and callback. |
-| `mouse_move_smooth_delta_degrees` | Move the mouse by a number of degrees over a duration. |
 | `mouse_move_smooth_from_to` | Move the mouse from one point to another over a duration. |
 | `mouse_move_smooth_to` | Move the mouse to a point over a duration. |
 | `mouse_move_smooth_from` | Move the mouse from a point to the current mouse position over a duration. |

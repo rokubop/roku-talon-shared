@@ -213,23 +213,6 @@ def mouse_stop(start_next_queue: bool = True):
         fn = _mouse_movement_queue.pop(0)
         fn()
 
-def mouse_move_3D_to_deg(
-    dx_degrees: int,
-    dy_degrees: int,
-    duration_ms: int = None,
-    callback_tick: Callable[[MouseMoveCallbackEvent], None] = None,
-    callback_stop: Callable[[], None] = None,
-    mouse_api_type: Literal["talon", "windows"] = "talon"):
-    """
-    Move the mouse by a number of degrees over a duration.
-    Based on the calibration settings.
-    """
-    dx_360 = settings.get("user.mouse_move_calibrate_x_360")
-    dy_90 = settings.get("user.mouse_move_calibrate_y_90")
-    dx_total = dx_360 / 360 * dx_degrees
-    dy_total = dy_90 / 90 * dy_degrees
-    mouse_move_smooth_delta(dx_total, dy_total, duration_ms, callback_tick, callback_stop, mouse_api_type=mouse_api_type)
-
 def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float], speed_initial: int = None):
     """
     Move the mouse continuously.
@@ -412,17 +395,6 @@ class Actions:
         dx = cur_x - x
         dy = cur_y - y
         actions.user.mouse_move_smooth_from_to(dx, dy, duration_ms, callback_tick, callback_stop, easing_type, mouse_api_type)
-
-    def mouse_move_smooth_delta_degrees(
-        dx_degrees: int,
-        dy_degrees: int,
-        duration_ms: int = None,
-        callback_tick: Callable[[MouseMoveCallbackEvent], None] = None,
-        callback_stop: Callable[[], None] = None,
-        easing_type: CurveTypes = "ease_in_out",
-        mouse_api_type: Literal["talon", "windows"] = None):
-        """Move the mouse by a number of degrees over a duration."""
-        mouse_move_3D_to_deg(dx_degrees, dy_degrees, duration_ms, callback_tick, callback_stop, mouse_api_type)
 
     def mouse_move_smooth_queue(fn: callable):
         """Add to movement queue, executed after next mouse_stop."""

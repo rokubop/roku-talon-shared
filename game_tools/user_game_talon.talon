@@ -9,6 +9,7 @@
 # Testing if this is better if manually defined per context
 # rather than always active
 # game mode: user.game_mode_enable()
+
 game [mode] exit: user.game_mode_disable()
 game mode stop: user.game_mode_disable()
 (stop | exit) game mode: user.game_mode_disable()

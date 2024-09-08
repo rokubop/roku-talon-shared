@@ -2,7 +2,7 @@ import os
 import re
 from itertools import islice
 from pathlib import Path
-from ..templates.fp.template_roku_14_parrot import game_talon, game_mode_talon, game_py, game_ui_py
+from .templates.fp.template_roku_14_parrot import game_talon, game_mode_talon, game_py, game_ui_py
 from ..user_game_settings import USER_GAMES_DIR
 from talon import Module, actions, app, ui
 

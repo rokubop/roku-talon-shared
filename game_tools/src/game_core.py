@@ -151,7 +151,7 @@ def move_dir_toggle(keys: str | tuple[str, str]):
     _move_dir = keys
     hold_dir(_move_dir)
 
-def game_move_dir_hold_up_horizontal():
+def game_arrows_dir_hold_up_horizontal():
     if _move_dir_last_horizontal == "right":
         move_dir(('right', 'up'))
     elif _move_dir_last_horizontal == "left":
@@ -161,7 +161,7 @@ def game_move_dir_hold_up_horizontal():
     elif _move_dir_last_horizontal == "a":
         move_dir(('a', 'w'))
 
-def game_move_dir_hold_down_horizontal():
+def game_arrows_dir_hold_down_horizontal():
     if _move_dir_last_horizontal == "right":
         move_dir(('right', 'down'))
     elif _move_dir_last_horizontal == "left":
@@ -171,15 +171,15 @@ def game_move_dir_hold_down_horizontal():
     elif _move_dir_last_horizontal == "a":
         move_dir(('a', 's'))
 
-def game_move_dir_hold_last_horizontal():
+def game_dir_hold_last_horizontal():
     if _move_dir_last_horizontal == "right":
-        actions.user.game_move_dir_hold_right()
+        actions.user.game_arrows_dir_hold_right()
     elif _move_dir_last_horizontal == "left":
-        actions.user.game_move_dir_hold_left()
+        actions.user.game_arrows_dir_hold_left()
     elif _move_dir_last_horizontal == "d":
-        actions.user.game_move_dir_hold_d()
+        actions.user.game_wasd_dir_hold_d()
     elif _move_dir_last_horizontal == "a":
-        actions.user.game_move_dir_hold_a()
+        actions.user.game_wasd_dir_hold_a()
 
 def game_state_switch_horizontal():
     global _move_dir_last_horizontal
@@ -324,7 +324,7 @@ def game_calibrate_90_y(dy_90: int):
 #     actions.user.mouse_move_smooth_delta(0, dy_90 * 2, 100, mouse_api_type="windows")
 #     actions.user.mouse_move_smooth_queue(lambda: actions.user.mouse_move_smooth_delta(0, -dy_90, 100, on_calibrate_y_90_tick, mouse_api_type="windows"))
 
-def game_key_up(key):
+def game_key_release(key):
     global _key_up_pending_jobs
     actions.key(f"{key}:up")
     event_on_key.fire_release(key)
@@ -332,7 +332,7 @@ def game_key_up(key):
     if key in _held_keys:
         _held_keys.remove(key)
 
-def game_key_down(key: str):
+def game_key_hold(key: str):
     """Hold a key down"""
     actions.key(f"{key}:down")
     event_on_key.fire_hold(key)
@@ -349,7 +349,7 @@ def game_key_hold(key: str, hold: int = None):
     """Hold a game key"""
     global _key_up_pending_jobs
     if not hold:
-        game_key_down(key)
+        game_key_hold(key)
         return
 
     if _key_up_pending_jobs.get(key):
@@ -357,14 +357,14 @@ def game_key_hold(key: str, hold: int = None):
     actions.key(f"{key}:up")
     actions.key(f"{key}:down")
     event_on_key.fire_hold(key)
-    _key_up_pending_jobs[key] = cron.after(f"{hold}ms", lambda: game_key_up(key))
+    _key_up_pending_jobs[key] = cron.after(f"{hold}ms", lambda: game_key_release(key))
 
 def game_key_toggle(key: str):
     """Toggle a game key"""
     if key in _held_keys:
-        game_key_up(key)
+        game_key_release(key)
     else:
-        game_key_down(key)
+        game_key_hold(key)
 
 def get_held_keys():
     """Get the held keys"""
@@ -407,7 +407,7 @@ def camera_continuous_dynamic(dir: str):
     _dir_mode = DIR_MODE_CAM_CONTINUOUS
 
     if not _camera_speed:
-        _camera_speed = settings.get("user.game_camera_continuous_default_speed")
+        _camera_speed = settings.get("user.game_mouse_move_continuous_default_speed")
 
     if dir == "left":
         mouse_move_continuous(-1, 0, _camera_speed)
@@ -427,7 +427,7 @@ def camera_snap_dynamic(dir: str):
     _dir_mode = DIR_MODE_CAM_SNAP
 
     if not _camera_snap_angle:
-        _camera_snap_angle = settings.get("user.game_camera_snap_default_angle")
+        _camera_snap_angle = settings.get("user.game_mouse_move_deg_default_angle")
 
     if dir == "left":
         mouse_move_deg(-_camera_snap_angle, 0)
@@ -451,10 +451,10 @@ def camera_snap_dynamic_set_angle(angle: int):
 def game_gear_set(gear_num: int):
     """Set the gear number"""
     if _dir_mode == DIR_MODE_CAM_CONTINUOUS:
-        speed = settings.get("user.game_camera_continuous_gear_speeds").split(" ").get(gear_num)
+        speed = settings.get("user.game_mouse_move_continuous_gears").split(" ").get(gear_num)
         camera_continuous_dynamic_set_speed(speed)
     elif _dir_mode == DIR_MODE_CAM_SNAP:
-        angle = settings.get("user.game_camera_snap_gear_angles").split(" ").get(gear_num)
+        angle = settings.get("user.game_mouse_move_deg_gear_angles").split(" ").get(gear_num)
         camera_snap_dynamic_set_angle(angle)
 
 @mod.action_class
@@ -480,63 +480,63 @@ class Actions:
         actions.mode.enable("command")
         print("game_mode_disable")
 
-    def game_calibrate_x_360_add(num: int):
-        """Add to the current x calibration."""
-        game_calibrate_x_360_adjust_last(num)
+    # def game_calibrate_x_360_add(num: int):
+    #     """Add to the current x calibration."""
+    #     game_calibrate_x_360_adjust_last(num)
 
-    def game_calibrate_x_360_subtract(num: int):
-        """Subtract to the current x calibration."""
-        game_calibrate_x_360_adjust_last(-num)
+    # def game_calibrate_x_360_subtract(num: int):
+    #     """Subtract to the current x calibration."""
+    #     game_calibrate_x_360_adjust_last(-num)
 
-    def game_calibrate_y_90_add(num: int):
-        """Add to the current x calibration."""
-        game_calibrate_y_90_adjust_last(num)
+    # def game_calibrate_y_90_add(num: int):
+    #     """Add to the current x calibration."""
+    #     game_calibrate_y_90_adjust_last(num)
 
-    def game_calibrate_y_90_subtract(num: int):
-        """Subtract to the current x calibration."""
-        game_calibrate_y_90_adjust_last(-num)
+    # def game_calibrate_y_90_subtract(num: int):
+    #     """Subtract to the current x calibration."""
+    #     game_calibrate_y_90_adjust_last(-num)
 
-    def game_calibrate_x_360_copy_to_clipboard():
-        """Copy the last x calibration to the clipboard."""
-        print("WIP")
-        actions.skip()
-        # clip.set_text(str(_last_calibrate_value_x))
+    # def game_calibrate_x_360_copy_to_clipboard():
+    #     """Copy the last x calibration to the clipboard."""
+    #     print("WIP")
+    #     actions.skip()
+    #     # clip.set_text(str(_last_calibrate_value_x))
 
-    def game_calibrate_y_90_copy_to_clipboard():
-        """Copy the last y calibration to the clipboard."""
-        print("WIP")
-        actions.skip()
-        # clip.set_text(str(_last_calibrate_value_y))
+    # def game_calibrate_y_90_copy_to_clipboard():
+    #     """Copy the last y calibration to the clipboard."""
+    #     print("WIP")
+    #     actions.skip()
+    #     # clip.set_text(str(_last_calibrate_value_y))
 
-    def game_mode_calibrate_x_enable():
-        """Start calibrating x"""
-        print("WIP")
-        actions.skip()
-        # actions.mode.disable("user.game_calibrating_y")
-        # actions.mode.enable("user.game_calibrating_x")
-        # actions.user.game_ui_show_calibrate_x()
+    # def game_mode_calibrate_x_enable():
+    #     """Start calibrating x"""
+    #     print("WIP")
+    #     actions.skip()
+    #     # actions.mode.disable("user.game_calibrating_y")
+    #     # actions.mode.enable("user.game_calibrating_x")
+    #     # actions.user.game_ui_show_calibrate_x()
 
-    def game_mode_calibrate_x_disable():
-        """Start calibrating x"""
-        print("WIP")
-        actions.skip()
-        # actions.mode.disable("user.game_calibrating_x")
-        # actions.user.game_ui_hide_game_modal_large()
+    # def game_mode_calibrate_x_disable():
+    #     """Start calibrating x"""
+    #     print("WIP")
+    #     actions.skip()
+    #     # actions.mode.disable("user.game_calibrating_x")
+    #     # actions.user.game_ui_hide_game_modal_large()
 
-    def game_mode_calibrate_y_enable():
-        """Start calibrating y"""
-        print("WIP")
-        actions.skip()
-        # actions.mode.disable("user.game_calibrating_x")
-        # actions.mode.enable("user.game_calibrating_y")
-        # actions.user.game_ui_show_calibrate_y()
+    # def game_mode_calibrate_y_enable():
+    #     """Start calibrating y"""
+    #     print("WIP")
+    #     actions.skip()
+    #     # actions.mode.disable("user.game_calibrating_x")
+    #     # actions.mode.enable("user.game_calibrating_y")
+    #     # actions.user.game_ui_show_calibrate_y()
 
-    def game_mode_calibrate_y_disable():
-        """Start calibrating y"""
-        print("WIP")
-        actions.skip()
-        # actions.mode.disable("user.game_calibrating_y")
-        # actions.user.game_ui_hide_game_modal_large()
+    # def game_mode_calibrate_y_disable():
+    #     """Start calibrating y"""
+    #     print("WIP")
+    #     actions.skip()
+    #     # actions.mode.disable("user.game_calibrating_y")
+    #     # actions.user.game_ui_hide_game_modal_large()
 
     def on_game_mode_enabled():
         """Triggered on game mode enabled"""

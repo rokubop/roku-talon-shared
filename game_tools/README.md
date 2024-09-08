@@ -11,17 +11,17 @@ This is an experimental repository for a full set of game actions and eventually
 ### Keys
 | **Action**                     | **Action**                     | **Action**                     |
 |--------------------------------|--------------------------------|--------------------------------|
-| game_key                       | game_key_down                  | game_key_up                    |
-| game_key_hold                  | game_key_toggle                | game_move_dir_hold_a           |
-| game_move_dir_hold_d           | game_move_dir_hold_w           | game_move_dir_hold_s           |
-| game_move_dir_hold_a_curved    | game_move_dir_hold_d_curved    | game_move_dir_hold_w_a         |
-| game_move_dir_hold_w_d         | game_move_dir_hold_s_a         | game_move_dir_hold_s_d         |
-| game_move_dir_hold_left        | game_move_dir_hold_right       | game_move_dir_hold_up          |
-| game_move_dir_hold_down        | game_move_dir_hold_up_left     | game_move_dir_hold_up_right    |
-| game_move_dir_hold_up_horizontal| game_move_dir_hold_down_left   | game_move_dir_hold_down_right  |
-| game_move_dir_hold_down_horizontal| game_move_dir_hold_last_horizontal| game_move_dir_toggle_last_horizontal |
-| game_move_dir_toggle_a         | game_move_dir_toggle_d         | game_move_dir_toggle_w         |
-| game_move_dir_toggle_s         | game_move_dir_step_a           | game_move_dir_step_d           |
+| game_key                       | game_key_hold                  | game_key_release                    |
+| game_key_hold                  | game_key_toggle                | game_wasd_dir_hold_a           |
+| game_wasd_dir_hold_d           | game_wasd_dir_hold_w           | game_wasd_dir_hold_s           |
+| game_wasd_dir_hold_a_curved    | game_wasd_dir_hold_d_curved    | game_wasd_dir_hold_w_a         |
+| game_wasd_dir_hold_w_d         | game_wasd_dir_hold_s_a         | game_wasd_dir_hold_s_d         |
+| game_arrows_dir_hold_left        | game_arrows_dir_hold_right       | game_arrows_dir_hold_up          |
+| game_arrows_dir_hold_down        | game_arrows_dir_hold_up_left     | game_arrows_dir_hold_up_right    |
+| game_arrows_dir_hold_up_horizontal| game_arrows_dir_hold_down_left   | game_arrows_dir_hold_down_right  |
+| game_arrows_dir_hold_down_horizontal| game_dir_hold_last_horizontal| game_dir_toggle_last_horizontal |
+| game_wasd_dir_toggle_a         | game_wasd_dir_toggle_d         | game_wasd_dir_toggle_w         |
+| game_wasd_dir_toggle_s         | game_move_dir_step_a           | game_move_dir_step_d           |
 
 
 ### Mouse
@@ -38,29 +38,29 @@ settings():
 
 | **Action**                     | **Action**                     | **Action**                     |
 |--------------------------------|--------------------------------|--------------------------------|
-| game_mouse_click               | game_turn_right_continuous_10  | game_turn_right_continuous_20  |
-| game_mouse_click_left          | game_turn_right_continuous_30  | game_turn_right_continuous_50  |
-| game_mouse_click_right         | game_turn_right_continuous_100 | game_turn_left_continuous      |
-| game_mouse_click_middle        | game_turn_left_continuous_5    | game_turn_left_continuous_10   |
-| game_mouse_hold_left           | game_turn_left_continuous_20   | game_turn_left_continuous_30   |
-| game_mouse_hold_right          | game_turn_left_continuous_50   | game_turn_left_continuous_100  |
-| game_mouse_hold_middle         | game_turn_continuous_stop      | game_turn_180                  |
-| game_turn_left_15              | game_turn_360                  | game_look_up_continuous        |
-| game_turn_left_30              | game_look_up_continuous_5      | game_look_up_continuous_10     |
-| game_turn_left_45              | game_look_up_continuous_20     | game_look_up_continuous_30     |
-| game_turn_left_60              | game_look_up_continuous_50     | game_look_up_continuous_100    |
-| game_turn_left_75              | game_look_down_continuous      | game_look_down_continuous_5    |
-| game_turn_left_90              | game_look_down_continuous_10   | game_look_down_continuous_20   |
-| game_turn_left                 | game_look_down_continuous_30   | game_look_down_continuous_50   |
-| game_turn_right_15             | game_look_down_continuous_100  | game_look_continuous_stop      |
-| game_turn_right_30             | game_look_up_15                | game_look_up_30                |
-| game_turn_right_45             | game_look_up_45                | game_look_up_60                |
-| game_turn_right_60             | game_look_up_75                | game_look_up_90                |
-| game_turn_right_75             | game_look_up                   | game_look_down_15              |
-| game_turn_right_90             | game_look_down_30              | game_look_down_45              |
-| game_turn_right                | game_look_down_60              | game_look_down_75              |
-| game_turn_right_continuous      | game_look_down_90              | game_look_down                 |
-| game_turn_right_continuous_5    | game_reset_center_y            |                                |
+| game_mouse_click               | game_mouse_move_continuous_right_10  | game_mouse_move_continuous_right_20  |
+| game_mouse_click_left          | game_mouse_move_continuous_right_30  | game_mouse_move_continuous_right_50  |
+| game_mouse_click_right         | game_mouse_move_continuous_right_100 | game_mouse_move_continuous_left      |
+| game_mouse_click_middle        | game_mouse_move_continuous_left_5    | game_mouse_move_continuous_left_10   |
+| game_mouse_hold_left           | game_mouse_move_continuous_left_20   | game_mouse_move_continuous_left_30   |
+| game_mouse_hold_right          | game_mouse_move_continuous_left_50   | game_mouse_move_continuous_left_100  |
+| game_mouse_hold_middle         | game_mouse_move_continuous_stop      | game_mouse_move_deg_180                  |
+| game_mouse_move_deg_left_15              | game_mouse_move_deg_360                  | game_mouse_move_continuous_up        |
+| game_mouse_move_deg_left_30              | game_mouse_move_continuous_up_5      | game_mouse_move_continuous_up_10     |
+| game_mouse_move_deg_left_45              | game_mouse_move_continuous_up_20     | game_mouse_move_continuous_up_30     |
+| game_mouse_move_deg_left_60              | game_mouse_move_continuous_up_50     | game_mouse_move_continuous_up_100    |
+| game_mouse_move_deg_left_75              | game_mouse_move_continuous_down      | game_mouse_move_continuous_down_5    |
+| game_mouse_move_deg_left_90              | game_mouse_move_continuous_down_10   | game_mouse_move_continuous_down_20   |
+| game_mouse_move_deg_left                 | game_mouse_move_continuous_down_30   | game_mouse_move_continuous_down_50   |
+| game_mouse_move_deg_right_15             | game_mouse_move_continuous_down_100  | game_mouse_move_continuous_stop      |
+| game_mouse_move_deg_right_30             | game_mouse_move_deg_up_15                | game_mouse_move_deg_up_30                |
+| game_mouse_move_deg_right_45             | game_mouse_move_deg_up_45                | game_mouse_move_deg_up_60                |
+| game_mouse_move_deg_right_60             | game_mouse_move_deg_up_75                | game_mouse_move_deg_up_90                |
+| game_mouse_move_deg_right_75             | game_mouse_move_deg_up                   | game_mouse_move_deg_down_15              |
+| game_mouse_move_deg_right_90             | game_mouse_move_deg_down_30              | game_mouse_move_deg_down_45              |
+| game_mouse_move_deg_right                | game_mouse_move_deg_down_60              | game_mouse_move_deg_down_75              |
+| game_mouse_move_continuous_right      | game_mouse_move_deg_down_90              | game_mouse_move_deg_down                 |
+| game_mouse_move_continuous_right_5    | game_mouse_move_reset_center_y            |                                |
 
 
 ### Other

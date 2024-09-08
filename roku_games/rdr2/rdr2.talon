@@ -32,9 +32,9 @@ free {user.game_xbox_button}: user.game_xbox_button_release(game_xbox_button)
 Erie | airy | error: user.game_xbox_button_hold("a")
 
 # other camera actions
-round: user.game_turn_180()
-cam mid: user.game_reset_center_y()
-look <user.game_dir>: user.game_camera_snap_dynamic(game_dir)
+round: user.game_mouse_move_deg_180()
+cam mid: user.game_mouse_move_reset_center_y()
+look <user.game_dir>: user.game_mouse_move_deg_dynamic(game_dir)
 look back: user.game_xbox_button_hold('right_thumb')
 
 # add noise actions to vocabulary

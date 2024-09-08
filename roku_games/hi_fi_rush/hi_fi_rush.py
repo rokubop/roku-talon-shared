@@ -25,10 +25,10 @@ def rpg_mode():
     show_ui(parrot_config, background_color="FCD12A88")
 
 default_config = {
-    "eh":         ('forward', actions.user.game_move_dir_hold_w),
-    "guh":        ("back", actions.user.game_move_dir_hold_s),
-    "ah":         ("left", actions.user.game_move_dir_hold_a),
-    "oh":         ("right", actions.user.game_move_dir_hold_d),
+    "eh":         ('forward', actions.user.game_wasd_dir_hold_w),
+    "guh":        ("back", actions.user.game_wasd_dir_hold_s),
+    "ah":         ("left", actions.user.game_wasd_dir_hold_a),
+    "oh":         ("right", actions.user.game_wasd_dir_hold_d),
     "ee":         ("stop", actions.user.game_stopper),
     "pop":        ("L click", actions.user.game_mouse_click_left),
     "cluck":      ("R click", actions.user.game_mouse_click_right),
@@ -40,9 +40,9 @@ default_config = {
     "er":         ("exit mode", actions.user.game_mode_disable),
     "tut":        ("alt", lambda: key("alt")),
     "tut er":     ("look mode", rpg_mode),
-    "tut ah":     ("turn left", actions.user.game_turn_left_90),
-    "tut oh":     ("turn right", actions.user.game_turn_right_90),
-    "tut guh":    ("turn around", actions.user.game_turn_180),
+    "tut ah":     ("turn left", actions.user.game_mouse_move_deg_left_90),
+    "tut oh":     ("turn right", actions.user.game_mouse_move_deg_right_90),
+    "tut guh":    ("turn around", actions.user.game_mouse_move_deg_180),
     "tut ee":     ("switch char", lambda: key("f")),
     "tut hiss":   ("toggle spam", toggle_spam),
     "tut pop":    ("L click hold", actions.user.game_mouse_hold_left),
@@ -50,7 +50,7 @@ default_config = {
     "tut shush":  ("space hold", lambda: key("space:down")),
     "tut nn":     ("E hold", lambda: key("e:down")),
     "tut palate": ("Q hold", lambda: key("q:down")),
-    "tut tut":    ("reset y", actions.user.game_reset_center_y),
+    "tut tut":    ("reset y", actions.user.game_mouse_move_reset_center_y),
     "tut tut tut":("alt hold", peppermint_mode),
 }
 

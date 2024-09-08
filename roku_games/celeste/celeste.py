@@ -10,29 +10,29 @@ jump_primary_ms = 300
 jump_secondary_ms = 120
 
 def dash_forward_up():
-    actions.user.game_move_dir_hold_last_horizontal()
+    actions.user.game_dir_hold_last_horizontal()
     actions.user.game_key_hold("up", 100),
     actions.user.game_key("x")
 
 def dash_forward_down():
-    actions.user.game_move_dir_hold_last_horizontal()
+    actions.user.game_dir_hold_last_horizontal()
     actions.user.game_key_hold("down", 100),
     actions.user.game_key("x")
 
 def dash_forward():
-    actions.user.game_move_dir_hold_last_horizontal()
+    actions.user.game_dir_hold_last_horizontal()
     actions.user.game_key("x")
 
 def dash_up():
-    actions.user.game_move_dir_hold_up(),
+    actions.user.game_arrows_dir_hold_up(),
     actions.user.game_key("x")
 
 def dash_down():
-    actions.user.game_move_dir_hold_down(),
+    actions.user.game_arrows_dir_hold_down(),
     actions.user.game_key("x")
 
 def dash_demo():
-    actions.user.game_move_dir_hold_last_horizontal()
+    actions.user.game_dir_hold_last_horizontal()
     actions.user.game_key("t")
 
 def dash_backward():
@@ -87,8 +87,8 @@ default_config = {
     "sh_stop":    ("", lambda: None),
     "ss:th_100":  ("jump 2", jump_secondary),
     "ss_stop":    ("", lambda: None),
-    "ah":         ("left", actions.user.game_move_dir_hold_left),
-    "oh":         ("right", actions.user.game_move_dir_hold_right),
+    "ah":         ("left", actions.user.game_arrows_dir_hold_left),
+    "oh":         ("right", actions.user.game_arrows_dir_hold_right),
     "ee":         ("stop", actions.user.game_stopper),
     "pop":        ("dash f", dash_forward),
     "mm":         ("dash f-down", dash_forward_down),
@@ -117,13 +117,13 @@ default_config = {
 parrot_config = default_config
 
 move_config = {
-    "ah":         ("left", actions.user.game_move_dir_hold_left),
-    "oh":         ("right", actions.user.game_move_dir_hold_right),
+    "ah":         ("left", actions.user.game_arrows_dir_hold_left),
+    "oh":         ("right", actions.user.game_arrows_dir_hold_right),
     "ee":         ("stop", actions.user.game_stopper),
-    "guh":        ("down", actions.user.game_move_dir_hold_down),
-    "eh":         ("up", actions.user.game_move_dir_hold_up),
-    "t":          ("f-up", actions.user.game_move_dir_hold_up_horizontal),
-    "mm":         ("f-down", actions.user.game_move_dir_hold_down_horizontal),
+    "guh":        ("down", actions.user.game_arrows_dir_hold_down),
+    "eh":         ("up", actions.user.game_arrows_dir_hold_up),
+    "t":          ("f-up", actions.user.game_arrows_dir_hold_up_horizontal),
+    "mm":         ("f-down", actions.user.game_arrows_dir_hold_down_horizontal),
     "palate":     ("short up", lambda: actions.user.game_key_hold("up", 30)),
     "pop":        ("short down", lambda: actions.user.game_key_hold("down", 30)),
     "sh:th_100":  ("c", lambda: actions.user.game_key("c")),

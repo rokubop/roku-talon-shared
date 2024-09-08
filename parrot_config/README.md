@@ -30,9 +30,9 @@ parrot_config = {
     "hiss:stop":   ("", lambda: None),
     "shush:th_100":("crouch", lambda: actions.user.game_key("c")),
     "tut":         ("alt", lambda: actions.user.game_key("alt")),
-    "tut ah":      ("turn left", actions.user.game_turn_left_90),
-    "tut oh":      ("turn right", actions.user.game_turn_right_90),
-    "tut guh":     ("turn around", actions.user.game_turn_180),
+    "tut ah":      ("turn left", actions.user.game_mouse_move_deg_left_90),
+    "tut oh":      ("turn right", actions.user.game_mouse_move_deg_right_90),
+    "tut guh":     ("turn around", actions.user.game_mouse_move_deg_180),
     "cluck@left":  ("left", lambda: actions.user.game_key("a")), # WIP
     "cluck@right": ("right", lambda: actions.user.game_key("d")), # WIP
 }
@@ -52,12 +52,12 @@ Throttling is useful when you have a continuous parrot noise, but you only want 
 ## Debouncing
 Debouncing on the start of a command means that you need to hold it for 100ms until it will trigger. You might want this if you also want to use normal english commands as well and don't want the shush to be triggered immediately.
 ```py
-"shush:db_100":("turn left", actions.user.game_turn_left_continuous),
+"shush:db_100":("turn left", actions.user.game_mouse_move_continuous_left),
 ```
 
 Debouncing at the stop of a command basically just means the stop will be delayed
 ```py
-"shush_stop:db_100":("", actions.user.game_turn_continuous_stop),
+"shush_stop:db_100":("", actions.user.game_mouse_move_continuous_stop),
 ```
 
 ## Switching config dynamically

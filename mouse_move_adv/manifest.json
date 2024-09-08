@@ -1,7 +1,7 @@
 {
   "name": "mouse_move_adv",
   "description": "This is an experimental repository. WIP. action names may change in the future. This is used for helping you turn in game and drag commands.",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "contributes": {
     "settings": [
       "user.mouse_move_api",

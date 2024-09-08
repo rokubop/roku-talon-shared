@@ -143,7 +143,6 @@ def move_dir_toggle(keys: str | tuple[str, str]):
 
     if _move_dir:
         release_dir(_move_dir)
-        # release_dir(keys)
         if _move_dir == keys:
             _move_dir = None
             return

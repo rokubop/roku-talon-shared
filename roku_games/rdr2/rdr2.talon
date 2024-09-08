@@ -61,7 +61,17 @@ sell | satchel: user.game_xbox_button_hold('dpad_right')
 hide: user.game_xbox_button_press('rb')
 crouch: user.game_xbox_button_press('left_thumb')
 scope: user.game_xbox_button_press('dpad_down')
-
+kill:
+    user.game_xbox_button_hold("lt")
+    sleep(0.2)
+    user.game_xbox_button_hold("right_thumb")
+    user.game_xbox_button_hold("left_thumb")
+    sleep(0.2)
+    user.game_xbox_button_press("rt")
+    sleep(0.5)
+    user.game_xbox_button_release("lt")
+    user.game_xbox_button_release("left_thumb")
+    user.game_xbox_button_release("right_thumb")
 (dead | dot | did) (eye | I): 
     user.game_xbox_button_press('right_thumb')
     user.game_xbox_button_press('left_thumb')

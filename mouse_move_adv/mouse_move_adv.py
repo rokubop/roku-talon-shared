@@ -16,8 +16,6 @@ mod.setting("mouse_move_api", default="talon", type=str, desc="Mouse API to use 
 mod.setting("mouse_move_continuous_speed_default", default=2, type=int, desc="Default speed for continuous mouse movement")
 mod.setting("mouse_move_tick_distance", default=50, type=int, desc="Distance for mouse_move_tick_last_direction")
 mod.setting("mouse_move_smooth_duration", default=200, type=int, desc="Speed for mouse_move_smooth_delta")
-mod.setting("mouse_move_calibrate_x_360", default=2000, type=int, desc="x amount that is equivalent to 360 degrees")
-mod.setting("mouse_move_calibrate_y_90", default=500, type=int, desc="y amount that is equivalent to 90 degrees")
 
 _mouse_job = None
 _last_mouse_job_type = None
@@ -400,18 +398,18 @@ class Actions:
         """Add to movement queue, executed after next mouse_stop."""
         mouse_move_smooth_queue(fn)
 
-    def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float], speed_initial: int = None):
+    def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float], speed: int = None):
         """
         Move the mouse continuously given a unit vector.
         Examples:
         ```
-        mouse_move_continuous(1, 0) # right at default speed_initial
-        mouse_move_continuous(-1, 0) # left at default speed_initial
-        mouse_move_continuous(0, 1, 5) # down at speed_initial 5
-        mouse_move_continuous(1, -1, 10) # right and up at speed_initial 10
+        mouse_move_continuous(1, 0) # right at default or specified speed
+        mouse_move_continuous(-1, 0) # left at default or specified speed
+        mouse_move_continuous(0, 1, 5) # down at speed 5
+        mouse_move_continuous(1, -1, 10) # right and up at speed 10
         ```
         """
-        mouse_move_continuous(dx_unit, dy_unit, speed_initial)
+        mouse_move_continuous(dx_unit, dy_unit, speed)
 
     def mouse_move_continuous_left(speed: int = None):
         """Move the mouse continuously left."""

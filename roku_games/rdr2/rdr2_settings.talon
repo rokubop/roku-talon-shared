@@ -18,8 +18,8 @@ settings():
 
     # mouse movement for quick direction snaps
     user.mouse_move_api = "windows"
-    user.game_calibrate_x_360 = 6000
-    user.game_calibrate_y_90 = 1500
+    user.game_mouse_calibrate_x_360 = 6000
+    user.game_mouse_calibrate_y_90 = 1500
 
     # exclude chars that have "hiss" sound
     user.drag_mode_exclude_chars = "giosvxz"

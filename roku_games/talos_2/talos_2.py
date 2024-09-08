@@ -33,10 +33,10 @@ def use_scroll_tick():
     }
 
 default_config = {
-    "eh":         ("forward", actions.user.game_wasd_dir_hold_w),
-    "guh":        ("back", actions.user.game_wasd_dir_hold_s),
-    "ah":         ("left", actions.user.game_wasd_dir_hold_a_curved),
-    "oh":         ("right", actions.user.game_wasd_dir_hold_d_curved),
+    "eh":         ("forward", actions.user.game_wasd_hold_w),
+    "guh":        ("back", actions.user.game_wasd_hold_s),
+    "ah":         ("left", actions.user.game_wasd_hold_a_curved),
+    "oh":         ("right", actions.user.game_wasd_hold_d_curved),
     "ee":         ("stop", actions.user.game_stopper),
     "hiss":       ("turn left", actions.user.game_mouse_move_continuous_left_10),
     "hiss_stop":  ("", actions.user.game_mouse_move_continuous_stop),

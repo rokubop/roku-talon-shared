@@ -12,12 +12,12 @@
       "user.game"
     ],
     "actions": [
-      "user.game_arrows_dir_hold_down",
-      "user.game_arrows_dir_hold_down_horizontal",
-      "user.game_arrows_dir_hold_left",
-      "user.game_arrows_dir_hold_right",
-      "user.game_arrows_dir_hold_up",
-      "user.game_arrows_dir_hold_up_horizontal",
+      "user.game_arrows_hold_down",
+      "user.game_arrows_hold_down_horizontal",
+      "user.game_arrows_hold_left",
+      "user.game_arrows_hold_right",
+      "user.game_arrows_hold_up",
+      "user.game_arrows_hold_up_horizontal",
       "user.game_dir_hold_last_horizontal",
       "user.game_event_register_on_key",
       "user.game_event_unregister_on_key",

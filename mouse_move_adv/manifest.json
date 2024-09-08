@@ -1,12 +1,10 @@
 {
   "name": "mouse_move_adv",
   "description": "This is an experimental repository. WIP. action names may change in the future. This is used for helping you turn in game and drag commands.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "contributes": {
     "settings": [
       "user.mouse_move_api",
-      "user.mouse_move_calibrate_x_360",
-      "user.mouse_move_calibrate_y_90",
       "user.mouse_move_continuous_speed_default",
       "user.mouse_move_smooth_duration",
       "user.mouse_move_tick_distance"
@@ -29,7 +27,6 @@
       "user.mouse_move_event_unregister_all",
       "user.mouse_move_info",
       "user.mouse_move_smooth_delta",
-      "user.mouse_move_smooth_delta_degrees",
       "user.mouse_move_smooth_from",
       "user.mouse_move_smooth_from_to",
       "user.mouse_move_smooth_queue",

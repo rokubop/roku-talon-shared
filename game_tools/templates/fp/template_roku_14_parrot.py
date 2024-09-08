@@ -4,8 +4,8 @@ app: {app_name}
 settings():
     key_hold = 64.0
     key_wait = 16.0
-    user.game_calibrate_x_360 = 2139
-    user.game_calibrate_y_90 = 542
+    user.game_mouse_calibrate_x_360 = 2139
+    user.game_mouse_calibrate_y_90 = 542
     user.mouse_move_api = "windows"
 
 ^game [mode]$:                user.game_mode_enable()
@@ -44,10 +44,10 @@ ctx.matches = "os: {os}\\napp: {app_name}"
 ctx_game.matches = f"{{ctx.matches}}\\nmode: user.game"
 
 parrot_config = {{
-    "eh":         ('forward', actions.user.game_arrows_dir_hold_up),
-    "guh":        ("back", actions.user.game_arrows_dir_hold_down),
-    "ah":         ("left", actions.user.game_arrows_dir_hold_left),
-    "oh":         ("right", actions.user.game_arrows_dir_hold_right),
+    "eh":         ('forward', actions.user.game_arrows_hold_up),
+    "guh":        ("back", actions.user.game_arrows_hold_down),
+    "ah":         ("left", actions.user.game_arrows_hold_left),
+    "oh":         ("right", actions.user.game_arrows_hold_right),
     "ee":         ("stop", actions.user.game_stopper),
     "cluck":      ("a", lambda: actions.user.game_key("a")),
     "mm":         ("jump long", lambda: actions.user.game_key_hold("z", 500)),

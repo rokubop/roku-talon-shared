@@ -5,8 +5,8 @@ settings():
     speech.timeout = 0.10
     key_hold = 64.0
     key_wait = 16.0
-    user.game_calibrate_x_360 = 2139
-    user.game_calibrate_y_90 = 542
+    user.game_mouse_calibrate_x_360 = 2139
+    user.game_mouse_calibrate_y_90 = 542
 '''
 
 game_menu_talon = '''\
@@ -27,10 +27,10 @@ mode: user.game_play
 -
 exit:                       user.game_mode_disable()
 
-go:                         user.game_wasd_dir_hold_w()
-go left:                    user.game_wasd_dir_hold_a()
-go right:                   user.game_wasd_dir_hold_d()
-[go] back:                  user.game_wasd_dir_hold_s()
+go:                         user.game_wasd_hold_w()
+go left:                    user.game_wasd_hold_a()
+go right:                   user.game_wasd_hold_d()
+[go] back:                  user.game_wasd_hold_s()
 step:                       user.game_move_dir_step_w()
 step left:                  user.game_move_dir_step_a()
 step right:                 user.game_move_dir_step_d()
@@ -155,12 +155,12 @@ def toggle_go_or_turn():
 
 def pop_action():
     if pop == "go":
-        actions.user.game_wasd_dir_toggle_w()
+        actions.user.game_wasd_toggle_w()
     else:
         toggle_left_right()
 
 parrot_commands = {
-    "pop":       ("go stop", actions.user.game_wasd_dir_toggle_w),
+    "pop":       ("go stop", actions.user.game_wasd_toggle_w),
     "pop pop":   ("toggle dir", toggle_left_right),
     "pop pop pop": ("toggle dir", toggle_x_y),
     "hiss":      ("turn", lambda: turn_dir()),

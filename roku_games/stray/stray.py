@@ -7,10 +7,10 @@ ctx.matches = "os: windows\napp: stray"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 
 parrot_config = {
-    "eh":         ('forward', actions.user.game_wasd_dir_hold_w),
-    "guh":        ("back", actions.user.game_wasd_dir_hold_s),
-    "ah":         ("left", actions.user.game_wasd_dir_hold_a),
-    "oh":         ("right", actions.user.game_wasd_dir_hold_d),
+    "eh":         ('forward', actions.user.game_wasd_hold_w),
+    "guh":        ("back", actions.user.game_wasd_hold_s),
+    "ah":         ("left", actions.user.game_wasd_hold_a),
+    "oh":         ("right", actions.user.game_wasd_hold_d),
     "ee":         ("stop", actions.user.game_stopper),
     "shush":      ("look up", actions.user.game_mouse_move_continuous_up_5),
     "shush_stop": ("", actions.user.game_mouse_move_continuous_stop),

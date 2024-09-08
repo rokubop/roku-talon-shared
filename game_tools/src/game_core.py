@@ -23,7 +23,6 @@ _held_mouse_buttons = set()
 _key_up_pending_jobs = {}
 _camera_speed = None
 _camera_snap_angle = None
-_game_use_awsd_for_arrows = False
 
 DIR_MODE_CAM_CONTINUOUS = "continuous"
 DIR_MODE_CAM_SNAP = "snap"
@@ -58,7 +57,6 @@ def queue_action(action, number):
     #     queue_action(action, number)
 
 def release_dir(keys):
-    keys = map_arrows_to_wasd(keys)
     curve_dir_stop()
     if isinstance(keys, tuple):
         for k in keys:
@@ -73,7 +71,6 @@ def release_dir(keys):
                 _held_keys.remove(keys)
 
 def hold_dir(keys):
-    keys = map_arrows_to_wasd(keys)
     if isinstance(keys, tuple):
         for k in keys:
             actions.key(f"{k}:down")
@@ -84,18 +81,9 @@ def hold_dir(keys):
         event_on_key.fire_hold(keys)
         _held_keys.add(keys)
 
-def map_arrows_to_wasd(keys):
-    if _game_use_awsd_for_arrows:
-        if isinstance(keys, tuple):
-            return tuple(arrow_to_wasd.get(k, k) for k in keys)
-        else:
-            return arrow_to_wasd.get(keys, keys)
-    return keys
-
 def move_dir(keys: str | tuple[str, str]):
     """Hold a direction key"""
     global _move_dir, _move_dir_last_horizontal
-    keys = map_arrows_to_wasd(keys)
 
     if _move_dir:
         release_dir(_move_dir)
@@ -122,24 +110,17 @@ def curve_dir_stop():
         actions.user.mouse_move_continuous_stop()
         _curve_dir = None
 
-def move_dir_curve(key: str, initial_curve_amount: int = 5):
+def move_dir_curve(key: str, initial_curve_amount: int = None):
     """Hold a direction key with a curve"""
     global _curve_speed
-    if _game_use_awsd_for_arrows:
-        key = arrow_to_wasd.get(key, key)
     if _curve_speed is None:
-        _curve_speed = initial_curve_amount
+        _curve_speed = initial_curve_amount or settings.get("user.game_mouse_move_continuous_default_speed")
     move_dir(key)
     curve_dir(key)
 
 def move_dir_toggle(keys: str | tuple[str, str]):
     """Toggle a direction key"""
     global _move_dir
-    if _game_use_awsd_for_arrows:
-        if isinstance(keys, tuple):
-            keys = tuple(arrow_to_wasd.get(k, k) for k in keys)
-        else:
-            keys = arrow_to_wasd.get(keys, keys)
 
     if _move_dir:
         release_dir(_move_dir)
@@ -150,7 +131,7 @@ def move_dir_toggle(keys: str | tuple[str, str]):
     _move_dir = keys
     hold_dir(_move_dir)
 
-def game_arrows_dir_hold_up_horizontal():
+def game_arrows_hold_up_horizontal():
     if _move_dir_last_horizontal == "right":
         move_dir(('right', 'up'))
     elif _move_dir_last_horizontal == "left":
@@ -160,7 +141,7 @@ def game_arrows_dir_hold_up_horizontal():
     elif _move_dir_last_horizontal == "a":
         move_dir(('a', 'w'))
 
-def game_arrows_dir_hold_down_horizontal():
+def game_arrows_hold_down_horizontal():
     if _move_dir_last_horizontal == "right":
         move_dir(('right', 'down'))
     elif _move_dir_last_horizontal == "left":
@@ -172,13 +153,13 @@ def game_arrows_dir_hold_down_horizontal():
 
 def game_dir_hold_last_horizontal():
     if _move_dir_last_horizontal == "right":
-        actions.user.game_arrows_dir_hold_right()
+        actions.user.game_arrows_hold_right()
     elif _move_dir_last_horizontal == "left":
-        actions.user.game_arrows_dir_hold_left()
+        actions.user.game_arrows_hold_left()
     elif _move_dir_last_horizontal == "d":
-        actions.user.game_wasd_dir_hold_d()
+        actions.user.game_wasd_hold_d()
     elif _move_dir_last_horizontal == "a":
-        actions.user.game_wasd_dir_hold_a()
+        actions.user.game_wasd_hold_a()
 
 def game_state_switch_horizontal():
     global _move_dir_last_horizontal
@@ -298,19 +279,19 @@ def on_calibrate_y_90_tick(value):
 #     if value.type == "stop":
 #         _last_calibrate_value_y -= value.dy
 
-def game_calibrate_x_360(dx360: int):
+def game_mouse_calibrate_x_360(dx360: int):
     actions.skip()
 #     """Calibrate a 360 spin"""
 #     global _last_calibrate_value_x
 #     _last_calibrate_value_x = 0
 #     actions.user.mouse_move_smooth_delta(dx360, 0, 1000, on_calibrate_x_360_tick, mouse_api_type="windows")
 
-def game_calibrate_x_360_adjust_last(dx: int):
+def game_mouse_calibrate_x_360_adjust_last(dx: int):
     actions.skip()
 #     """Add or subtract to the last x calibration."""
 #     actions.user.mouse_move_smooth_delta(dx, 0, 500, on_calibrate_x_360_tick, mouse_api_type="windows")
 
-def game_calibrate_y_90_adjust_last(dy: int):
+def game_mouse_calibrate_y_90_adjust_last(dy: int):
     actions.skip()
 #     """Add or subtract to the last x calibration."""
 #     actions.user.mouse_move_smooth_delta(0, dy, 500, on_calibrate_y_90_tick, mouse_api_type="windows")
@@ -374,8 +355,8 @@ def get_held_mouse_buttons():
     return _held_mouse_buttons
 
 def game_mouse_move_degrees(dx_degrees: int, dy_degrees: int, duration_ms = None, callback_stop = None):
-    dx_360 = settings.get("user.game_calibrate_x_360")
-    dy_90 = settings.get("user.game_calibrate_y_90")
+    dx_360 = settings.get("user.game_mouse_calibrate_x_360")
+    dy_90 = settings.get("user.game_mouse_calibrate_y_90")
     dx_total = dx_360 / 360 * dx_degrees
     dy_total = dy_90 / 90 * dy_degrees
     actions.user.mouse_move_smooth_delta(dx_total, dy_total, duration_ms, callback_stop=callback_stop)
@@ -453,20 +434,17 @@ def game_gear_set(gear_num: int):
         speed = settings.get("user.game_mouse_move_continuous_gears").split(" ").get(gear_num)
         camera_continuous_dynamic_set_speed(speed)
     elif _dir_mode == DIR_MODE_CAM_SNAP:
-        angle = settings.get("user.game_mouse_move_deg_gear_angles").split(" ").get(gear_num)
+        angle = settings.get("user.game_mouse_move_deg_gears").split(" ").get(gear_num)
         camera_snap_dynamic_set_angle(angle)
 
 @mod.action_class
 class Actions:
     def game_mode_enable():
         """Enable play mode"""
-        global _game_use_awsd_for_arrows
         actions.mode.enable("user.game")
         if settings.get("user.game_mode_disables_command_mode"):
             actions.mode.disable("command")
         print("game_mode_enable")
-        if settings.get("user.game_use_awsd_for_arrows"):
-            _game_use_awsd_for_arrows = True
         event_on_game_mode.fire_enabled()
         actions.user.on_game_mode_enabled()
 
@@ -479,29 +457,29 @@ class Actions:
         actions.mode.enable("command")
         print("game_mode_disable")
 
-    # def game_calibrate_x_360_add(num: int):
+    # def game_mouse_calibrate_x_360_add(num: int):
     #     """Add to the current x calibration."""
-    #     game_calibrate_x_360_adjust_last(num)
+    #     game_mouse_calibrate_x_360_adjust_last(num)
 
-    # def game_calibrate_x_360_subtract(num: int):
+    # def game_mouse_calibrate_x_360_subtract(num: int):
     #     """Subtract to the current x calibration."""
-    #     game_calibrate_x_360_adjust_last(-num)
+    #     game_mouse_calibrate_x_360_adjust_last(-num)
 
-    # def game_calibrate_y_90_add(num: int):
+    # def game_mouse_calibrate_y_90_add(num: int):
     #     """Add to the current x calibration."""
-    #     game_calibrate_y_90_adjust_last(num)
+    #     game_mouse_calibrate_y_90_adjust_last(num)
 
-    # def game_calibrate_y_90_subtract(num: int):
+    # def game_mouse_calibrate_y_90_subtract(num: int):
     #     """Subtract to the current x calibration."""
-    #     game_calibrate_y_90_adjust_last(-num)
+    #     game_mouse_calibrate_y_90_adjust_last(-num)
 
-    # def game_calibrate_x_360_copy_to_clipboard():
+    # def game_mouse_calibrate_x_360_copy_to_clipboard():
     #     """Copy the last x calibration to the clipboard."""
     #     print("WIP")
     #     actions.skip()
     #     # clip.set_text(str(_last_calibrate_value_x))
 
-    # def game_calibrate_y_90_copy_to_clipboard():
+    # def game_mouse_calibrate_y_90_copy_to_clipboard():
     #     """Copy the last y calibration to the clipboard."""
     #     print("WIP")
     #     actions.skip()

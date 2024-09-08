@@ -15,10 +15,10 @@ def shift_key():
     actions.user.ui_elements_highlight_briefly("shift")
 
 parrot_config = {
-    "eh":         ('W', actions.user.game_arrows_dir_hold_up),
-    "ah":         ("A", actions.user.game_arrows_dir_hold_left),
-    "guh":        ("S", actions.user.game_arrows_dir_hold_down),
-    "oh":         ("D", actions.user.game_arrows_dir_hold_right),
+    "eh":         ('W', actions.user.game_arrows_hold_up),
+    "ah":         ("A", actions.user.game_arrows_hold_left),
+    "guh":        ("S", actions.user.game_arrows_hold_down),
+    "oh":         ("D", actions.user.game_arrows_hold_right),
     "ee":         ("stop", actions.user.game_stopper),
     "pop":        ("E", lambda: actions.user.game_key("e")),
     "tut":        ("hold E", lambda: actions.user.game_key_hold("e")),

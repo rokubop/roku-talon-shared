@@ -72,7 +72,7 @@ def get_app_name(text: str, max_len=20) -> str:
 
 def create_file(path: Path, content: str) -> bool:
     if path.is_file():
-        actions.app.notify(f"Application context file '{path}' already exists")
+        # actions.app.notify(f"Application context file '{path}' already exists")
         return False
 
     with open(path, "w", encoding="utf-8") as file:

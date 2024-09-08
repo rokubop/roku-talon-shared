@@ -36,8 +36,6 @@ Mouse movement actions for Talon using a delta (dx, dy) or position(s) (x, y) ov
 | **Setting** | **Type** | **Default** | **Description** |
 |-------------|----------|-------------|-----------------|
 | `mouse_move_api` | "talon" or "windows" | "talon" | Mouse API to use for mouse movement - talon or windows |
-| `mouse_move_calibrate_x_360` | int | 2000 | The number of units to move the mouse to turn 360 degrees. |
-| `mouse_move_calibrate_y_90` | int | 500 | The number of units to move the mouse to look up 90 degrees. |
 | `mouse_move_continuous_speed_default` | int | 2 |  |
 | `mouse_move_smooth_duration` | int | 200 |  |
 | `mouse_move_tick_distance` | int | 50 |  |

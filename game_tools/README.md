@@ -12,16 +12,16 @@ This is an experimental repository for a full set of game actions and eventually
 | **Action**                     | **Action**                     | **Action**                     |
 |--------------------------------|--------------------------------|--------------------------------|
 | game_key                       | game_key_hold                  | game_key_release                    |
-| game_key_hold                  | game_key_toggle                | game_wasd_dir_hold_a           |
-| game_wasd_dir_hold_d           | game_wasd_dir_hold_w           | game_wasd_dir_hold_s           |
-| game_wasd_dir_hold_a_curved    | game_wasd_dir_hold_d_curved    | game_wasd_dir_hold_w_a         |
-| game_wasd_dir_hold_w_d         | game_wasd_dir_hold_s_a         | game_wasd_dir_hold_s_d         |
-| game_arrows_dir_hold_left        | game_arrows_dir_hold_right       | game_arrows_dir_hold_up          |
-| game_arrows_dir_hold_down        | game_arrows_dir_hold_up_left     | game_arrows_dir_hold_up_right    |
-| game_arrows_dir_hold_up_horizontal| game_arrows_dir_hold_down_left   | game_arrows_dir_hold_down_right  |
-| game_arrows_dir_hold_down_horizontal| game_dir_hold_last_horizontal| game_dir_toggle_last_horizontal |
-| game_wasd_dir_toggle_a         | game_wasd_dir_toggle_d         | game_wasd_dir_toggle_w         |
-| game_wasd_dir_toggle_s         | game_move_dir_step_a           | game_move_dir_step_d           |
+| game_key_hold                  | game_key_toggle                | game_wasd_hold_a           |
+| game_wasd_hold_d           | game_wasd_hold_w           | game_wasd_hold_s           |
+| game_wasd_hold_a_curved    | game_wasd_hold_d_curved    | game_wasd_hold_w_a         |
+| game_wasd_hold_w_d         | game_wasd_hold_s_a         | game_wasd_hold_s_d         |
+| game_arrows_hold_left        | game_arrows_hold_right       | game_arrows_hold_up          |
+| game_arrows_hold_down        | game_arrows_hold_up_left     | game_arrows_hold_up_right    |
+| game_arrows_hold_up_horizontal| game_arrows_hold_down_left   | game_arrows_hold_down_right  |
+| game_arrows_hold_down_horizontal| game_dir_hold_last_horizontal| game_dir_toggle_last_horizontal |
+| game_wasd_toggle_a         | game_wasd_toggle_d         | game_wasd_toggle_w         |
+| game_wasd_toggle_s         | game_move_dir_step_a           | game_move_dir_step_d           |
 
 
 ### Mouse
@@ -30,8 +30,8 @@ You will need these settings to be accurate for angles to work properly.
 
 ```
 settings():
-    user.game_calibrate_x_360 = 2300
-    user.game_calibrate_y_90 = 500
+    user.game_mouse_calibrate_x_360 = 2300
+    user.game_mouse_calibrate_y_90 = 500
     user.mouse_move_api = "windows"
     # user.mouse_move_api = "talon"
 ```
@@ -67,7 +67,7 @@ settings():
 | **Action** | **Action** | **Action** |
 |------------|------------|------------|
 | game_stopper | game_stop_all
-| game_state_switch_horizontal | game_calibrate_x_360 | game_calibrate_y_90 |
+| game_state_switch_horizontal | game_mouse_calibrate_x_360 | game_mouse_calibrate_y_90 |
 
 ### Xbox Gamepad
 

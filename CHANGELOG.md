@@ -1,5 +1,20 @@
 # Changelog
 
+## Sep week 2, 2024
+BREAKING CHANGES
+- Rename almost all game actions
+  - `_key_down` and `_key_up` to `_key_hold` and `_key_release`
+  > Reason: This is because "up" and "down" are very common keys in games
+  - `game_turn_` to `game_mouse_move_deg_`
+  > Reason: Indicate subject is mouse and what type of movement
+  - `game_look_` to `game_mouse_move_deg_`
+  > Reason: Indicate subject is mouse and what type of movement
+  - `game_move_dir_` to `game_wasd_` and/or `game_arrows_`
+  > Reason: use \{game}\_\{subject}\_\{type}\_\{action}\_\{value}
+  > Subject in this case is the group of wasd or arrows
+- Remove `user.use_parrot_config`. Use `user.parrot_config_noise` instead
+  > Reason: packages should have the same prefix for every action
+
 ## Sep week 1, 2024
 - Add `flex` for things like `flex: 1` for full width
 - Added `border_bottom`, `border_top`, `border_left`, `border_right` to `ui_elements`

@@ -101,10 +101,3 @@ class Actions:
         Unregister event set by actions.user.parrot_config_event_register
         """
         parrot_config_event_unregister(on_noise)
-
-    def use_parrot_config(noise: str):
-        """
-        DEPRECATED: use `parrot_config_noise` instead
-        """
-        print("DEPRECATED: `use_parrot_config`. use `parrot_config_noise` instead")
-        parrot_config_noise(noise)

@@ -4,6 +4,12 @@ import json
 import os
 import re
 
+"""
+Script that creates manifest.json file for each CREATE_MANIFEST_DIRS
+
+Usage: `python ./scripts/manifest_builder.py`
+"""
+
 CREATE_MANIFEST_DIRS = [
     '../drag_mode',
     '../dynamic_noises',

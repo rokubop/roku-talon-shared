@@ -1,7 +1,7 @@
 {
   "name": "game_tools",
   "description": "Auto-generated manifest. This is an experimental repository for a full set of game actions and eventually automatically setting up a game for you. WIP.",
-  "version": "0.2.1",
+  "version": "0.3.1",
   "contributes": {
     "modes": [
       "user.game",
@@ -16,6 +16,7 @@
       "user.game_mouse_move_continuous_default_speed",
       "user.game_mouse_move_continuous_gears",
       "user.game_mouse_move_deg_default_angle",
+      "user.game_mouse_move_deg_gears",
       "user.game_mouse_move_deg_speed_ms",
       "user.game_xbox_button_hold",
       "user.game_xbox_left_stick_default_gear",
@@ -29,7 +30,9 @@
       "user.game_xbox_right_trigger_default_gear",
       "user.game_xbox_right_trigger_gears"
     ],
-    "tags": ["user.game_xbox"],
+    "tags": [
+      "user.game_xbox"
+    ],
     "actions": [
       "user.game_arrows_hold",
       "user.game_arrows_hold_down",
@@ -199,7 +202,6 @@
     ]
   },
   "depends": {
-    "settings": ["user.game_mouse_move_deg_gears"],
     "actions": [
       "user.mouse_move_continuous",
       "user.mouse_move_continuous_stop",

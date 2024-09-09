@@ -43,33 +43,9 @@ This is an experimental repository. Allows you drag from one point to another us
 | take \<T> past \<T> | Omit all points except the area between two targets | take sun plex past air bat |
 | grid reset | Reset the grid to the default state | |
 
-## Includes
-Modes:
-
-`user.drag_mode`
-
-Tags:
-
-`user.drag_mode_pan_mode`
-`user.drag_mode_roll_mode`
-
-Settings:
-
-`user.drag_mode_exclude_chars`
-`user.drag_mode_default_tile_size`
-`user.drag_mode_tile_increment_size`
-`user.drag_mode_offset_x_y`
-`user.drag_mode_dynamic_noises_enabled`
-`user.drag_mode_disable_dynamic_noises_on_grid_hide`
-
-Commands:
-```
-drag (mode | grid)
-pan (mode | grid)
-roll (mode | grid)
-```
-
 ## Dependencies
 - roku-talon-shared/mouse_move_adv
 - roku-talon-shared/dynamic_noises
 - roku-talon-shared/ui_elements
+
+See `manifest.json` for details.

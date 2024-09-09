@@ -24,8 +24,8 @@ mod = Module()
 
 @mod.action_class
 class Actions:
-    def game_xbox_gamepad_enable(): """Enable xbox gamepad actions. Enables vgamepad. Windows and Linux only."""; xbox_mode_enable()
-    def game_xbox_gamepad_disable(): """Disable xbox gamepad actions. Disables vgamepad."""; xbox_mode_disable()
+    def game_xbox_gamepad_enable(): """Enable xbox gamepad emulator/actions. Enables vgamepad. Windows and Linux only."""; xbox_mode_enable()
+    def game_xbox_gamepad_disable(): """Disable xbox gamepad emulator/actions. Disables vgamepad."""; xbox_mode_disable()
     def game_xbox_button_press(button: str, hold: int = None):
         """
         Press an xbox button

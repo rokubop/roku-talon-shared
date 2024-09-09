@@ -83,3 +83,5 @@ This sets us up with two modes, "default" and "repeater". If we speak the words 
 
 ## Dependencies
 `ui_elements` for displaying `dynamic_noises_ui_element`.
+
+See `manifest.json` for details.

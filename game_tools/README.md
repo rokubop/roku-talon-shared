@@ -2,26 +2,22 @@
 
 This is an experimental repository for a full set of game actions and eventually automatically setting up a game for you. WIP.
 
-## Commands
-
-- (WIP - not for use yet) "game create files" command will automatically create a directory and talon files for you based on the game you currently have focused.
-- (WIP - not for use yet) You can say "game calibrate" to start calibrating in-game for your x and y movement commands
-
 ## Actions
 ### Keys
 | **Action**                     | **Action**                     | **Action**                     |
-|--------------------------------|--------------------------------|--------------------------------|
-| game_key                       | game_key_hold                  | game_key_release                    |
-| game_key_hold                  | game_key_toggle                | game_wasd_hold_a           |
-| game_wasd_hold_d           | game_wasd_hold_w           | game_wasd_hold_s           |
-| game_wasd_hold_a_curved    | game_wasd_hold_d_curved    | game_wasd_hold_w_a         |
-| game_wasd_hold_w_d         | game_wasd_hold_s_a         | game_wasd_hold_s_d         |
-| game_arrows_hold_left        | game_arrows_hold_right       | game_arrows_hold_up          |
-| game_arrows_hold_down        | game_arrows_hold_up_left     | game_arrows_hold_up_right    |
-| game_arrows_hold_up_horizontal| game_arrows_hold_down_left   | game_arrows_hold_down_right  |
-| game_arrows_hold_down_horizontal| game_dir_hold_last_horizontal| game_dir_toggle_last_horizontal |
-| game_wasd_toggle_a         | game_wasd_toggle_d         | game_wasd_toggle_w         |
-| game_wasd_toggle_s         | game_move_dir_step_a           | game_move_dir_step_d           |
+|---------------------------------|---------------------------------|---------------------------------|
+| game_key                        | game_key_hold                  | game_key_release                |
+| game_key_toggle                 | game_wasd_hold                 | game_wasd_hold_a                |
+| game_wasd_hold_a_curved         | game_wasd_hold_d               | game_wasd_hold_d_curved         |
+| game_wasd_hold_s                | game_wasd_hold_s_a             | game_wasd_hold_s_d              |
+| game_wasd_hold_w                | game_wasd_hold_w_a             | game_wasd_hold_w_d              |
+| game_wasd_toggle                | game_wasd_toggle_a             | game_wasd_toggle_d              |
+| game_wasd_toggle_s              | game_wasd_toggle_w             | game_arrows_hold                |
+| game_arrows_hold_down           | game_arrows_hold_down_horizontal| game_arrows_hold_down_left       |
+| game_arrows_hold_down_right     | game_arrows_hold_left          | game_arrows_hold_right          |
+| game_arrows_hold_up             | game_arrows_hold_up_horizontal | game_arrows_hold_up_left        |
+| game_arrows_hold_up_right       | game_dir_hold_last_horizontal  | game_dir_toggle_last_horizontal |
+
 
 
 ### Mouse
@@ -37,31 +33,24 @@ settings():
 ```
 
 | **Action**                     | **Action**                     | **Action**                     |
-|--------------------------------|--------------------------------|--------------------------------|
+|---------------------------------|---------------------------------|---------------------------------|
 | game_mouse_click               | game_mouse_move_continuous_right_10  | game_mouse_move_continuous_right_20  |
-| game_mouse_click_left          | game_mouse_move_continuous_right_30  | game_mouse_move_continuous_right_50  |
-| game_mouse_click_right         | game_mouse_move_continuous_right_100 | game_mouse_move_continuous_left      |
-| game_mouse_click_middle        | game_mouse_move_continuous_left_5    | game_mouse_move_continuous_left_10   |
-| game_mouse_hold_left           | game_mouse_move_continuous_left_20   | game_mouse_move_continuous_left_30   |
-| game_mouse_hold_right          | game_mouse_move_continuous_left_50   | game_mouse_move_continuous_left_100  |
-| game_mouse_hold_middle         | game_mouse_move_continuous_stop      | game_mouse_move_deg_180                  |
-| game_mouse_move_deg_left_15              | game_mouse_move_deg_360                  | game_mouse_move_continuous_up        |
-| game_mouse_move_deg_left_30              | game_mouse_move_continuous_up_5      | game_mouse_move_continuous_up_10     |
-| game_mouse_move_deg_left_45              | game_mouse_move_continuous_up_20     | game_mouse_move_continuous_up_30     |
-| game_mouse_move_deg_left_60              | game_mouse_move_continuous_up_50     | game_mouse_move_continuous_up_100    |
-| game_mouse_move_deg_left_75              | game_mouse_move_continuous_down      | game_mouse_move_continuous_down_5    |
-| game_mouse_move_deg_left_90              | game_mouse_move_continuous_down_10   | game_mouse_move_continuous_down_20   |
-| game_mouse_move_deg_left                 | game_mouse_move_continuous_down_30   | game_mouse_move_continuous_down_50   |
-| game_mouse_move_deg_right_15             | game_mouse_move_continuous_down_100  | game_mouse_move_continuous_stop      |
-| game_mouse_move_deg_right_30             | game_mouse_move_deg_up_15                | game_mouse_move_deg_up_30                |
-| game_mouse_move_deg_right_45             | game_mouse_move_deg_up_45                | game_mouse_move_deg_up_60                |
-| game_mouse_move_deg_right_60             | game_mouse_move_deg_up_75                | game_mouse_move_deg_up_90                |
-| game_mouse_move_deg_right_75             | game_mouse_move_deg_up                   | game_mouse_move_deg_down_15              |
-| game_mouse_move_deg_right_90             | game_mouse_move_deg_down_30              | game_mouse_move_deg_down_45              |
-| game_mouse_move_deg_right                | game_mouse_move_deg_down_60              | game_mouse_move_deg_down_75              |
-| game_mouse_move_continuous_right      | game_mouse_move_deg_down_90              | game_mouse_move_deg_down                 |
-| game_mouse_move_continuous_right_5    | game_mouse_move_reset_center_y            |                                |
-
+| game_mouse_click_left          | game_mouse_move_continuous_right_30  | game_mouse_move_continuous_right_5   |
+| game_mouse_click_right         | game_mouse_move_continuous_left      | game_mouse_move_continuous_left_5    |
+| game_mouse_click_middle        | game_mouse_move_continuous_left_10   | game_mouse_move_continuous_left_20   |
+| game_mouse_hold_left           | game_mouse_move_continuous_left_30   | game_mouse_move_continuous_left_100  |
+| game_mouse_hold_right          | game_mouse_move_continuous_stop      | game_mouse_move_deg_180              |
+| game_mouse_hold_middle         | game_mouse_move_deg_360              | game_mouse_move_continuous_up        |
+| game_mouse_move_deg_left_15    | game_mouse_move_continuous_up_5      | game_mouse_move_continuous_up_10     |
+| game_mouse_move_deg_left_30    | game_mouse_move_continuous_up_20     | game_mouse_move_continuous_up_30     |
+| game_mouse_move_deg_left_45    | game_mouse_move_continuous_down      | game_mouse_move_continuous_down_5    |
+| game_mouse_move_deg_left_90    | game_mouse_move_continuous_down_10   | game_mouse_move_continuous_down_20   |
+| game_mouse_move_deg_left       | game_mouse_move_continuous_down_30   | game_mouse_move_reset_center_y       |
+| game_mouse_move_deg_right_15   | game_mouse_move_deg_up_15            | game_mouse_move_deg_up_30            |
+| game_mouse_move_deg_right_30   | game_mouse_move_deg_up_45            | game_mouse_move_deg_up_90            |
+| game_mouse_move_deg_right_45   | game_mouse_move_deg_down_15          | game_mouse_move_deg_down_30          |
+| game_mouse_move_deg_right_90   | game_mouse_move_deg_down_45          | game_mouse_move_deg_down_75          |
+| game_mouse_move_deg_right      | game_mouse_move_deg_down_90          | game_mouse_move_deg_down             |
 
 ### Other
 | **Action** | **Action** | **Action** |
@@ -104,3 +93,5 @@ UI components built with `ui_elements` that you can place inside of other `ui_el
 - `roku-talon-shared/mouse_move_adv`
 - `roku-talon-shared/vgamepad` if you use the `game_xbox_` actions
 - `roku-talon-shared/ui_elements` if you use the `game_ui_element_` actions
+
+See `manifest.json` for details.

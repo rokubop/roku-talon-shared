@@ -1,7 +1,7 @@
 {
   "name": "game_tools",
   "description": "This is an experimental repository for a full set of game actions and eventually automatically setting up a game for you. WIP.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "contributes": {
     "modes": [
       "user.game",
@@ -30,7 +30,9 @@
       "user.game_xbox_right_trigger_default_gear",
       "user.game_xbox_right_trigger_gears"
     ],
-    "tags": ["user.game_xbox"],
+    "tags": [
+      "user.game_xbox"
+    ],
     "actions": [
       "user.game_arrows_hold",
       "user.game_arrows_hold_down",

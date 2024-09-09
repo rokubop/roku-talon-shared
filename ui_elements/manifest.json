@@ -1,7 +1,7 @@
 {
   "name": "ui_elements",
   "description": "This is an experimental repository for making any generic UI in HTML-like syntax.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "contributes": {
     "actions": [
       "user.ui_elements",

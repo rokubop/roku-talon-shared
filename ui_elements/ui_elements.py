@@ -9,11 +9,13 @@ from itertools import cycle
 from dataclasses import dataclass, fields
 from talon.experimental.textarea import DarkThemeLabels, TextArea
 import uuid
+import hashlib
+import pickle
 
 debug_enabled = False
-debug_draw_step_by_step = True
-debug_points = True
-debug_numbers = True
+debug_draw_step_by_step = False
+debug_points = False
+debug_numbers = False
 debug_current_step = 0
 debug_start_step = 10
 render_step = 0
@@ -25,6 +27,7 @@ state = {
 }
 buttons = {}
 inputs = {}
+hash_id_map = {}
 
 @dataclass
 class BoxModelSpacing:
@@ -884,6 +887,8 @@ class UIBuilder(UIBox):
         self.blockable_canvases = []
         self.unhighlight_jobs = {}
         self.highlight_color = options.get("highlight_color")
+        self.hash = None
+        self.is_mounted = False
         opts = UIOptions(**options or {})
         super().__init__(opts)
         if not self.id:
@@ -980,8 +985,39 @@ class UIBuilder(UIBox):
                 blockable_canvas.register("mouse", self.on_mouse)
                 blockable_canvas.freeze()
 
+    def generate_hash_from_tree(self):
+        def collect_options_and_children(obj):
+            tree = {}
+
+            if hasattr(obj, 'options'):
+                tree['options'] = {k: v for k, v in vars(obj.options).items() if not callable(v)}
+
+            if hasattr(obj, 'children'):
+                tree['children'] = [
+                    collect_options_and_children(child) for child in obj.children
+                ]
+
+            return tree
+
+        state_to_serialize = collect_options_and_children(self)
+        serialized_self = pickle.dumps(state_to_serialize)
+        self.hash = hashlib.md5(serialized_self).hexdigest()
+
+    def hash_and_prevent_duplicate_render(self):
+        global hash_id_map
+        self.generate_hash_from_tree()
+
+        if hash_id_map.get(self.hash):
+            builder = builders_core.get(hash_id_map[self.hash])
+            getattr(builder, "hide", lambda: None)()
+
+        hash_id_map[self.hash] = self.id
+
     def show(self, on_mount: callable = None):
         global state, debug_current_step, render_step, debug_start_step, debug_draw_step_by_step
+
+        self.hash_and_prevent_duplicate_render()
+
         screen = get_screen(self.screen)
 
         if debug_draw_step_by_step:
@@ -1108,6 +1144,8 @@ class UIBuilder(UIBox):
                 ids.pop(id, None)
 
             builders_core.pop(self.id, None)
+            hash_id_map.pop(self.hash, None)
+            self.hash = None
 
         buttons.clear()
         inputs.clear()

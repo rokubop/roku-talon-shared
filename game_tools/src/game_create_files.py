@@ -3,8 +3,8 @@ import re
 from itertools import islice
 from pathlib import Path
 from .templates.fp.template_roku_14_parrot import game_talon, game_mode_talon, game_py, game_ui_py
-from ..user_game_settings import USER_GAMES_DIR
-from talon import Module, actions, app, ui
+from ..game_settings import USER_GAMES_DIR
+from talon import Module, app, ui
 
 mod = Module()
 
@@ -72,7 +72,6 @@ def get_app_name(text: str, max_len=20) -> str:
 
 def create_file(path: Path, content: str) -> bool:
     if path.is_file():
-        # actions.app.notify(f"Application context file '{path}' already exists")
         return False
 
     with open(path, "w", encoding="utf-8") as file:

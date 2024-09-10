@@ -1,4 +1,4 @@
-from talon import Module, Context, actions, ui, settings, ctrl, app
+from talon import Module, Context, actions, ui, settings, ctrl, app, registry
 from talon.screen import Screen
 from talon.canvas import Canvas
 from talon.skia.canvas import Canvas as SkiaCanvas
@@ -412,3 +412,29 @@ class Actions:
         if builder:
             builder.hide()
             builder = None
+
+def rango_target(m) -> str:
+    return m.rango_target
+
+def cursorless_target(m) -> str:
+    return m.cursorless_target
+
+def context_override_captures():
+    """
+    When the grid is active, we want the drag mode captures
+    to win over the rango and cursorless captures, so make
+    it impossible to match them.
+    """
+    if registry.captures.get("user.rango_target"):
+        ctx.capture(
+            "user.rango_target",
+            rule="this is a workaround to make rango target match this really long sentence so that it doesnt match anything"
+        )(rango_target)
+
+    if registry.captures.get("user.cursorless_target"):
+        ctx.capture(
+            "user.cursorless_target",
+            rule="this is a workaround to make cursorless target match this really long sentence so that it doesnt match anything"
+        )(cursorless_target)
+
+app.register("ready", context_override_captures)

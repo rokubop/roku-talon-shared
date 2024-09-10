@@ -1,4 +1,4 @@
-.tar.app: rdr2
+app: rdr2
 mode: user.game
 -
 

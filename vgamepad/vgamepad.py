@@ -1,5 +1,5 @@
 import sys
-from talon import Module, Context, cron
+from talon import Module, Context, actions, cron
 
 mod, ctx_mac = Module(), Context()
 ctx_mac.matches = "os: mac"
@@ -10,7 +10,7 @@ gamepad = None
 # not available on macOS
 if sys.platform != "darwin":
     import vgamepad as vg
-
+    
     xbox_button_map = {
         "a": vg.XUSB_BUTTON.XUSB_GAMEPAD_A,
         "b": vg.XUSB_BUTTON.XUSB_GAMEPAD_B,
@@ -36,6 +36,8 @@ def vgamepad_enable():
     if not gamepad:
         try:
             gamepad = vg.VX360Gamepad()
+            actions.user.pynput_mouse_map_right_stick_start()
+            print("vgamepad enabled")  # Log when vgamepad is enabled
         except:
             print("""
                 Failed to enable vgamepad. Make sure vgamepad is installed.
@@ -44,6 +46,7 @@ def vgamepad_enable():
 
 def vgamepad_disable():
     global gamepad
+    actions.user.pynput_mouse_map_right_stick_stop()
     gamepad = None
 
 def vgamepad_button_hold(button: str):

@@ -1,4 +1,4 @@
-.tar.app: rdr2
+app: rdr2
 mode: user.game
 -
 
@@ -54,14 +54,28 @@ skin | loot | hitch: user.game_xbox_button_hold('y')
 stow: user.game_xbox_button_hold('x')
 pick: user.game_xbox_button_hold('lb')
 call: user.game_xbox_button_press('dpad_up')
-run: user.game_xbox_button_hold('a')
+run: 
+    user.game_xbox_left_stick_hold_dir("up")
+    user.game_xbox_button_hold('a')
 sell | satchel: user.game_xbox_button_hold('dpad_right')
 hide: user.game_xbox_button_press('rb')
 crouch: user.game_xbox_button_press('left_thumb')
 scope: user.game_xbox_button_press('dpad_down')
-
-(dead | dot | did) (eye | I): user.game_xbox_button_press('right_thumb')
-
+kill:
+    user.game_xbox_button_hold("lt")
+    sleep(0.2)
+    user.game_xbox_button_hold("right_thumb")
+    user.game_xbox_button_hold("left_thumb")
+    sleep(0.2)
+    user.game_xbox_button_press("rt")
+    sleep(0.5)
+    user.game_xbox_button_release("lt")
+    user.game_xbox_button_release("left_thumb")
+    user.game_xbox_button_release("right_thumb")
+(dead | dot | did) (eye | I): 
+    user.game_xbox_button_press('right_thumb')
+    user.game_xbox_button_press('left_thumb')
+    
 halt | stop:
     user.game_stopper()
     user.game_xbox_stopper()

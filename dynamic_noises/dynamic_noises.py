@@ -12,6 +12,15 @@ mod = Module()
 ctx = Context()
 
 mod.list("dynamic_noise_mode", desc="Dynamic noise modes")
+mod.list("dynamic_noise_special_actions", desc="Dynamic noise actions")
+
+special_actions = {
+    "clear",
+    "pick",
+    "revert",
+}
+
+ctx.lists["user.dynamic_noise_special_actions"] = special_actions
 
 _dynamic_noises_enabled = False
 _use_talon_noises = False
@@ -67,10 +76,19 @@ class DynamicAction:
             self.current = self.history.pop()
 
     def reset(self):
-        self.current = self.default
-        self.history = [self.default]
+        self.current = self.default or None
+        self.history = [self.default] if self.default else []
+
+        dynamic_noises_event_trigger(
+            DynamicActionEvent(
+                EVENT_TYPE_CHANGE,
+                self.name,
+                self.current.name if self.current else "",
+            )
+        )
 
     def set(self, dynamic_action_callback: DynamicActionCallback):
+        print(f"Setting {self.name} to {dynamic_action_callback.name}")
         if self.current:
             self.history.append(self.current)
         self.history = self.history[-5:]
@@ -89,7 +107,9 @@ class DynamicAction:
         self.set(dynamic_action_callback)
 
     def execute(self):
+        print(f"Executing {self.name}")
         if self.current and self.current.action:
+            print(f"Executing {self.name} action")
             try:
                 self.current.action()
                 dynamic_noises_event_trigger(
@@ -154,6 +174,8 @@ def dynamic_noises_trigger(name: str):
     """Execute a dynamic action"""
     global dynamic_noises_state
     base_name, qualifier = separate_base_and_qualifier(name)
+    print(f"Triggering {base_name} with qualifier {qualifier}")
+    print(dynamic_noises_state)
     if base_name in dynamic_noises_state:
         if qualifier == "stop":
             dynamic_noises_state[base_name].execute_stop()
@@ -183,13 +205,16 @@ def on_phrase(d):
         words = parsed._unmapped
         if words and len(words) > 1 and spoken_word_is_dynamic_action(words[0]):
             dynamic_action_name, words = words[0], words[1:]
-            action_phrase = " ".join(words)
-            cb = DynamicActionCallback(
-                name=action_phrase,
-                action=lambda: actions.mimic(action_phrase),
-                action_stop=lambda: None
-            )
-            dynamic_noises_set_class(dynamic_action_name, cb)
+            if len(words) == 1 and words[0] not in special_actions:
+                print(str(words))
+                print(special_actions)
+                action_phrase = " ".join(words)
+                cb = DynamicActionCallback(
+                    name=action_phrase,
+                    action=lambda: actions.mimic(action_phrase),
+                    action_stop=lambda: None
+                )
+                dynamic_noises_set_class(dynamic_action_name, cb)
 
 def start_speech_capture():
     global _speech_capture_enabled
@@ -262,7 +287,7 @@ def dynamic_noises_set(
     #     )
 
     if _use_talon_noises:
-        if  name == "pop" and not _talon_noise_pop_init:
+        if name == "pop" and not _talon_noise_pop_init:
             _talon_noise_pop_init = True
             noise.register("pop", noise_pop)
         elif name == "hiss" and not _talon_noise_hiss_init:
@@ -337,29 +362,37 @@ def dynamic_noises_enable(
         if _use_talon_noises:
             ctx.tags = ["user.dynamic_noises_talon_noise_override"]
 
+            if not _talon_noise_pop_init:
+                _talon_noise_pop_init = True
+                noise.register("pop", noise_pop)
+
+            if not _talon_noise_hiss_init:
+                _talon_noise_hiss_init = True
+                noise.register("hiss", noise_hiss)
+
         if _use_speech_capture:
             start_speech_capture()
 
         dynamic_noises = actions.user.dynamic_noises()
         if dynamic_noises:
-            if not "default" in dynamic_noises:
-                raise ValueError(
-                    f'\ndef dynamic_noises should must contain a "default" mode\n\n'
-                    f"Example:\n"
-                    f"def dynamic_noises():\n"
-                    f"    return {{\n"
-                    f'        "default": {{\n'
-                    f'            "pop": ("click", actions.mouse_click),\n'
-                    f'            "hiss": ("scroll down", lambda: actions.mouse_scroll(50))\n'
-                    f"        }},\n"
-                    f'        "repeater": {{\n'
-                    f'            "pop": ("repeat", actions.core.repeat_phrase),\n'
-                    f'            "hiss": ("None", actions.skip)\n'
-                    f"        }}\n"
-                    f"    }}\n"
-                )
+            # if not "default" in dynamic_noises:
+            #     raise ValueError(
+            #         f'\ndef dynamic_noises should must contain a "default" mode\n\n'
+            #         f"Example:\n"
+            #         f"def dynamic_noises():\n"
+            #         f"    return {{\n"
+            #         f'        "default": {{\n'
+            #         f'            "pop": ("click", actions.mouse_click),\n'
+            #         f'            "hiss": ("scroll down", lambda: actions.mouse_scroll(50))\n'
+            #         f"        }},\n"
+            #         f'        "repeater": {{\n'
+            #         f'            "pop": ("repeat", actions.core.repeat_phrase),\n'
+            #         f'            "hiss": ("None", actions.skip)\n'
+            #         f"        }}\n"
+            #         f"    }}\n"
+            #     )
 
-            dynamic_noises_use_mode("default")
+            # dynamic_noises_use_mode("default")
             ctx.lists["user.dynamic_noise_mode"] = list(dynamic_noises.keys())
 
 def dynamic_noises_disable():
@@ -469,6 +502,22 @@ class Actions:
         """Set pop dynamic action"""
         dynamic_noises_set("pop", action_name, action, action_stop, debounce_ms, debounce_stop_ms, throttle_ms, default, phrase, alias)
 
+    def dynamic_noises_reset(name: str):
+        """Reset a dynamic action"""
+        if name in dynamic_noises_state:
+            dynamic_noises_state[name].reset()
+
+    def private_dynamic_noises_action(name: str, action: str):
+        """Execute a dynamic action e.g. `actions.user.private_dynamic_noises_action("pop", "click")`"""
+        if action == "clear":
+            if name in dynamic_noises_state:
+                dynamic_noises_state[name].reset()
+        elif action == "revert":
+            if name in dynamic_noises_state:
+                dynamic_noises_state[name].revert()
+        elif action == "pick":
+            pass
+
     def dynamic_noises_trigger(name: str):
         """Execute a dynamic action e.g. `actions.user.dynamic_noises_trigger("pop")`"""
         dynamic_noises_trigger(name)
@@ -511,8 +560,8 @@ class Actions:
         else:
             print("Enabling dynamic noises")
             dynamic_noises_enable()
-            actions.user.dynamic_noises_set_pop("click", lambda: actions.mouse_click(0))
-            actions.user.dynamic_noises_set_hiss("none", lambda: None)
+            # actions.user.dynamic_noises_set_pop("click", lambda: actions.mouse_click(0))
+            # actions.user.dynamic_noises_set_hiss("none", lambda: None)
             show_tester_ui()
 
     def dynamic_noises_ui_element():

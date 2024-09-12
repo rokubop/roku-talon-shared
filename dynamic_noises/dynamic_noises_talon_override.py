@@ -1,11 +1,8 @@
 """
-Talon noise override tag
-
-UPDATE THIS BASED ON YOUR OWN REPO:
-Skip actions that are normally enabled in your repo
+Override pop and hiss while ctx is active
 """
 
-from talon import Module, Context, actions
+from talon import Module, Context, actions, app, registry
 from .dynamic_noises import (
     dynamic_noises_state,
     dynamic_noises_event_trigger,
@@ -16,36 +13,53 @@ from .dynamic_noises import (
 
 mod = Module()
 mod.tag("dynamic_noises_talon_noise_override", desc="Tag for enabling dynamic noises")
-ctx_dynamic_noises_talon_noises = Context()
-ctx_dynamic_noises_talon_noises.matches = "tag: user.dynamic_noises_talon_noise_override"
+ctx_overrides = Context()
+ctx_overrides.matches = "tag: user.dynamic_noises_talon_noise_override"
 
-@ctx_dynamic_noises_talon_noises.action_class("user")
-class Actions:
-    # When this ctx is active, it will skip talon noise actions
-    # that are normally enabled in your repo. Add functions here
-    # that are normally active for you. Remove functions here if
-    # you don't have them in your repo.
-    def on_pop():
-        if dynamic_noises_state.get("pop"):
-            # Old community version used this 2023
-            actions.skip()
-        else:
-            dynamic_noises_event_trigger(DynamicActionEvent(EVENT_TYPE_ACTION, "pop", "default"))
-            actions.next()
+def on_pop():
+    pop_state = dynamic_noises_state.get("pop")
+    if pop_state:
+        print("new pop")
+        print(vars(pop_state))
+    if pop_state and pop_state.current:
+        # Old community version used this 2023
+        actions.skip()
+    else:
+        print("old pop")
+        dynamic_noises_event_trigger(DynamicActionEvent(EVENT_TYPE_ACTION, "pop", "default"))
+        actions.next()
 
-    def noise_trigger_pop():
-        if dynamic_noises_state.get("pop"):
-            actions.skip()
-        else:
-            dynamic_noises_event_trigger(DynamicActionEvent(EVENT_TYPE_ACTION, "pop", "default"))
-            actions.next()
+def noise_trigger_pop():
+    pop_state = dynamic_noises_state.get("pop")
+    print(pop_state)
+    if pop_state and pop_state.current:
+        # dynamic_noises is active so it will mange this instead
+        actions.skip()
+    else:
+        # we should defer to the user's original action
+        dynamic_noises_event_trigger(DynamicActionEvent(EVENT_TYPE_ACTION, "pop", "default"))
+        actions.next()
 
-    def noise_trigger_hiss(active: bool):
-        if dynamic_noises_state.get("hiss"):
-            actions.skip()
+def noise_trigger_hiss(active: bool):
+    hiss_state = dynamic_noises_state.get("hiss")
+    print(hiss_state)
+    if hiss_state and hiss_state.current:
+        actions.skip()
+    else:
+        if active:
+            dynamic_noises_event_trigger(DynamicActionEvent(EVENT_TYPE_ACTION, "hiss", "default"))
         else:
-            if active:
-                dynamic_noises_event_trigger(DynamicActionEvent(EVENT_TYPE_ACTION, "hiss", "default"))
-            else:
-                dynamic_noises_event_trigger(DynamicActionEvent(EVENT_TYPE_ACTION_STOP, "hiss_stop", "default"))
-            actions.next(active)
+            dynamic_noises_event_trigger(DynamicActionEvent(EVENT_TYPE_ACTION_STOP, "hiss_stop", "default"))
+        actions.next(active)
+
+def on_ready():
+    if registry.actions.get("user.noise_trigger_pop"):
+        ctx_overrides.action("user.noise_trigger_pop")(noise_trigger_pop)
+
+    if registry.actions.get("user.noise_trigger_hiss"):
+        ctx_overrides.action("user.noise_trigger_hiss")(noise_trigger_hiss)
+
+    if registry.actions.get("user.on_pop"):
+        ctx_overrides.action("user.on_pop")(on_pop)
+
+app.register("ready", on_ready)

@@ -135,7 +135,7 @@ def show_commands_ui():
     ui_commands.show()
 
 def show_ui():
-    show_commands_ui()
+    #show_commands_ui()
     show_right_hud_ui()
     show_left_hud_ui()
 

@@ -1,7 +1,7 @@
 {
   "name": "drag_mode",
   "description": "This is an experimental repository. Allows you drag from one point to another using left, middle, or right click. Flexible mouse movement to and from any point. hiss stopper for precision stops.",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "contributes": {
     "modes": [
       "user.drag_mode"
@@ -12,6 +12,7 @@
       "user.drag_mode_dynamic_noises_enabled",
       "user.drag_mode_exclude_chars",
       "user.drag_mode_offset_x_y",
+      "user.drag_mode_swipe_distance",
       "user.drag_mode_tile_increment_size"
     ],
     "tags": [
@@ -32,6 +33,8 @@
       "user.drag_mode_isolate_area_targets",
       "user.drag_mode_less_squares",
       "user.drag_mode_more_squares",
+      "user.drag_mode_mouse_drag",
+      "user.drag_mode_mouse_move_continuous_dir",
       "user.drag_mode_move_mouse",
       "user.drag_mode_move_mouse_to_target",
       "user.drag_mode_move_to_target_loop",
@@ -40,7 +43,8 @@
       "user.drag_mode_roll_mode_show",
       "user.drag_mode_show",
       "user.drag_mode_show_commands",
-      "user.drag_mode_stop"
+      "user.drag_mode_stop",
+      "user.drag_mode_swipe_dir"
     ]
   },
   "depends": {
@@ -48,12 +52,15 @@
       "user.dynamic_noises_disable",
       "user.dynamic_noises_enable",
       "user.dynamic_noises_set_hiss",
+      "user.mouse_move_continuous",
       "user.mouse_move_continuous_stop",
       "user.mouse_move_continuous_towards",
+      "user.mouse_move_smooth_delta",
       "user.mouse_move_smooth_from_to",
       "user.mouse_move_smooth_queue",
       "user.mouse_move_smooth_to",
-      "user.ui_elements"
+      "user.ui_elements",
+      "user.ui_elements_hide_all"
     ]
   }
 }

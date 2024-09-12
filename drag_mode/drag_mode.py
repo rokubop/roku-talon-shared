@@ -5,13 +5,51 @@ from talon.skia.canvas import Canvas as SkiaCanvas
 from talon.types import Rect, Point2d
 from itertools import islice
 
-mod, ctx = Module(), Context()
+mod, ctx, ctx_drag_mode = Module(), Context(), Context()
 mod.mode("drag_mode", "Drag mode. Defaults to LMB drag")
+
 mod.tag("drag_mode_pan_mode", desc="Default to MMB drag")
 mod.tag("drag_mode_roll_mode", desc="Default to RMB drag")
-ctx.matches = r"""
-mode: user.drag_mode
-"""
+
+mod.setting("drag_mode_exclude_chars", default="", type=str, desc="Excluded characters from the drag mode grid e.g. 'ijl'")
+mod.setting("drag_mode_default_tile_size", default=60, type=int, desc="Default tile size for the drag mode grid")
+mod.setting("drag_mode_tile_increment_size", default=20, type=int, desc="Default tile size for the drag mode grid")
+mod.setting("drag_mode_offset_x_y", default="0 0", type=str, desc="Default offset for the drag mode grid")
+mod.setting("drag_mode_dynamic_noises_enabled", default=True, type=bool, desc="Enable dynamic noises for the hiss sound to stop")
+mod.setting("drag_mode_disable_dynamic_noises_on_grid_hide", default=True, type=bool, desc="Disable dynamic noises when exiting drag mode")
+mod.setting("drag_mode_swipe_distance", default=250, type=int, desc="Distance to swipe for drag mode")
+
+mod.list("drag_mode_mouse_button", desc="Words to hold mouse button")
+mod.list("drag_mode_dir", desc="Words to hold mouse button")
+
+ctx.lists["user.drag_mode_mouse_button"] = {
+    "drag": "0",
+    "roll": "1",
+    "pan": "2",
+}
+ctx.lists["user.drag_mode_dir"] = {
+    "up",
+    "down",
+    "left",
+    "right",
+}
+
+dir_map = {
+    "up": (0, -1),
+    "down": (0, 1),
+    "left": (-1, 0),
+    "right": (1, 0),
+}
+
+ctx_drag_mode.matches = "mode: user.drag_mode"
+
+@mod.capture(rule="<user.letter> <user.letter>")
+def drag_mode_target(m) -> list[str]:
+    return "".join(m.letter_list)
+
+@mod.capture(rule="<user.drag_mode_target> (to <user.drag_mode_target>)*")
+def drag_mode_target_loop(m) -> list[str]:
+    return m.drag_mode_target_list
 
 canvas_grid = None
 def generate_char_combo():
@@ -120,14 +158,6 @@ def get_pos_for_target(target: str) -> Point2d:
                 return Point2d(x * tile_size + tile_size_half, y * tile_size + tile_size_half)
     return Point2d(0, 0)
 
-@mod.capture(rule="<user.letter> <user.letter>")
-def drag_mode_target(m) -> list[str]:
-    return "".join(m.letter_list)
-
-@mod.capture(rule="<user.drag_mode_target> (to <user.drag_mode_target>)*")
-def drag_mode_target_loop(m) -> list[str]:
-    return m.drag_mode_target_list
-
 def next_pos(target: str, drag: bool=False):
     pos = grid_pos_map[target]
 
@@ -143,6 +173,13 @@ def next_target(target: str, drag: bool=False):
 
 builder = None
 drag_mode_enabled = False
+
+def mouse_button_preferred():
+    if "user.drag_mode_pan_mode" in ctx_drag_mode.tags:
+        return 2
+    if "user.drag_mode_roll_mode" in ctx_drag_mode.tags:
+        return 1
+    return 0
 
 def drag_mode_enable():
     global drag_mode_enabled
@@ -175,25 +212,29 @@ class Actions:
         global background_color
         background_color = background_color_drag
         drag_mode_enable()
-        ctx.tags = []
+        ctx_drag_mode.tags = []
 
     def drag_mode_pan_mode_show():
         """Show the grid"""
         global background_color
         background_color = background_color_pan
         drag_mode_enable()
-        ctx.tags = ["user.drag_mode_pan_mode"]
+        ctx_drag_mode.tags = ["user.drag_mode_pan_mode"]
 
     def drag_mode_roll_mode_show():
         """Show the grid"""
         global background_color
         background_color = background_color_roll
         drag_mode_enable()
-        ctx.tags = ["user.drag_mode_roll_mode"]
+        ctx_drag_mode.tags = ["user.drag_mode_roll_mode"]
 
     def drag_mode_hide():
         """Hide the grid"""
         drag_mode_disable()
+
+    def drag_mode_mouse_drag(button: str):
+        """Drag the mouse"""
+        actions.mouse_drag(button=int(button))
 
     def drag_mode_move_mouse(target: str):
         """Move the mouse to the grid position"""
@@ -206,10 +247,10 @@ class Actions:
         pos = grid_pos_map[target]
         actions.user.mouse_move_smooth_to(pos.x, pos.y)
 
-    def drag_mode_fly_towards(target: str):
+    def drag_mode_fly_towards(target: str, speed: int = None):
         """Move the mouse to the grid position"""
         pos = grid_pos_map[target]
-        actions.user.mouse_move_continuous_towards(pos.x, pos.y)
+        actions.user.mouse_move_continuous_towards(pos.x, pos.y, speed)
 
     def drag_mode_more_squares():
         """Increase the number of squares"""
@@ -224,7 +265,6 @@ class Actions:
         tile_size -= settings.get("user.drag_mode_tile_increment_size")
         if canvas_grid:
             canvas_grid.freeze()
-
 
     def drag_mode_move_to_target_loop(targets: list[list[str]]):
         """Move the mouse to the grid position"""
@@ -245,10 +285,14 @@ class Actions:
     #         else:
     #             actions.user.mouse_move_smooth_queue(next_target(target))
 
-    def drag_mode_drag_and_drop(target_one: str, target_two: str, button: int = 0):
+    def drag_mode_drag_and_drop(target_one: str, target_two: str, button: int = None):
         """Drag and drop from target one to target two"""
         start_pos = grid_pos_map[target_one]
         target_pos = grid_pos_map[target_two]
+
+        if button == None:
+            button = mouse_button_preferred()
+        button = int(button)
 
         def release():
             ctrl.mouse_click(button=button, up=True)
@@ -259,12 +303,16 @@ class Actions:
 
         actions.user.mouse_move_smooth_to(start_pos.x, start_pos.y, 200, callback_stop=moved)
 
-    def drag_mode_bring_to_center(target: str, button: int = 0):
+    def drag_mode_bring_to_center(target: str, button: int = None):
         """Center the target"""
         rect = ui.active_window().rect
         end_pos_x = rect.left + (rect.width / 2)
         end_pos_y = rect.top + (rect.height / 2)
         start_pos = grid_pos_map[target]
+        if button == None:
+            button = mouse_button_preferred()
+        button = int(button)
+
         def release():
             ctrl.mouse_click(button=button, up=True)
 
@@ -308,10 +356,15 @@ class Actions:
             grid_exclude_regions.append(Rect(0, pos_one.y, 1920, pos_two.y - pos_one.y + 1))
             canvas_grid.freeze()
 
-    def drag_mode_bring(target: str, button: int = 0):
+    def drag_mode_bring(target: str, button: int = None):
         """Bring the target to current mouse position"""
         (x, y) = ctrl.mouse_pos()
         target_pos = grid_pos_map[target]
+
+        if button == None:
+            button = mouse_button_preferred()
+        button = int(button)
+
         # actions.user.drag_mode_move_mouse(target)
         def release(ev):
             if ev.type == "stop":
@@ -335,6 +388,16 @@ class Actions:
         ctrl.mouse_click(button=button, down=True)
         actions.user.mouse_move_smooth_from_to(x, y, target_pos.x, target_pos.y, callback_tick=release)
 
+    def drag_mode_mouse_move_continuous_dir(dir: str, speed: int = None):
+        """Move the mouse continuously"""
+        dir_xy = dir_map[dir]
+        actions.user.mouse_move_continuous(dir_xy[0], dir_xy[1], speed)
+
+    def drag_mode_swipe_dir(dir: str):
+        """Swipe the mouse in a direction"""
+        dir_xy = dir_map[dir]
+        distance = settings.get("user.drag_mode_swipe_distance")
+        actions.user.mouse_move_smooth_delta(dir_xy[0] * distance, dir_xy[1] * distance)
 
     def drag_mode_reset():
         """Reset the grid"""
@@ -350,15 +413,16 @@ class Actions:
         """Reset the grid"""
         actions.user.mouse_move_continuous_stop()
 
-    def drag_mode_show_commands():
+    def drag_mode_show_commands(position: str = "right"):
         """Show the grid commands"""
         global builder
+
+        actions.user.ui_elements_hide_all()
 
         (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
 
         container_css = {
             "background_color": "222222",
-            "margin_right": 32,
             "padding": 16,
             "flex_direction": "column",
             "justify_content": "center",
@@ -368,28 +432,47 @@ class Actions:
             "border_radius": 4,
         }
 
-        builder = screen(justify_content="center", align_items="flex_end")[
+        screen_align_css = {
+            "left": {
+                "flex_direction": "row",
+                "justify_content": "flex_start",
+                "padding_left": 32,
+                "align_items": "center",
+            },
+            "right": {                "flex_direction": "row",
+                "justify_content": "flex_end",
+                "padding_right": 32,
+                "align_items": "center",
+            },
+            "up": {
+                "flex_direction": "row",
+                "justify_content": "center",
+                "align_items": "flex_start",
+            },
+            "down": {
+                "flex_direction": "row",
+                "justify_content": "center",
+                "align_items": "flex_end",
+            },
+        }
+
+        builder = screen(screen_align_css[position])[
             div(container_css)[
                 div(flex_direction="column", gap=12)[
                     text("Mode:", color="87CEEB", font_weight="bold"),
                     text("drag mode - LMB"),
                     text("roll mode - RMB"),
                     text("pan mode - MMB"),
-                    text("Commands:", color="87CEEB", font_weight="bold", margin_top=12),
-                    text("<T>"),
-                    text("<T> to <T>"),
-                    text("go <T>"),
-                    text("fly <T>"),
+                    text("Dir verbs", color="87CEEB", font_weight="bold", margin_top=12),
+                    text("<dir>, go <dir>"),
                     text("fly <dir>"),
-                    text("fly stop"),
-                    text("<T> <dir>"),
-                    text("halt / stop"),
-                    text("bring <T>"),
-                    text("bring this to <T>"),
-                    text("center <T>"),
-                    text("tick <dir>"),
-                    text("gear up"),
-                    text("gear down"),
+                    text("swipe, tick"),
+                    text("<T> verbs", color="87CEEB", font_weight="bold", margin_top=12),
+                    text("<T>, drag, pan, roll"),
+                    text("to, bring, bring this to"),
+                    text("go, hover, fly, fly to"),
+                    text("center, swipe, past"),
+                    text("<T> to <T>"),
                     text("Noises:", color="87CEEB", font_weight="bold", margin_top=12),
                     text("hiss: stop"),
                     text("Layout:", color="87CEEB", font_weight="bold", margin_top=12),
@@ -399,6 +482,8 @@ class Actions:
                     text("clear line <T>"),
                     text("take <T> past <T>"),
                     text("grid reset"),
+                    text("commands <dir>"),
+                    text("commands hide"),
                     text("grid hide", color="F33A6A", font_weight="bold", margin_top=12),
                 ]
             ]
@@ -408,10 +493,7 @@ class Actions:
 
     def drag_mode_hide_commands():
         """Hide the grid commands"""
-        global builder
-        if builder:
-            builder.hide()
-            builder = None
+        actions.user.ui_elements_hide_all()
 
 def rango_target(m) -> str:
     return m.rango_target
@@ -426,13 +508,13 @@ def context_override_captures():
     it impossible to match them.
     """
     if registry.captures.get("user.rango_target"):
-        ctx.capture(
+        ctx_drag_mode.capture(
             "user.rango_target",
             rule="this is a workaround to make rango target match this really long sentence so that it doesnt match anything"
         )(rango_target)
 
     if registry.captures.get("user.cursorless_target"):
-        ctx.capture(
+        ctx_drag_mode.capture(
             "user.cursorless_target",
             rule="this is a workaround to make cursorless target match this really long sentence so that it doesnt match anything"
         )(cursorless_target)

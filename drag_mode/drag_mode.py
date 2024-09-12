@@ -439,7 +439,8 @@ class Actions:
                 "padding_left": 32,
                 "align_items": "center",
             },
-            "right": {                "flex_direction": "row",
+            "right": {
+                "flex_direction": "row",
                 "justify_content": "flex_end",
                 "padding_right": 32,
                 "align_items": "center",

@@ -232,8 +232,10 @@ class Actions:
         """Hide the grid"""
         drag_mode_disable()
 
-    def drag_mode_mouse_drag(button: str):
+    def drag_mode_mouse_drag(button: str = None):
         """Drag the mouse"""
+        if button == None:
+            button = mouse_button_preferred()
         actions.mouse_drag(button=int(button))
 
     def drag_mode_move_mouse(target: str):

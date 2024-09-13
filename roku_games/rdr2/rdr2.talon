@@ -41,7 +41,7 @@ look back: user.game_xbox_button_hold('right_thumb')
 pop {user.game_xbox_button}: skip()
 wish {user.game_xbox_button}: skip()
 
-{user.dynamic_noise_mode}: user.dynamic_noises_use_mode(dynamic_noise_mode)
+{user.dynamic_noise_mode}: user.dynamic_noises_set_mode(dynamic_noise_mode)
 
 # actions
 weapon | gun: user.game_xbox_button_press('lb')
@@ -54,7 +54,7 @@ skin | loot | hitch: user.game_xbox_button_hold('y')
 stow: user.game_xbox_button_hold('x')
 pick: user.game_xbox_button_hold('lb')
 call: user.game_xbox_button_press('dpad_up')
-run: 
+run:
     user.game_xbox_left_stick_hold_dir("up")
     user.game_xbox_button_hold('a')
 sell | satchel: user.game_xbox_button_hold('dpad_right')
@@ -72,10 +72,10 @@ kill:
     user.game_xbox_button_release("lt")
     user.game_xbox_button_release("left_thumb")
     user.game_xbox_button_release("right_thumb")
-(dead | dot | did) (eye | I): 
+(dead | dot | did) (eye | I):
     user.game_xbox_button_press('right_thumb')
     user.game_xbox_button_press('left_thumb')
-    
+
 halt | stop:
     user.game_stopper()
     user.game_xbox_stopper()

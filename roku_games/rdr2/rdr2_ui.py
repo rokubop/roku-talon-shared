@@ -114,11 +114,16 @@ def show_commands_ui():
                     text("hold <button>"),
                     text("free <button>"),
                     text("long <button>"),
+                    text("weapon | gun"),
                     text("run"),
-                    text("jump"),
+                    text("jump | greet"),
                     text("halt | stop"),
+                    text("shoot"),
+                    text("sell | satchel"),
                     text("reload"),
-                    text("aim | target"),
+                    text("scope"),
+                    text("kill"),
+                    text("aim | target | talk"),
                     text("hide"),
                     text("call"),
                     text("wheel"),
@@ -135,7 +140,7 @@ def show_commands_ui():
     ui_commands.show()
 
 def show_ui():
-    #show_commands_ui()
+    show_commands_ui()
     show_right_hud_ui()
     show_left_hud_ui()
 

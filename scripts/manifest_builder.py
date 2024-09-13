@@ -27,6 +27,7 @@ CREATE_MANIFEST_DIRS = [
 ]
 
 ENTITIES = ["captures", "lists", "modes", "scopes", "settings", "tags", "actions"]
+MOD_ATTR_CALLS = ["setting", "tag", "mode", "list"]
 NAMESPACES = ["user", "edit", "core", "app", "code"]
 
 @dataclass
@@ -156,7 +157,7 @@ class EntityVisitor(ParentNodeVisitor):
         try:
             if isinstance(node.func, ast.Attribute):
                 func_attr = node.func.attr
-                if func_attr in ["setting", "tag", "mode"]:
+                if func_attr in MOD_ATTR_CALLS:
                     entity_name = None
 
                     # Handle positional arguments
@@ -169,13 +170,9 @@ class EntityVisitor(ParentNodeVisitor):
                             if kw.arg == "name" and isinstance(kw.value, ast.Constant):
                                 entity_name = kw.value.s
 
-                    if entity_name:
-                        if func_attr == "setting":
-                            self.all_entities.contributes.settings.add(f"user.{entity_name}")
-                        elif func_attr == "tag":
-                            self.all_entities.contributes.tags.add(f"user.{entity_name}")
-                        elif func_attr == "mode":
-                            self.all_entities.contributes.modes.add(f"user.{entity_name}")
+                    if entity_name and func_attr in MOD_ATTR_CALLS:
+                        attr_name = func_attr + 's'
+                        getattr(self.all_entities.contributes, attr_name).add(f"user.{entity_name}")
 
             # Handle actions.user.something calls
             if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Attribute):

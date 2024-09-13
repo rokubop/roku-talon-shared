@@ -3,6 +3,18 @@
   "description": "This is an experimental repository for a full set of game actions and eventually automatically setting up a game for you. WIP.",
   "version": "0.3.2",
   "contributes": {
+    "lists": [
+      "user.game_dir",
+      "user.game_gear",
+      "user.game_xbox_button",
+      "user.game_xbox_dpad",
+      "user.game_xbox_left_stick",
+      "user.game_xbox_left_trigger",
+      "user.game_xbox_right_stick",
+      "user.game_xbox_right_trigger",
+      "user.game_xbox_stick",
+      "user.game_xbox_trigger"
+    ],
     "modes": [
       "user.game",
       "user.game_calibrating_x",

@@ -419,7 +419,7 @@ class Actions:
         """Show the grid commands"""
         global builder
 
-        actions.user.ui_elements_hide_all()
+        actions.user.ui_elements_hide("drag_mode_commands")
 
         (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
 
@@ -459,7 +459,7 @@ class Actions:
             },
         }
 
-        builder = screen(screen_align_css[position])[
+        builder = screen(screen_align_css[position], id="drag_mode_commands")[
             div(container_css)[
                 div(flex_direction="column", gap=12)[
                     text("Mode:", color="87CEEB", font_weight="bold"),
@@ -496,7 +496,7 @@ class Actions:
 
     def drag_mode_hide_commands():
         """Hide the grid commands"""
-        actions.user.ui_elements_hide_all()
+        actions.user.ui_elements_hide("drag_mode_commands")
 
 def rango_target(m) -> str:
     return m.rango_target

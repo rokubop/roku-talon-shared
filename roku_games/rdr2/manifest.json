@@ -1,7 +1,7 @@
 {
   "name": "rdr2",
   "description": "Auto-generated manifest.",
-  "version": "0.1.0",
+  "version": "0.2.2",
   "contributes": {},
   "depends": {
     "modes": [
@@ -14,8 +14,8 @@
       "user.dynamic_noises",
       "user.dynamic_noises_disable",
       "user.dynamic_noises_enable",
+      "user.dynamic_noises_set_mode",
       "user.dynamic_noises_ui_element",
-      "user.dynamic_noises_use_mode",
       "user.game_csv_game_words_setup",
       "user.game_mouse_click",
       "user.game_stopper",

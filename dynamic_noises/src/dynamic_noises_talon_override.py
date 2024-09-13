@@ -18,20 +18,15 @@ ctx_overrides.matches = "tag: user.dynamic_noises_talon_noise_override"
 
 def on_pop():
     pop_state = dynamic_noises_state.get("pop")
-    if pop_state:
-        print("new pop")
-        print(vars(pop_state))
     if pop_state and pop_state.current:
         # Old community version used this 2023
         actions.skip()
     else:
-        print("old pop")
         dynamic_noises_event_trigger(DynamicActionEvent(EVENT_TYPE_ACTION, "pop", "default"))
         actions.next()
 
 def noise_trigger_pop():
     pop_state = dynamic_noises_state.get("pop")
-    print(pop_state)
     if pop_state and pop_state.current:
         # dynamic_noises is active so it will mange this instead
         actions.skip()
@@ -42,14 +37,13 @@ def noise_trigger_pop():
 
 def noise_trigger_hiss(active: bool):
     hiss_state = dynamic_noises_state.get("hiss")
-    print(hiss_state)
     if hiss_state and hiss_state.current:
         actions.skip()
     else:
         if active:
             dynamic_noises_event_trigger(DynamicActionEvent(EVENT_TYPE_ACTION, "hiss", "default"))
         else:
-            dynamic_noises_event_trigger(DynamicActionEvent(EVENT_TYPE_ACTION_STOP, "hiss_stop", "default"))
+            dynamic_noises_event_trigger(DynamicActionEvent(EVENT_TYPE_ACTION_STOP, "hiss", "default"))
         actions.next(active)
 
 def on_ready():

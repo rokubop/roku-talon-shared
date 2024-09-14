@@ -15,7 +15,7 @@ This is shared set of Talon tools and scripts to help you play games, build UIs,
 | `vgamepad` | Talon integration with `vgamepad` for controlling video-games that require controller (xbox) input. | [README](vgamepad/README.md) |
 
 ## Partial checkout
-If you want to checkout only a few of these tools, you can use `git sparse-checkout`
+If you want to checkout only a few of these tools, you can use `git sparse-checkout`, READ CAREFULLY DANGER.
 
 ```sh
 # Clone the repo
@@ -26,8 +26,10 @@ cd roku-talon-shared
 
 # Checkout only the tools you want
 #
-# WARNING: BE CAREFUL TO DO THIS IN THE CORRECT DIRECTORY
+# DANGER: BE CAREFUL TO DO THIS IN THE CORRECT DIRECTORY
 # THIS REMOVES ALL FOLDERS EXCEPT THE ONES YOU SPECIFY
+# YOU WILL LOSE ANY UNCOMMITTED AND GITIGNORE FILES.
+# In `roku-talon-shared` directory:
 git sparse-checkout set ui_elements mouse_move_adv
 
 # checkout all tools

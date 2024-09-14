@@ -1,6 +1,6 @@
 # roku-talon-shared
 
-This is shared set of Talon tools and scripts to help you play games, build UIs, move the mouse, setup parrot combos or dynamic noises. WIP.
+This is shared set of Talon tools and scripts to help you play games, build UIs, move the mouse, setup parrot combos or dynamic noises. WIP. Each folder is considered a "package" with its own `manifest.json` file telling you what it contributes and depends on.
 
 ## Features
 | Feature | Description | README |
@@ -15,7 +15,8 @@ This is shared set of Talon tools and scripts to help you play games, build UIs,
 | `vgamepad` | Talon integration with `vgamepad` for controlling video-games that require controller (xbox) input. | [README](vgamepad/README.md) |
 
 ## Partial checkout
-If you want to checkout only a few of these tools, you can use the following commands:
+If you want to checkout only a few of these tools, you can use `git sparse-checkout`
+
 ```sh
 # Clone the repo
 git clone git@github.com:rokubop/roku-talon-shared.git
@@ -24,5 +25,14 @@ git clone git@github.com:rokubop/roku-talon-shared.git
 cd roku-talon-shared
 
 # Checkout only the tools you want
+#
+# WARNING: BE CAREFUL TO DO THIS IN THE CORRECT DIRECTORY
+# THIS REMOVES ALL FOLDERS EXCEPT THE ONES YOU SPECIFY
+git sparse-checkout set ui_elements mouse_move_adv
+
+# checkout all tools
 git sparse-checkout set drag_mode dynamic_noises game_tools mouse_move_adv parrot_config roku_games ui_elements vgamepad
+
+# To reset so you see all tools
+git sparse-checkout disable
 ```

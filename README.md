@@ -1,6 +1,6 @@
 # roku-talon-shared
 
-This is shared set of Talon tools and scripts to help you play games, build UIs, make complex swappable parrot configs easily. WIP.
+This is shared set of Talon tools and scripts to help you play games, build UIs, move the mouse, setup parrot combos or dynamic noises. WIP.
 
 ## Features
 | Feature | Description | README |
@@ -13,3 +13,16 @@ This is shared set of Talon tools and scripts to help you play games, build UIs,
 | `roku_games` | My personal game setups for reference. | [README](roku_games/README.md) |
 | `ui_elements` | HTML/CSS (object oriented) like syntax for building UIs. Supports div, text, and most CSS properties such as margin, padding, flex_direction, etc... Supports custom ability to highlight divs by ID with an overlay color. WIP. | [README](ui_elements/README.md) |
 | `vgamepad` | Talon integration with `vgamepad` for controlling video-games that require controller (xbox) input. | [README](vgamepad/README.md) |
+
+## Partial checkout
+If you want to checkout only a few of these tools, you can use the following commands:
+```sh
+# Clone the repo
+git clone git@github.com:rokubop/roku-talon-shared.git
+
+# Change directory
+cd roku-talon-shared
+
+# Checkout only the tools you want
+git sparse-checkout set drag_mode dynamic_noises game_tools mouse_move_adv parrot_config roku_games ui_elements vgamepad
+```

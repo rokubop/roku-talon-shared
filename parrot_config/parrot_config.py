@@ -32,17 +32,20 @@ def get_modified_action(noise, action):
     if ":th" in noise:
         match = re.search(r':th_(\d+)', noise)
         throttle_amount = int(match.group(1)) if match else 100
-        return (action[0], lambda: parrot_throttle(throttle_amount, noise, action[1]))
+        base_noise = noise.replace(f":th_{throttle_amount}", "")
+        return (action[0], lambda: parrot_throttle(throttle_amount, base_noise, action[1]))
     if ":db" in noise:
         match = re.search(r':db_(\d+)', noise)
         debounce_amount = int(match.group(1)) if match else 100
-        return (action[0], lambda: parrot_debounce(debounce_amount, noise, action[1]))
+        base_noise = noise.replace(f":db_{debounce_amount}", "")
+        return (action[0], lambda: parrot_debounce(debounce_amount, base_noise, action[1]))
     return action
 
 def categorize_commands(commands):
     """Determine immediate vs delayed commands"""
     immediate_commands = {}
     delayed_commands = {}
+    base_pairs = set()
     combo_noise_set = set()
     base_noise_set = set()
     base_noise_map = {}
@@ -68,6 +71,9 @@ def categorize_commands(commands):
             continue
 
         base_combo, base_noises = get_base_noise(noise)
+
+        if "_stop" in noise and len(base_noises) == 1:
+            base_pairs.add(base_noises[0].replace("_stop", ""))
 
         for base_noise in base_noises:
             base_noise_set.add(base_noise)
@@ -95,7 +101,12 @@ def categorize_commands(commands):
             else:
                 immediate_commands[base] = modified_action
 
-    return immediate_commands, delayed_commands, base_noise_set
+    return {
+        "immediate_commands": immediate_commands,
+        "delayed_commands": delayed_commands,
+        "base_noise_set": base_noise_set,
+        "base_pairs": base_pairs
+    }
 
 def parse_modifiers(sound: str):
     base_noise, location, modifiers = sound, None, None
@@ -116,6 +127,7 @@ class ParrotConfig():
         self.parrot_config_ref = None
         self.immediate_commands = {}
         self.delayed_commands = {}
+        self.base_pairs = set()
         self.combo_chain = ""
         self.combo_job = None
         self.base_noises = None
@@ -130,7 +142,13 @@ class ParrotConfig():
         self.pending_combo = None
         self.parrot_config_ref = parrot_config
         commands = parrot_config.get("commands", {}) if "commands" in parrot_config else parrot_config
-        self.immediate_commands, self.delayed_commands, self.base_noises = categorize_commands(commands)
+
+        categorized = categorize_commands(commands)
+        self.immediate_commands = categorized["immediate_commands"]
+        self.delayed_commands = categorized["delayed_commands"]
+        self.base_noises = categorized["base_noise_set"]
+        self.base_pairs = categorized["base_pairs"]
+
         combo_window = settings.get("user.parrot_config_combo_window", 300)
         self.combo_window = f"{combo_window}ms"
 
@@ -153,9 +171,15 @@ class ParrotConfig():
         self.pending_combo = None
 
     def execute(self, noise: str):
+        global parrot_debounce_busy
         if noise not in self.base_noises:
-            # print(f"return no match for {noise}")
             return
+
+        if noise in self.base_pairs:
+            if parrot_debounce_busy.get(f"{noise}_stop"):
+                cron.cancel(parrot_debounce_busy[f"{noise}_stop"])
+                parrot_debounce_busy[f"{noise}_stop"] = False
+                return
 
         if self.combo_job:
             # print(f"canceling {self.combo_chain}")

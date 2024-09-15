@@ -20,6 +20,7 @@ mod.setting("game_mouse_move_deg_speed_ms", default=200, type=int, desc="Speed f
 mod.setting("game_mouse_move_deg_gears", default="5 15 30 45 90", type=str, desc="Angles for snapping the camera.")
 mod.setting("game_mode_disables_command_mode", default=True, type=bool, desc="Disable command mode when game mode is enabled.")
 mod.setting("game_mouse_click_hold", default=16.0, type=Union[int, float], desc="Hold time for a click.")
+mod.setting("game_key_repeat_wait", default=16.0, type=Union[int, float], desc="Time to wait before repeating a key. This differs from key_wait in that the first key press is immediate.")
 mod.setting("game_xbox_button_hold", default=100, type=int, desc="The amount of time to hold a button before releasing it.")
 mod.setting("game_xbox_left_stick_default_gear", default=5, type=int, desc="Default gear for the left stick")
 mod.setting("game_xbox_left_stick_gears", default=".2 .4 .6 .8 1", type=str, desc="Gears for the left stick")

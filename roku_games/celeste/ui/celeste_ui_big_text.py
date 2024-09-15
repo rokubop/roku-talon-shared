@@ -23,22 +23,41 @@ def on_noise(noise, command_name):
 def show_big_text_ui():
     global ui_big_text
     (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
-    ui_big_text = screen(align_items="center", justify_content="flex_start")[
-        div(width=1920, background_color="00000066", justify_content="center", align_items="center")[
-            div(justify_content="center", align_items="center", padding=40, margin_right=200)[
-                text("", id="noise", font_size=100, font_weight="bold", color="FFFFFF"),
-                text("", id="command", font_size=30, margin_top=32, color="FFFFFF")
-            ]
+
+    key = actions.user.game_ui_element_key
+    opts = { "opacity": 0.5 }
+
+    ui_big_text = screen()[
+        div(padding=40, margin_top=130, margin_left=50)[
+            text("", id="noise", font_size=140, font_weight="bold", color="FFFFFF"),
+            text("", id="command", font_size=60, margin_top=32, color="FFFFFF"),
         ]
     ]
+    ui_lower = screen(justify_content="flex_end", highlight_color="FFFFFF55")[
+        div(flex_direction="row", margin_bottom=20, margin_left=20, opacity=0.5)[
+            actions.user.game_ui_element_arrows(60, opts),
+            div()[
+                div(flex_direction="row")[
+                    key("c", "jump", 60, opts),
+                    key("p", "jump 2", 60, opts),
+                    key("foot_left", "foot1: grab", 60, opts),
+                ],
+                div(flex_direction="row")[
+                    key("x", "dash", 60, opts),
+                    key("t", "demo", 60, opts),
+                    key("foot_center", "foot2: move", 60, opts)
+                ]
+            ],
+        ],
+    ]
+
     ui_big_text.show()
+    ui_lower.show()
     actions.user.parrot_config_event_register(on_noise)
 
 def hide_big_text_ui():
-    global ui_big_text
-    if ui_big_text:
-        ui_big_text.hide()
-        actions.user.parrot_config_event_unregister(on_noise)
+    actions.user.ui_elements_hide_all()
+    actions.user.parrot_config_event_unregister(on_noise)
 
 def refresh_big_text_ui():
     hide_big_text_ui()

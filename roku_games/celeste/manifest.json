@@ -1,12 +1,8 @@
 {
   "name": "celeste",
   "description": "Auto-generated manifest.",
-  "version": "1.0.0",
-  "contributes": {
-    "actions": [
-      "user.game_celeste_set_jump_2"
-    ]
-  },
+  "version": "1.1.0",
+  "contributes": {},
   "depends": {
     "modes": [
       "user.game"
@@ -23,11 +19,14 @@
       "user.game_event_unregister_on_key",
       "user.game_key",
       "user.game_key_hold",
+      "user.game_key_release",
+      "user.game_key_sequence",
       "user.game_key_toggle",
       "user.game_mode_disable",
-      "user.game_mode_enable",
       "user.game_state_switch_horizontal",
       "user.game_stopper",
+      "user.game_ui_element_arrows",
+      "user.game_ui_element_key",
       "user.on_game_mode_disabled",
       "user.on_game_mode_enabled",
       "user.parrot_config",
@@ -39,6 +38,7 @@
       "user.pedal_left_down",
       "user.pedal_left_up",
       "user.ui_elements",
+      "user.ui_elements_hide_all",
       "user.ui_elements_highlight",
       "user.ui_elements_set_text",
       "user.ui_elements_unhighlight"

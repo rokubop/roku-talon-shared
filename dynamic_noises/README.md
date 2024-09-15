@@ -13,11 +13,11 @@ Say "dynamic noises" to try it out. A UI will show you your current phrase bindi
 ```python
 dynamic_noises = {
     "default": {
-        "pop": lambda: print("pop"),
-        "hiss": lambda: print("hiss"),
+        "pop": ("jump", lambda: actions.key("space")),
+        "hiss": ("scroll down", actions.mouse_scroll),
     },
     "repeater": {
-        "pop": actions.core.repeat_phrase,
+        "pop": ("repeat", actions.core.repeat_phrase),
         "hiss": lambda: print("hiss"),
     },
 }

@@ -1,7 +1,7 @@
 {
   "name": "game_tools",
   "description": "This is an experimental repository for a full set of game actions and eventually automatically setting up a game for you. WIP.",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "contributes": {
     "lists": [
       "user.game_dir",
@@ -21,6 +21,7 @@
       "user.game_calibrating_y"
     ],
     "settings": [
+      "user.game_key_repeat_wait",
       "user.game_mode_disables_command_mode",
       "user.game_mouse_calibrate_x_360",
       "user.game_mouse_calibrate_y_90",
@@ -74,6 +75,7 @@
       "user.game_key",
       "user.game_key_hold",
       "user.game_key_release",
+      "user.game_key_sequence",
       "user.game_key_toggle",
       "user.game_mode_disable",
       "user.game_mode_enable",
@@ -147,6 +149,7 @@
       "user.game_stop_all",
       "user.game_stopper",
       "user.game_ui_element_arrows",
+      "user.game_ui_element_key",
       "user.game_ui_element_wasd",
       "user.game_ui_element_xbox_center_buttons",
       "user.game_ui_element_xbox_dpad",
@@ -218,6 +221,7 @@
       "user.mouse_move_smooth_queue",
       "user.ui_elements",
       "user.ui_elements_highlight",
+      "user.ui_elements_highlight_briefly",
       "user.ui_elements_register_on_lifecycle",
       "user.ui_elements_set_text",
       "user.ui_elements_unhighlight",

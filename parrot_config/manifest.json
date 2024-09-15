@@ -1,7 +1,7 @@
 {
   "name": "parrot_config",
   "description": "This is an alternate way to define your parrot commands in a way that supports combos, throttling, debounce, switching out configs easily without needing to create new modes",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "contributes": {
     "settings": [
       "user.parrot_config_combo_window"

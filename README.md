@@ -1,6 +1,6 @@
 # roku-talon-shared
 
-This is shared set of Talon tools and scripts to help you play games, build UIs, move the mouse, setup parrot combos or dynamic noises. WIP. Each folder is considered a "package" with its own `manifest.json` telling you what it contributes and depends on.
+This is shared set of Talon tools and scripts to help you play games, build UIs, move/drag the mouse, setup parrot combos or dynamic noises. Compatible alongside community. WIP. Each folder is considered a "package" with its own `manifest.json` telling you what it contributes and depends on.
 
 ## Features
 | Feature | Description | README |

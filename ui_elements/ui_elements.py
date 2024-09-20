@@ -1,6 +1,6 @@
 from talon import cron, ui
 from talon.skia.canvas import Canvas as SkiaCanvas
-from talon.canvas import Canvas
+from talon.canvas import Canvas, MouseEvent
 from talon.screen import Screen
 from talon.skia import RoundRect
 from talon.types import Rect, Point2d
@@ -1050,7 +1050,7 @@ class UIBuilder(UIBox):
             # Other: highlight_canvas triggered manually
             self.static_canvas.freeze()
 
-    def on_mouse(self, e):
+    def on_mouse(self, e: MouseEvent):
         if e.event == "mousemove":
             for id, button in list(buttons.items()):
                 if button["builder_id"] == self.id:
@@ -1152,6 +1152,8 @@ class UIBuilder(UIBox):
         buttons.clear()
         inputs.clear()
 
+VALID_FLEX_DIRECTION = {"row", "column"}
+
 @dataclass
 class UIProps:
     id: str
@@ -1231,6 +1233,9 @@ def get_props(props, additional_props):
                 type_errors.append(f"{key}: expected callable, got {type(value).__name__} {value}")
         elif not isinstance(value, expected_type):
             type_errors.append(f"{key}: expected {expected_type.__name__}, got {type(value).__name__} {value}")
+
+        if key == "flex_direction" and value not in VALID_FLEX_DIRECTION:
+            type_errors.append(f"{key}: expected 'row' or 'column', got {value}")
 
     if type_errors:
         raise ValueError(

@@ -459,7 +459,7 @@ def set_globals():
 @mod.action_class
 class Actions:
     def game_mode_enable():
-        """Enable play mode"""
+        """Enable game mode - calls ctx def on_game_mode_enabled"""
         actions.mode.enable("user.game")
         if settings.get("user.game_mode_disables_command_mode"):
             actions.mode.disable("command")

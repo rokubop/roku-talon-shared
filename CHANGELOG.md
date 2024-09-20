@@ -1,5 +1,8 @@
 # Changelog
 
+## Sep week 3, 2024
+- Add `face_tester` package
+
 ## Sep week 2, 2024
 - Stabalize `dynamic_noises` and `drag_mode` packages
 

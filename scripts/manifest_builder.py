@@ -13,6 +13,7 @@ Usage: `python ./scripts/manifest_builder.py`
 CREATE_MANIFEST_DIRS = [
     '../drag_mode',
     '../dynamic_noises',
+    '../face_tester',
     '../game_tools',
     '../mouse_move_adv',
     '../parrot_config',

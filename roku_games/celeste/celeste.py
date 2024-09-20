@@ -7,7 +7,6 @@ ctx.matches = "os: windows\napp: celeste"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 
 jump_primary_ms = 300
-jump_secondary_ms = 120
 
 def dash_forward_up():
     actions.user.game_dir_hold_last_horizontal()
@@ -51,9 +50,6 @@ def dash_demo_backward():
     actions.user.game_state_switch_horizontal(),
     dash_demo()
 
-def jump_secondary():
-    actions.user.game_key_hold("p", jump_secondary_ms)
-
 def jump_primary():
     actions.user.game_key_hold("c", jump_primary_ms)
 
@@ -63,12 +59,12 @@ def use_move_mode():
         **default_config,
         **move_config
     }
-    refresh_ui(parrot_config, "C70039")
+    # refresh_ui(parrot_config, "C70039")
 
 def use_default_mode():
     global parrot_config
     parrot_config = default_config
-    refresh_ui(parrot_config, "000000")
+    # refresh_ui(parrot_config, "000000")
 
 def skip_scene():
     actions.user.game_stopper()
@@ -80,13 +76,13 @@ def return_map():
 
 def restart_chapter():
     actions.user.game_stopper()
-    actions.key("escape up up c c")
+    actions.user.game_key_sequence("escape up up c c", 100)
 
 default_config = {
-    "sh:th_100":  ("jump 1", jump_primary),
+    "sh:th_80":   ("jump 1", jump_primary),
     "sh_stop":    ("", lambda: None),
-    "ss:th_100":  ("jump 2", jump_secondary),
-    "ss_stop":    ("", lambda: None),
+    "ss":         ("jump 2", lambda: actions.user.game_key_hold("p")),
+    "ss_stop:db_20":("", lambda: actions.user.game_key_release("p")),
     "ah":         ("left", actions.user.game_arrows_hold_left),
     "oh":         ("right", actions.user.game_arrows_hold_right),
     "ee":         ("stop", actions.user.game_stopper),
@@ -112,7 +108,6 @@ default_config = {
     "cluck pop":  ("restart chapter", restart_chapter),
     "foot 1":     ("grab"),
     "foot 2":     ("move mode"),
-    "<number>":   ("set jump2")
 }
 parrot_config = default_config
 
@@ -172,12 +167,3 @@ class Actions:
     def pedal_center_up():
         global pedal_center_up_job
         pedal_center_up_job = cron.after("100ms", stop_move_mode)
-
-@mod.action_class
-class Actions:
-    def game_celeste_set_jump_2(number: int):
-        """set jump 2 ms"""
-        global jump_secondary_ms
-        jump_secondary_ms = number
-        actions.user.game_mode_enable()
-        cron.after("1s", lambda: actions.user.ui_elements_set_text("jump2", f"{jump_secondary_ms}ms"))

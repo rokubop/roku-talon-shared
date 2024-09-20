@@ -7,6 +7,7 @@ from .src.game_core import (
     game_key_hold,
     game_key_toggle,
     game_key_release,
+    game_key_sequence,
     game_arrows_hold_down_horizontal,
     game_dir_hold_last_horizontal,
     game_arrows_hold_up_horizontal,
@@ -37,6 +38,7 @@ class Actions:
     def game_key_hold(key: str, hold_ms: int = None): """Hold a key indefinitely or for a fixed duration e.g. game_key_hold(\"space\", 500)"""; game_key_hold(key, hold_ms)
     def game_key_release(key: str): """Release a key"""; game_key_release(key)
     def game_key_toggle(key: str): """Toggle holding a key"""; game_key_toggle(key)
+    def game_key_sequence(keys: str, delay_ms: int = None): """Press a sequence of keys with a delay between each"""; game_key_sequence(keys, delay_ms)
     def game_mouse_click(button: int = 0): """Mouse click; 0=left, 1=right, 2=middle"""; mouse_click(button)
     def game_mouse_click_left(): """Left click"""; mouse_click(0)
     def game_mouse_click_right(): """Right click"""; mouse_click(1)

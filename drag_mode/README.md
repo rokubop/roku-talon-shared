@@ -2,6 +2,8 @@
 
 This is an experimental repository. Allows you drag from one point to another using left, middle, or right click. Flexible mouse movement to and from any point. hiss stopper for precision stops.
 
+<img src="preview.png" alt="preview" width="600">
+
 ## Mode
 | Command | Description |
 | --- | --- |

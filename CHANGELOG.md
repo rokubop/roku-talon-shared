@@ -1,6 +1,8 @@
 # Changelog
 
 ## Sep week 2, 2024
+- Stabalize `dynamic_noises` and `drag_mode` packages
+
 BREAKING CHANGES
 - Rename almost all game actions
   - `_key_down` and `_key_up` to `_key_hold` and `_key_release`
@@ -12,6 +14,7 @@ BREAKING CHANGES
   - `game_move_dir_` to `game_wasd_` and/or `game_arrows_`
   > Reason: use \{game}\_\{subject}\_\{type}\_\{action}\_\{value}
   > Subject in this case is the group of wasd or arrows
+- Rename `user.dynamic_noises_use_mode` to `user.dynamic_noises_set_mode`
 - Remove `user.use_parrot_config`. Use `user.parrot_config_noise` instead
   > Reason: packages should have the same prefix for every action
 

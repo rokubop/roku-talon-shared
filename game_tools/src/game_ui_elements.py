@@ -5,10 +5,12 @@ ctx = Context()
 
 ui_elements_register_on_lifecycle_init = False
 game_event_register_on_xbox_event_init = False
+game_event_register_on_keys_init = False
 include_key_events = False
 include_xbox_events = False
 accent_color_default = "87ceeb"
 list_names = {}
+expected_keys = set()
 
 GREEN = "88d61a"
 RED = "d61a1a"
@@ -27,18 +29,23 @@ def get_key_from_list(list_name: str, value: str):
         key = next((key for key, val in list_key_values.items() if val == value), None)
         return key
 
-def game_ui_elements_keys_dpad(wasd: bool = False, size: int = 30):
+def game_ui_elements_keys_dpad(wasd: bool = False, size: int = 30, props: dict = {}):
     (div, text) = actions.user.ui_elements(["div", "text"])
+    if wasd:
+        expected_keys.update(["w", "a", "s", "d"])
+    else:
+        expected_keys.update(["up", "down", "left", "right"])
 
     key_css = {
         "padding": 8,
-        "background_color": "333333dd",
+        "background_color": "333333",
         "flex_direction": "row",
         "justify_content": "center",
         "align_items": "center",
         "margin": 1,
         "width": size,
-        "height": size
+        "height": size,
+        "opacity": props.get("opacity") or 0.7
     }
 
     def key(key_name, text_content, width=size):
@@ -57,9 +64,30 @@ def game_ui_elements_keys_dpad(wasd: bool = False, size: int = 30):
     key_down = key("s", "S") if wasd else key("down", "↓")
     key_right = key("d", "D") if wasd else key("right", "→")
 
-    return div(flex_direction="column")[
+    return div(props, flex_direction="column")[
         row()[blank_key(), key_up, blank_key()],
         row()[key_left, key_down, key_right]
+    ]
+
+def game_key_ui(key_name: str, text_content: str, size: int = 30, props: dict = {}):
+    (div, text) = actions.user.ui_elements(["div", "text"])
+    expected_keys.add(key_name)
+
+    key_css = {
+        "padding": 8,
+        "background_color": "333333",
+        "flex_direction": "row",
+        "justify_content": "center",
+        "align_items": "center",
+        "margin": 1,
+        "width": size,
+        "height": size,
+        "opacity": 0.7,
+        **props
+    }
+
+    return div(key_css, id=key_name)[
+        text(text_content)
     ]
 
 def xbox_stick_ui(
@@ -293,6 +321,14 @@ def on_dpad_dir(dir):
 
     actions.user.ui_elements_highlight(f"dpad_{dir}")
 
+def on_key(key, state):
+    if state == "press":
+        actions.user.ui_elements_highlight_briefly(key)
+    elif state == "hold":
+        actions.user.ui_elements_highlight(key)
+    elif state == "release":
+        actions.user.ui_elements_unhighlight(key)
+
 def on_trigger(event):
     if event.type == "hold":
         actions.user.ui_elements_highlight(event.subject)
@@ -324,25 +360,40 @@ def on_xbox_event(event):
 
 def on_ui_lifecycle(event):
     global ui_elements_register_on_lifecycle_init
+    global game_event_register_on_keys_init
     global game_event_register_on_xbox_event_init
     global include_xbox_events, include_key_events
+    xbox, keys = False, False
 
-    ids_to_check = ["dpad_up", "left_stick", "right_stick", "left_trigger", "a"]
+    xbox_check_ids = ["dpad_up", "left_stick", "right_stick", "left_trigger", "a"]
     children_ids = event.children_ids
 
-    if not any(id in children_ids for id in ids_to_check):
-        # different UI that we don't care about
+    if any(id in children_ids for id in xbox_check_ids):
+        xbox = True
+    if any(id in children_ids for id in expected_keys):
+        keys = True
+
+    events = xbox or keys
+
+    if not events:
         return
 
     if event.type == "mount":
-        if include_xbox_events and not game_event_register_on_xbox_event_init:
+        if keys and include_key_events and not game_event_register_on_keys_init:
+            game_event_register_on_keys_init = True
+            actions.user.game_event_register_on_key(on_key)
+        if xbox and include_xbox_events and not game_event_register_on_xbox_event_init:
             game_event_register_on_xbox_event_init = True
             actions.user.game_event_register_on_xbox_event(on_xbox_event)
             preferred_dir_mode_subject = settings.get("user.game_xbox_preferred_dir_mode_subject")
             if preferred_dir_mode_subject:
                 actions.user.ui_elements_highlight(f"{preferred_dir_mode_subject}_preferred", f"{GREEN}55")
     elif event.type == "unmount":
-        if include_xbox_events and game_event_register_on_xbox_event_init:
+        if keys and include_key_events and game_event_register_on_keys_init:
+            game_event_register_on_keys_init = False
+            include_key_events = False
+            actions.user.game_event_unregister_on_key(on_key)
+        if xbox and include_xbox_events and game_event_register_on_xbox_event_init:
             game_event_register_on_xbox_event_init = False
             include_xbox_events = False
             actions.user.game_event_unregister_all_on_xbox_event()
@@ -369,12 +420,17 @@ class Actions:
     def game_ui_element_arrows(size: int = 30, props: dict = None):
         """game ui element arrows dpad"""
         events_init("keys")
-        return game_ui_elements_keys_dpad(wasd=False, size=size)
+        return game_ui_elements_keys_dpad(wasd=False, size=size, props=props)
 
-    def game_ui_element_wasd(size: int = 30):
+    def game_ui_element_wasd(size: int = 30, props: dict = None):
         """game ui element WASD dpad"""
         events_init("keys")
-        return game_ui_elements_keys_dpad(wasd=True, size=size)
+        return game_ui_elements_keys_dpad(wasd=True, size=size, props=props)
+
+    def game_ui_element_key(key_name: str, text_content: str, size: int = 30, props: dict = None):
+        """game ui element key"""
+        events_init("keys")
+        return game_key_ui(key_name, text_content, size, props)
 
     def game_ui_element_xbox_left_stick(label: str = None, size: int = 30, accent_color: str = None):
         """game ui element xbox left stick"""

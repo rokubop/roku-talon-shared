@@ -68,7 +68,7 @@ def dynamic_noises_ui_element():
         ]
     ]
 
-def show_tester_ui():
+def show_tester_ui(position: str = "right"):
     (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
 
     container_css = {
@@ -82,16 +82,50 @@ def show_tester_ui():
         "border_radius": 4,
     }
 
-    ui = screen(id="dynamic_noises_tester", justify_content="center", align_items="flex_end")[
-        div(container_css)[
+    screen_align_css = {
+        "left": {
+            "flex_direction": "row",
+            "justify_content": "flex_start",
+            "padding_left": 32,
+            "align_items": "center",
+        },
+        "right": {
+            "flex_direction": "row",
+            "justify_content": "flex_end",
+            "padding_right": 32,
+            "align_items": "center",
+        },
+        "up": {
+            "flex_direction": "row",
+            "justify_content": "center",
+            "align_items": "flex_start",
+        },
+        "down": {
+            "flex_direction": "row",
+            "justify_content": "center",
+            "align_items": "flex_end",
+        },
+    }
+
+    actions.user.ui_elements_hide("dynamic_noises_tester")
+
+    ui = screen(screen_align_css[position], id="dynamic_noises_tester")[
+        div(container_css, gap=16)[
             text("Dynamic noises", margin_bottom=16),
             dynamic_noises_ui_element(),
-            text("Commands", color="87CEEB", font_weight="bold", margin_top=16),
-            text("pop <phrase>"),
-            text("hiss <phrase>"),
+            text("Commands", font_weight="bold"),
+            text("<noise> <phrase>", color=accent_color),
+            div(flex_direction="row")[
+                text("<noise>", color=accent_color), text("clear")
+            ],
+             div(flex_direction="row")[
+                text("<noise>", color=accent_color), text("revert")
+            ],
+            text("dynamic clear"),
+            text("view (hide | show)", margin_top=16),
+            text("view (left | right)"),
             div(flex_direction="row", margin_top=16)[
-                text("dynamic quit"),
-                text("exit", color="F33A6A")
+                text("dynamic (stop | quit)")
             ]
         ]
     ]

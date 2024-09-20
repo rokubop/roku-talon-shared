@@ -23,6 +23,7 @@ _held_mouse_buttons = set()
 _key_up_pending_jobs = {}
 _camera_speed = None
 _camera_snap_angle = None
+_game_key_repeat_wait = 16.0
 
 DIR_MODE_CAM_CONTINUOUS = "continuous"
 DIR_MODE_CAM_SNAP = "snap"
@@ -258,6 +259,9 @@ def stopper():
         step_stop()
     if _held_mouse_buttons:
         mouse_release_all()
+    # if _held_keys:
+    #     for key in _held_keys:
+    #         game_key_release(key)
 
 def mouse_reset_center_y():
     """Reset the mouse to the center of the screen."""
@@ -308,11 +312,13 @@ def game_key_release(key):
     global _key_up_pending_jobs
     actions.key(f"{key}:up")
     event_on_key.fire_release(key)
-    _key_up_pending_jobs[key] = None
+    if _key_up_pending_jobs.get(key):
+        cron.cancel(_key_up_pending_jobs[key])
+        _key_up_pending_jobs[key] = None
     if key in _held_keys:
         _held_keys.remove(key)
 
-def game_key_hold(key: str):
+def game_key_down(key: str):
     """Hold a key down"""
     actions.key(f"{key}:down")
     event_on_key.fire_hold(key)
@@ -322,6 +328,9 @@ def game_key(key: str):
     """Press a game key"""
     actions.key(key)
     event_on_key.fire_press(key)
+    if _key_up_pending_jobs.get(key):
+        cron.cancel(_key_up_pending_jobs[key])
+        _key_up_pending_jobs[key] = None
     if key in _held_keys:
         _held_keys.remove(key)
 
@@ -329,14 +338,14 @@ def game_key_hold(key: str, hold: int = None):
     """Hold a game key"""
     global _key_up_pending_jobs
     if not hold:
-        game_key_hold(key)
+        game_key_down(key)
         return
 
-    if _key_up_pending_jobs.get(key):
-        cron.cancel(_key_up_pending_jobs[key])
-    actions.key(f"{key}:up")
-    actions.key(f"{key}:down")
-    event_on_key.fire_hold(key)
+    if key in _held_keys:
+        game_key_release(key)
+        actions.sleep(_game_key_repeat_wait)
+
+    game_key_down(key)
     _key_up_pending_jobs[key] = cron.after(f"{hold}ms", lambda: game_key_release(key))
 
 def game_key_toggle(key: str):
@@ -344,7 +353,13 @@ def game_key_toggle(key: str):
     if key in _held_keys:
         game_key_release(key)
     else:
-        game_key_hold(key)
+        game_key_down(key)
+
+def game_key_sequence(keys: str, delay_ms: int = 0):
+    for key in keys.split(" "):
+        game_key(key)
+        if delay_ms:
+            actions.sleep(delay_ms / 1000)
 
 def get_held_keys():
     """Get the held keys"""
@@ -437,6 +452,10 @@ def game_gear_set(gear_num: int):
         angle = settings.get("user.game_mouse_move_deg_gears").split(" ").get(gear_num)
         camera_snap_dynamic_set_angle(angle)
 
+def set_globals():
+    global _game_key_repeat_wait
+    _game_key_repeat_wait = settings.get("user.game_key_repeat_wait") / 1000
+
 @mod.action_class
 class Actions:
     def game_mode_enable():
@@ -444,6 +463,7 @@ class Actions:
         actions.mode.enable("user.game")
         if settings.get("user.game_mode_disables_command_mode"):
             actions.mode.disable("command")
+        set_globals()
         print("game_mode_enable")
         event_on_game_mode.fire_enabled()
         actions.user.on_game_mode_enabled()

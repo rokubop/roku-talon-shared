@@ -24,12 +24,6 @@ def show_commands(parrot_config, options = {}):
                     *(text(action, color=accent_color) for action in acts),
                 ]
             ],
-            div(margin_top=18, flex_direction="row", align_items="center")[
-                text("jump2:"),
-                text("120ms", id="jump2", color="c43dff", font_weight="bold"),
-                # text("dir:"),
-                # text("←", id="dir", color="c43dff", font_weight="bold", font_size=28),
-            ]
         ],
     ]
     ui_commands.show()

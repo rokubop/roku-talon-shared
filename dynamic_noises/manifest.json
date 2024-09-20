@@ -1,8 +1,12 @@
 {
   "name": "dynamic_noises",
   "description": "This is an experimental repository. WIP. Dynamic noises allow you to update noises 'pop' and 'hiss' on the fly, individually, or as a group.",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "contributes": {
+    "lists": [
+      "user.dynamic_noise_mode",
+      "user.dynamic_noise_special_actions"
+    ],
     "tags": [
       "user.dynamic_noises_talon_noise_override"
     ],
@@ -13,20 +17,20 @@
       "user.dynamic_noises_event_register",
       "user.dynamic_noises_event_unregister",
       "user.dynamic_noises_event_unregister_all",
+      "user.dynamic_noises_reset",
       "user.dynamic_noises_set",
       "user.dynamic_noises_set_hiss",
+      "user.dynamic_noises_set_mode",
       "user.dynamic_noises_set_pop",
+      "user.dynamic_noises_special_action",
       "user.dynamic_noises_tester_toggle",
+      "user.dynamic_noises_tester_ui_position",
       "user.dynamic_noises_trigger",
-      "user.dynamic_noises_ui_element",
-      "user.dynamic_noises_use_mode"
+      "user.dynamic_noises_ui_element"
     ]
   },
   "depends": {
     "actions": [
-      "user.noise_trigger_hiss",
-      "user.noise_trigger_pop",
-      "user.on_pop",
       "user.ui_elements",
       "user.ui_elements_hide",
       "user.ui_elements_highlight",

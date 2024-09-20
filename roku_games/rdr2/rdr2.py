@@ -13,7 +13,7 @@ def wheel_stop(click = False):
         actions.user.game_mouse_click()
     actions.user.game_xbox_button_release("lb")
     actions.user.drag_mode_hide()
-    actions.user.dynamic_noises_use_mode("default")
+    actions.user.dynamic_noises_set_mode("default")
 
 def wheel():
     actions.user.game_xbox_button_hold("lb")

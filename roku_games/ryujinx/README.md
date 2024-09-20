@@ -6,7 +6,8 @@ Thanks rokubop.
 ## Setup
 1. Since this depends on almost everything in `roku-talon-shared`, make sure you have that inside your `[TALON_HOME]/user` directory.
 2. Make sure you have the `vgamepad` installed. Follow the instructions in the [roku-talon-shared/vgamepad/README.md](https://github.com/rokubop/roku-talon-shared/tree/main/vgamepad/) to install it.
-3. ***Important New Step*** Since native ryujinx mouse input for right stick was not working I used `pynput` to map mouse input to `vgamepad` right stick. Install `pynput` with Talon's pip (package installer for python). Using your terminal of choice...
+3. ***Important New Step:*** Follow [Ryujinx Setup & Configuration Guide](https://github.com/Ryujinx/Ryujinx/wiki/Ryujinx-Setup-&-Configuration-Guide).
+***additional step:*** Since native ryujinx mouse input for right stick was not working I used `pynput` to map mouse input to `vgamepad` right stick. Install `pynput` with Talon's pip (package installer for python). Using your terminal of choice...
 
 Windows (If your TALON_HOME is ~/AppData/Roaming/talon):
 `~/AppData/Roaming/talon/venv/3.11/Scripts/pip.bat install pynput`

@@ -32,10 +32,9 @@ free {user.game_xbox_button}: user.game_xbox_button_release(game_xbox_button)
 Erie | airy | error: user.game_xbox_button_hold("a")
 
 # other camera actions
-round: user.game_turn_180()
-cam mid: user.game_reset_center_y()
-look <user.game_dir>: user.game_camera_snap_dynamic(game_dir)
-look back: user.game_xbox_button_hold('right_thumb')
+#round: user.game_turn_180()
+#cam mid: user.game_reset_center_y()
+#look <user.game_dir>: user.game_camera_snap_dynamic(game_dir)
 
 # add noise actions to vocabulary
 pop {user.game_xbox_button}: skip()
@@ -44,40 +43,65 @@ wish {user.game_xbox_button}: skip()
 {user.dynamic_noise_mode}: user.dynamic_noises_use_mode(dynamic_noise_mode)
 
 # actions
-weapon | gun: user.game_xbox_button_press('lb')
-wheel: user.rdr2_wheel()
-jump | greet: user.game_xbox_button_press('x')
-reload | punch: user.game_xbox_button_press('b', 200)
-aim | target | talk: user.game_xbox_button_hold('lt')
-shoot: user.game_xbox_button_hold('rt', 200)
-skin | loot | hitch: user.game_xbox_button_hold('y')
-stow: user.game_xbox_button_hold('x')
-pick: user.game_xbox_button_hold('lb')
-call: user.game_xbox_button_press('dpad_up')
-run: 
+run:
     user.game_xbox_left_stick_hold_dir("up")
-    user.game_xbox_button_hold('a')
-sell | satchel: user.game_xbox_button_hold('dpad_right')
-hide: user.game_xbox_button_press('rb')
+    user.game_xbox_button_hold('b', 3200)
+jump: user.game_xbox_button_press('x')
+attack: user.game_xbox_button_press('y')
+aim: user.game_xbox_button_hold('lt')
+shoot: user.game_xbox_button_hold('rt')
 crouch: user.game_xbox_button_press('left_thumb')
-scope: user.game_xbox_button_press('dpad_down')
-kill:
-    user.game_xbox_button_hold("lt")
+scoper: user.game_xbox_button_press('right_thumb')
+call: user.game_xbox_button_press('dpad_down')
+throw: user.game_xbox_button_hold('rb')
+# Change right hand ability
+ultra hand: 
+    user.game_xbox_button_hold('lb', 800)
+    sleep(0.6)
+    user.game_xbox_right_stick_hold_dir('left', 5)
+    sleep(0.9)
+    user.game_xbox_right_stick_stop()
+ascend:
+    user.game_xbox_button_hold('lb', 800)
+    sleep(0.6)
+    user.game_xbox_right_stick_hold_dir('down', 5)
+    sleep(0.9)
+    user.game_xbox_right_stick_stop()
+fuse:
+    user.game_xbox_button_hold('lb', 800)
+    sleep(0.6)
+    user.game_xbox_right_stick_hold_dir('up', 5)
+    sleep(0.9)
+    user.game_xbox_right_stick_stop()
+recall:
+    user.game_xbox_button_hold('lb', 800)
+    sleep(0.6)
+    user.game_xbox_right_stick_hold_dir('right', 5)
+    sleep(0.9)
+    user.game_xbox_right_stick_stop()
+# Whilst using ultra hand
+rotate: user.game_xbox_button_hold('rb')
+twist: user.game_xbox_button_press('dpad_right')
+flip: user.game_xbox_button_press('dpad_down')
+unstick:
+    user.game_xbox_right_stick_hold_dir('right', 5)
     sleep(0.2)
-    user.game_xbox_button_hold("right_thumb")
-    user.game_xbox_button_hold("left_thumb")
+    user.game_xbox_right_stick_hold_dir('left', 5)
     sleep(0.2)
-    user.game_xbox_button_press("rt")
-    sleep(0.5)
-    user.game_xbox_button_release("lt")
-    user.game_xbox_button_release("left_thumb")
-    user.game_xbox_button_release("right_thumb")
-(dead | dot | did) (eye | I): 
-    user.game_xbox_button_press('right_thumb')
-    user.game_xbox_button_press('left_thumb')
-    
-halt | stop:
+    user.game_xbox_right_stick_hold_dir('right', 5)
+    sleep(0.2)
+    user.game_xbox_right_stick_hold_dir('left', 5)
+    sleep(0.2)
+    user.game_xbox_right_stick_stop()
+# Opens quick menu
+item: user.game_xbox_button_hold('dpad_up')
+weapon: user.game_xbox_button_hold('dpad_right')
+purah: user.game_xbox_button_press('view')
+
+stop:
     user.game_stopper()
     user.game_xbox_stopper()
+game hide:
+    user.ui_elements_hide_all()
 
 ^game exit$:                user.game_mode_disable()

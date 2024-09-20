@@ -8,7 +8,6 @@ KEY_SIZE = 25
 
 def show_left_hud_ui():
     (div, screen, text) = actions.user.ui_elements(["div", "screen", "text"])
-
     css = {
         "background_color": "00000066",
         "border_radius": 16,
@@ -116,15 +115,21 @@ def show_commands_ui():
                     text("long <button>"),
                     text("run"),
                     text("jump"),
-                    text("halt | stop"),
-                    text("reload"),
-                    text("aim | target"),
-                    text("hide"),
-                    text("call"),
-                    text("wheel"),
+                    text("stop"),
+                    text("attack"),
+                    text("aim"),
+                    text("shoot"),
+                    text("scoper"),
                     text("crouch"),
-                    text("look back"),
-                    text("dead eye"),
+                    text("throw"),
+                    text("call"),
+                    text("ultra hand"),
+                    text("ascend"),
+                    text("fuse"),
+                    text("recall"),
+                    text("ultra hand", font_weight="bold", color=accent_color, margin_top=16),
+                    text("rotate"),
+                    text("unstick"),
                     text("Game", font_weight="bold", color=accent_color, margin_top=16),
                     text("game exit")
                 ]

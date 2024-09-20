@@ -1,4 +1,8 @@
-# Red Dead Redemption 2
+# Ryujinx(ZELDA)
+
+modify gears so that saying "go 1" starts walking instead of just changing gear
+default mode should include being in pad mode
+create commands for right hand modes - uses right stick to choose option
 
 ## Setup
 1. Since this depends on almost everything in `roku-talon-shared`, make sure you have that inside your `[TALON_HOME]/user` directory.

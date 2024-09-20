@@ -1,6 +1,7 @@
 # Ryujinx(ZELDA)
-Original hard work done by *rokubop* whilst making rdr2 game mode.
-Just a few changes now it works with ryujinx switch emulator, specifically set up for Zelda totk in this case.
+Adapted from original work done by [rokubop](https://github.com/rokubop/roku-talon-shared) for [rdr2](https://github.com/rokubop/roku-talon-shared/tree/main/roku_games/rdr2). With a few changes now it works with ryujinx switch emulator, specifically set up for Zelda totk in this case.
+
+Thanks rokubop.
 
 ## Setup
 1. Since this depends on almost everything in `roku-talon-shared`, make sure you have that inside your `[TALON_HOME]/user` directory.

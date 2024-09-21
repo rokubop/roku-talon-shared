@@ -1,7 +1,7 @@
 {
   "name": "face_tester",
   "description": "Use a UI to test Talon beta face expression actions",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "contributes": {
     "tags": [
       "user.face_tester"

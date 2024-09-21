@@ -11,10 +11,13 @@ brow = ['brow_down_left', 'brow_down_right', 'brow_inner_up', 'brow_outer_up_lef
 jaw = ['jaw_open', 'jaw_left', 'jaw_right']
 frown = ['frown', 'frown_left', 'frown_right']
 dimple = ['dimple', 'dimple_left', 'dimple_right']
-mouth_shrug = ['mouth_shrug', 'mouth_shrug_lower', 'mouth_shrug_upper', ]
-mouth_misc = ['mouth_pucker', 'mouth_funnel', 'mouth_lower_down_left', 'mouth_lower_down_right', 'mouth_press_left', 'mouth_press_right', 'mouth_right', 'mouth_left', 'mouth_roll_lower', 'mouth_roll_upper', 'mouth_stretch_left', 'mouth_stretch_right', 'mouth_upper_up_left', 'mouth_upper_up_right']
+mouth_shrug = ['mouth_shrug_lower', 'mouth_shrug_upper']
+mouth_misc = ['mouth_close', 'mouth_pucker', 'mouth_funnel', 'mouth_lower_down_left', 'mouth_lower_down_right', 'mouth_press_left', 'mouth_press_right', 'mouth_right', 'mouth_left', 'mouth_roll_lower', 'mouth_roll_upper', 'mouth_stretch_left', 'mouth_stretch_right', 'mouth_upper_up_left', 'mouth_upper_up_right']
 smile = ['smile', 'smile_left', 'smile_right']
-gaze = ['gaze_down_left', 'gaze_down_right', 'gaze_in_left', 'gaze_in_right', 'gaze_out_left', 'gaze_out_right', 'gaze_up_left', 'gaze_up_right']
+gaze_up = ['gaze_up_left', 'gaze_up_right']
+gaze_down = ['gaze_down_left', 'gaze_down_right']
+gaze_left = ['gaze_out_left', 'gaze_in_right']
+gaze_right = ['gaze_in_left', 'gaze_out_right']
 
 def face_tester_enable():
     ctx.tags = ["user.face_tester"]
@@ -71,7 +74,14 @@ def face_tester_enable():
                 ],
                 div(flex_direction="column", gap=8, border_width=1, border_color="555555", padding=16)[
                     title("Gaze"),
-                    *(item(key) for key in gaze),
+                    subtitle("Gaze up"),
+                    *(item(key) for key in gaze_up),
+                    subtitle("Gaze down"),
+                    *(item(key) for key in gaze_down),
+                    subtitle("Gaze left"),
+                    *(item(key) for key in gaze_left),
+                    subtitle("Gaze right"),
+                    *(item(key) for key in gaze_right),
                 ],
             ],
         ]

@@ -1,5 +1,5 @@
 from talon import Module, Context, actions, cron
-from .ui.index import show_ui, hide_ui, refresh_ui
+from .ui.index import show_ui, hide_ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 mod.apps.celeste = "os: windows\nand app.exe: /Celeste.exe/i"
@@ -15,7 +15,7 @@ def dash_forward_up():
 
 def dash_forward_down():
     actions.user.game_dir_hold_last_horizontal()
-    actions.user.game_key_hold("down", 100),
+    actions.user.game_key_hold("down", 100, retrigger=False)
     actions.user.game_key("x")
 
 def dash_forward():
@@ -59,12 +59,10 @@ def use_move_mode():
         **default_config,
         **move_config
     }
-    # refresh_ui(parrot_config, "C70039")
 
 def use_default_mode():
     global parrot_config
     parrot_config = default_config
-    # refresh_ui(parrot_config, "000000")
 
 def skip_scene():
     actions.user.game_stopper()
@@ -82,7 +80,7 @@ default_config = {
     "sh:th_90":   ("jump 1", jump_primary),
     "sh_stop":    ("", lambda: None),
     "ss":         ("jump 2", lambda: actions.user.game_key_hold("p")),
-    "ss_stop:db_20":("", lambda: actions.user.game_key_release("p")),
+    "ss_stop:db_5":("", lambda: actions.user.game_key_release("p")),
     "ah":         ("left", actions.user.game_arrows_hold_left),
     "oh":         ("right", actions.user.game_arrows_hold_right),
     "ee":         ("stop", actions.user.game_stopper),
@@ -108,6 +106,7 @@ default_config = {
     "cluck pop":  ("restart chapter", restart_chapter),
     "foot 1":     ("grab"),
     "foot 2":     ("move mode"),
+    "foot 3":     ("jump 3")
 }
 parrot_config = default_config
 
@@ -167,3 +166,9 @@ class Actions:
     def pedal_center_up():
         global pedal_center_up_job
         pedal_center_up_job = cron.after("100ms", stop_move_mode)
+
+    def pedal_right_down():
+        actions.user.ui_elements_highlight("foot_right")
+
+    def pedal_right_up():
+        actions.user.ui_elements_unhighlight("foot_right")

@@ -81,7 +81,7 @@ grid bottom:
     user.drag_mode_reset()
     user.drag_mode_exclude_area_rect(0, 0, 1980, 800)
     user.drag_mode_show()
-commands {user.drag_mode_dir}: user.drag_mode_show_commands(drag_mode_dir)
+commands {user.drag_mode_dir}: user.ui_elements_set_state("position", drag_mode_dir)
 commands hide: user.ui_elements_hide_all()
 commands show: user.drag_mode_show_commands()
 

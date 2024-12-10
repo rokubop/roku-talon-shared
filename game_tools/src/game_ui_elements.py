@@ -4,6 +4,8 @@ mod = Module()
 ctx = Context()
 
 ui_elements_register_on_lifecycle_init = False
+listening_for_xbox_events = False
+listening_for_key_events = False
 game_event_register_on_xbox_event_init = False
 game_event_register_on_keys_init = False
 include_key_events = False
@@ -30,7 +32,7 @@ def get_key_from_list(list_name: str, value: str):
         return key
 
 def game_ui_elements_keys_dpad(wasd: bool = False, size: int = 30, props: dict = {}):
-    (div, text) = actions.user.ui_elements(["div", "text"])
+    div, text = actions.user.ui_elements(["div", "text"])
     if wasd:
         expected_keys.update(["w", "a", "s", "d"])
     else:
@@ -70,7 +72,7 @@ def game_ui_elements_keys_dpad(wasd: bool = False, size: int = 30, props: dict =
     ]
 
 def game_key_ui(key_name: str, text_content: str, size: int = 30, props: dict = {}):
-    (div, text) = actions.user.ui_elements(["div", "text"])
+    div, text = actions.user.ui_elements(["div", "text"])
     expected_keys.add(key_name)
 
     key_css = {
@@ -96,7 +98,7 @@ def xbox_stick_ui(
     size : int = 30,
     accent_color: str = None,
 ):
-    (div, text) = actions.user.ui_elements(["div", "text"])
+    div, text = actions.user.ui_elements(["div", "text"])
     accent_color = accent_color or accent_color_default
     label = label or list_names[subject]
     gear = settings.get(f"user.game_xbox_{subject}_default_gear") or 5
@@ -141,7 +143,7 @@ def xbox_stick_ui(
     ]
 
 def xbox_primary_buttons_ui(label: str, size : int = 30):
-    (div, text) = actions.user.ui_elements(["div", "text"])
+    div, text = actions.user.ui_elements(["div", "text"])
 
     key_css = {
         "padding": 8,
@@ -158,7 +160,7 @@ def xbox_primary_buttons_ui(label: str, size : int = 30):
             key_css,
             id=key_name,
             width=width,
-            highlight_color=color,
+            highlight_color=f"{color}77",
             background_color=f"{color}55",
             border_radius=size
         )[
@@ -184,7 +186,7 @@ def xbox_primary_buttons_ui(label: str, size : int = 30):
     ]
 
 def xbox_center_buttons_ui(size : int):
-    (div, text) = actions.user.ui_elements(["div", "text"])
+    div, text = actions.user.ui_elements(["div", "text"])
 
     container_css = {
         "flex_direction": "row",
@@ -209,7 +211,7 @@ def xbox_center_buttons_ui(size : int):
     ]
 
 def xbox_dpad_ui(label: str, size : int = 30):
-    (div, text) = actions.user.ui_elements(["div", "text"])
+    div, text = actions.user.ui_elements(["div", "text"])
     label = label or list_names["dpad"]
 
     key_css = {
@@ -253,7 +255,7 @@ def xbox_dpad_ui(label: str, size : int = 30):
     ]
 
 def xbox_trigger_ui(subject: str, label: str, size : int = 30, accent_color: str = None):
-    (div, text) = actions.user.ui_elements(["div", "text"])
+    div, text = actions.user.ui_elements(["div", "text"])
     accent_color = accent_color or accent_color_default
     gear = settings.get(f"user.game_xbox_{subject}_default_gear") or 5
 
@@ -272,7 +274,7 @@ def xbox_trigger_ui(subject: str, label: str, size : int = 30, accent_color: str
     ]
 
 def xbox_bumper_ui(subject: str, label: str, size : int = 30):
-    (div, text) = actions.user.ui_elements(["div", "text"])
+    div, text = actions.user.ui_elements(["div", "text"])
 
     return div(
         id=subject,
@@ -329,6 +331,14 @@ def on_key(key, state):
     elif state == "release":
         actions.user.ui_elements_unhighlight(key)
 
+def on_key_new(key, state):
+    if state == "press":
+        actions.user.ui_elements_highlight_briefly(key)
+    elif state == "hold":
+        actions.user.ui_elements_highlight(key)
+    elif state == "release":
+        actions.user.ui_elements_unhighlight(key)
+
 def on_trigger(event):
     if event.type == "hold":
         actions.user.ui_elements_highlight(event.subject)
@@ -339,7 +349,6 @@ def on_trigger(event):
         actions.user.ui_elements_set_text(f"{event.subject}_gear", gear_state.gear)
 
 def on_xbox_event(event):
-    # print(f"on_xbox_event: {event}")
     if event.type == "preferred_dir_mode_change":
         actions.user.ui_elements_unhighlight("left_stick_preferred")
         actions.user.ui_elements_unhighlight("right_stick_preferred")
@@ -358,121 +367,120 @@ def on_xbox_event(event):
         elif event.type == "release":
             actions.user.ui_elements_unhighlight(event.subject)
 
-def on_ui_lifecycle(event):
-    global ui_elements_register_on_lifecycle_init
-    global game_event_register_on_keys_init
-    global game_event_register_on_xbox_event_init
-    global include_xbox_events, include_key_events
-    xbox, keys = False, False
+def register_live_keys():
+    actions.user.game_event_register_on_key(on_key_new)
 
-    xbox_check_ids = ["dpad_up", "left_stick", "right_stick", "left_trigger", "a"]
-    children_ids = event.children_ids
+def unregister_live_keys():
+    actions.user.game_event_unregister_on_key(on_key_new)
 
-    if any(id in children_ids for id in xbox_check_ids):
-        xbox = True
-    if any(id in children_ids for id in expected_keys):
-        keys = True
+def on_xbox_ui_mount():
+    actions.user.game_event_register_on_xbox_event(on_xbox_event)
+    preferred_dir_mode_subject = settings.get("user.game_xbox_preferred_dir_mode_subject")
+    if preferred_dir_mode_subject:
+        actions.user.ui_elements_highlight(f"{preferred_dir_mode_subject}_preferred", f"{GREEN}55")
 
-    events = xbox or keys
+def on_xbox_ui_unmount():
+    global listening_for_xbox_events
+    actions.user.game_event_unregister_all_on_xbox_event()
+    listening_for_xbox_events = False
 
-    if not events:
-        return
+def use_game_xbox():
+    global listening_for_xbox_events
 
-    if event.type == "mount":
-        if keys and include_key_events and not game_event_register_on_keys_init:
-            game_event_register_on_keys_init = True
-            actions.user.game_event_register_on_key(on_key)
-        if xbox and include_xbox_events and not game_event_register_on_xbox_event_init:
-            game_event_register_on_xbox_event_init = True
-            actions.user.game_event_register_on_xbox_event(on_xbox_event)
-            preferred_dir_mode_subject = settings.get("user.game_xbox_preferred_dir_mode_subject")
-            if preferred_dir_mode_subject:
-                actions.user.ui_elements_highlight(f"{preferred_dir_mode_subject}_preferred", f"{GREEN}55")
-    elif event.type == "unmount":
-        if keys and include_key_events and game_event_register_on_keys_init:
-            game_event_register_on_keys_init = False
-            include_key_events = False
-            actions.user.game_event_unregister_on_key(on_key)
-        if xbox and include_xbox_events and game_event_register_on_xbox_event_init:
-            game_event_register_on_xbox_event_init = False
-            include_xbox_events = False
-            actions.user.game_event_unregister_all_on_xbox_event()
-        if ui_elements_register_on_lifecycle_init:
-            ui_elements_register_on_lifecycle_init = False
-            actions.user.ui_elements_unregister_on_lifecycle(on_ui_lifecycle)
-
-def events_init(type: str):
-    global ui_elements_register_on_lifecycle_init, include_key_events, include_xbox_events
-    if type == "keys":
-        include_key_events = True
-    elif type == "xbox":
-        include_xbox_events = True
+    if not listening_for_xbox_events:
+        listening_for_xbox_events = True
+        # user lists are dynamic so fetch at this time
         list_names["left_stick"] = get_first_list_key("user.game_xbox_left_stick")
         list_names["right_stick"] = get_first_list_key("user.game_xbox_right_stick")
         list_names["dpad"] = get_first_list_key("user.game_xbox_dpad")
 
-    if not ui_elements_register_on_lifecycle_init:
-        ui_elements_register_on_lifecycle_init = True
-        actions.user.ui_elements_register_on_lifecycle(on_ui_lifecycle)
+        actions.user.ui_elements_register_effect(on_xbox_ui_mount, on_xbox_ui_unmount, [])
+
+def on_keys_ui_mount():
+    actions.user.game_event_register_on_key(on_key_new)
+
+def on_keys_ui_unmount():
+    global listening_for_key_events
+    actions.user.game_event_unregister_on_key(on_key_new)
+    listening_for_key_events = False
+
+def use_game_keys():
+    global listening_for_key_events
+
+    if not listening_for_key_events:
+        listening_for_key_events = True
+        actions.user.ui_elements_register_effect(on_keys_ui_mount, on_keys_ui_unmount, [])
 
 @mod.action_class
 class Actions:
+    def game_use_live_keys_effect():
+        """Use game keys effect - compatible with ui_elements. """
+        use_game_keys()
+
+    def game_ui_register_live_keys():
+        """Register game keys - compatible with ui_elements"""
+        register_live_keys()
+
+    def game_ui_unregister_live_keys():
+        """Unregister game keys - compatible with ui_elements"""
+        unregister_live_keys()
+
     def game_ui_element_arrows(size: int = 30, props: dict = None):
         """game ui element arrows dpad"""
-        events_init("keys")
+        use_game_keys()
         return game_ui_elements_keys_dpad(wasd=False, size=size, props=props)
 
     def game_ui_element_wasd(size: int = 30, props: dict = None):
         """game ui element WASD dpad"""
-        events_init("keys")
+        use_game_keys()
         return game_ui_elements_keys_dpad(wasd=True, size=size, props=props)
 
     def game_ui_element_key(key_name: str, text_content: str, size: int = 30, props: dict = None):
         """game ui element key"""
-        events_init("keys")
+        use_game_keys()
         return game_key_ui(key_name, text_content, size, props)
 
     def game_ui_element_xbox_left_stick(label: str = None, size: int = 30, accent_color: str = None):
         """game ui element xbox left stick"""
-        events_init("xbox")
+        use_game_xbox()
         return xbox_stick_ui("left_stick", label, size, accent_color)
 
     def game_ui_element_xbox_right_stick(label: str = None, size: int = 30, accent_color: str = None):
         """game ui element xbox right stick"""
-        events_init("xbox")
+        use_game_xbox()
         return xbox_stick_ui("right_stick", label, size, accent_color)
 
     def game_ui_element_xbox_primary_buttons(label: str = "buttons", size: int = 30):
         """game ui element xbox primary buttons"""
-        events_init("xbox")
+        use_game_xbox()
         return xbox_primary_buttons_ui(label, size)
 
     def game_ui_element_xbox_center_buttons(label: str = "buttons", size: int = 20):
         """game ui element xbox center buttons"""
-        events_init("xbox")
+        use_game_xbox()
         return xbox_center_buttons_ui(size)
 
     def game_ui_element_xbox_dpad(label: str = None, size: int = 30):
         """game ui element xbox dpad"""
-        events_init("xbox")
+        use_game_xbox()
         return xbox_dpad_ui(label, size)
 
     def game_ui_element_xbox_left_trigger(label: str = "LT", size: int = 30):
         """game ui element xbox left trigger"""
-        events_init("xbox")
+        use_game_xbox()
         return xbox_trigger_ui("left_trigger", label, size)
 
     def game_ui_element_xbox_right_trigger(label: str = "RT", size: int = 30):
         """game ui element xbox right trigger"""
-        events_init("xbox")
+        use_game_xbox()
         return xbox_trigger_ui("right_trigger", label, size)
 
     def game_ui_element_xbox_left_bumper(label: str = "LB", size: int = 30):
         """game ui element xbox left bumper"""
-        events_init("xbox")
+        use_game_xbox()
         return xbox_bumper_ui("left_shoulder", label, size)
 
     def game_ui_element_xbox_right_bumper(label: str = "RB", size: int = 30):
         """game ui element xbox right bumper"""
-        events_init("xbox")
+        use_game_xbox()
         return xbox_bumper_ui("right_shoulder", label, size)

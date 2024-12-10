@@ -2,9 +2,8 @@ from talon import Module, Context, actions, noise, speech_system
 from dataclasses import dataclass
 from typing import Optional, Literal
 from .dynamic_noises_ui import (
-    dynamic_noises_ui_element,
-    show_tester_ui,
-    hide_tester_ui
+    dynamic_noises_ui,
+    dynamic_noise_tester_ui,
 )
 import time
 
@@ -538,26 +537,26 @@ class Actions:
         if _dynamic_noises_enabled or enable == False:
             print("Disabling dynamic noises")
             dynamic_noises_disable()
-            hide_tester_ui()
+            actions.user.ui_elements_hide(dynamic_noise_tester_ui)
         else:
             print("Enabling dynamic noises")
             dynamic_noises_enable()
-            show_tester_ui()
+            actions.user.ui_elements_show(dynamic_noise_tester_ui)
 
     def dynamic_noises_ui_element():
         """
         Show dynamic noises UI
         """
-        return dynamic_noises_ui_element()
+        return dynamic_noises_ui()
 
     def dynamic_noises_tester_ui_position(position: str = "right"):
         """
         Set noise tester UI position
         """
         if position == "hide":
-            hide_tester_ui()
+            actions.user.ui_elements_hide(dynamic_noise_tester_ui)
         else:
-            show_tester_ui(position)
+            actions.user.ui_elements_set_state("position", position)
 
     def dynamic_noises_set_mode(mode: str):
         """

@@ -2,11 +2,13 @@ from talon import actions
 
 accent_color = "87ceeb"
 
-def show_ui(parrot_config, background_color="22266688"):
-    (div, screen, text) = actions.user.ui_elements(['div', 'screen', 'text'])
-    (cmds, acts) = actions.user.parrot_config_format_display(parrot_config)
+def ui():
+    div, screen, text, state = actions.user.ui_elements(['div', 'screen', 'text', 'state'])
+    parrot_config = state.get('parrot_config')
+    background_color = state.get('background_color')
+    cmds, acts = actions.user.parrot_config_format_display(parrot_config)
 
-    commands = screen(align_items="flex_end", justify_content="center")[
+    return screen(align_items="flex_end", justify_content="center")[
         div(flex_direction="row", background_color=background_color, padding=16, gap=16)[
             div(gap=8)[
                 text("sound", font_weight="bold"),
@@ -18,12 +20,3 @@ def show_ui(parrot_config, background_color="22266688"):
             ]
         ]
     ]
-
-    commands.show()
-
-def hide_ui():
-    actions.user.ui_elements_hide_all()
-
-def refresh_ui(parrot_config):
-    hide_ui()
-    show_ui(parrot_config)

@@ -9,6 +9,9 @@ Say "dynamic noises" to try it out. A UI will show you your current phrase bindi
 
 <img src="preview.png" alt="preview" width="200">
 
+## Requirements
+Depends on [talon-ui-elements](https://github.com/rokubop/talon-ui-elements), which you must install separately.
+
 ## For context usage
 ```python
 dynamic_noises = {

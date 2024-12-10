@@ -6,10 +6,10 @@ pressed_keys = []
 clear_pressed_keys_job = None
 KEY_SIZE = 25
 
-def show_left_hud_ui():
-    (div, screen, text) = actions.user.ui_elements(["div", "screen", "text"])
+def left_hud_ui():
+    div, screen = actions.user.ui_elements(["div", "screen"])
 
-    css = {
+    style = {
         "background_color": "00000066",
         "border_radius": 16,
         "padding": 16,
@@ -19,8 +19,8 @@ def show_left_hud_ui():
         "margin_left": 250
     }
 
-    ui_hud = screen(align_items="flex_start", justify_content="flex_end")[
-        div(css)[
+    return screen(align_items="flex_start", justify_content="flex_end")[
+        div(style)[
             div(flex_direction="row", gap=16)[
                 actions.user.game_ui_element_xbox_dpad(),
                 actions.user.game_ui_element_xbox_left_stick(),
@@ -29,12 +29,10 @@ def show_left_hud_ui():
         ]
     ]
 
-    ui_hud.show()
+def right_hud_ui():
+    div, screen, text = actions.user.ui_elements(["div", "screen", "text"])
 
-def show_right_hud_ui():
-    (div, screen, text) = actions.user.ui_elements(["div", "screen", "text"])
-
-    css = {
+    style = {
         "background_color": "00000066",
         "border_radius": 16,
         "margin": 16,
@@ -45,8 +43,8 @@ def show_right_hud_ui():
         "margin_right": 250
     }
 
-    ui_hud = screen(align_items="flex_end", justify_content="flex_end")[
-        div(css)[
+    return screen(align_items="flex_end", justify_content="flex_end")[
+        div(style)[
             div(flex_direction="row", gap=16)[
                 actions.user.game_ui_element_xbox_primary_buttons(size=30),
                 div()[
@@ -73,16 +71,13 @@ def show_right_hud_ui():
         ]
     ]
 
-    ui_hud.show()
-
 def noise_modes_list():
     return actions.user.dynamic_noises().keys()
 
-def show_commands_ui():
-    global ui_commands
-    (div, text, screen) = actions.user.ui_elements(["div", "text", "screen"])
+def commands_ui():
+    div, text, screen = actions.user.ui_elements(["div", "text", "screen"])
 
-    ui_commands = screen(align_items="flex_end", justify_content="flex_start")[
+    return screen(align_items="flex_end", justify_content="flex_start")[
         div(background_color="00000066", margin=16, margin_right=32, margin_top=32, padding=16)[
             div(flex_direction="row", gap=16)[
                 div(gap=8)[
@@ -137,12 +132,10 @@ def show_commands_ui():
         ]
     ]
 
-    ui_commands.show()
-
 def show_ui():
-    show_commands_ui()
-    show_right_hud_ui()
-    show_left_hud_ui()
+    actions.user.ui_elements_show(commands_ui)
+    actions.user.ui_elements_show(right_hud_ui)
+    actions.user.ui_elements_show(left_hud_ui)
 
 def hide_ui():
     actions.user.ui_elements_hide_all()

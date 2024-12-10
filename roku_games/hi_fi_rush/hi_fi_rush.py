@@ -1,5 +1,5 @@
 from talon import Module, Context, actions
-from .hi_fi_rush_ui import show_ui, hide_ui
+from .hi_fi_rush_ui import ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 mod.apps.hi_fi_rush = "os: windows\nand app.exe: /Hi-Fi-RUSH.exe/i"
@@ -17,12 +17,18 @@ def peppermint_mode():
     global parrot_config
     key("alt:down"),
     parrot_config = peppermint_config
-    show_ui(parrot_config, background_color="00800088")
+    actions.user.ui_elements_set_state({
+        "parrot_config": peppermint_config,
+        "background_color": "00800088",
+    })
 
 def rpg_mode():
     global parrot_config
     parrot_config = nav_config
-    show_ui(parrot_config, background_color="FCD12A88")
+    actions.user.ui_elements_set_state({
+        "parrot_config": nav_config,
+        "background_color": "FCD12A88",
+    })
 
 default_config = {
     "eh":         ('forward', actions.user.game_wasd_hold_w),
@@ -60,7 +66,10 @@ def rpg_mouse_mode_disable():
     global parrot_config
     actions.user.mouse_move_continuous_stop()
     parrot_config = default_config
-    show_ui(parrot_config)
+    actions.user.ui_elements_set_state({
+        "parrot_config": default_config,
+        "background_color": "22266688",
+    })
 
 def rpg_mouse_click_stop():
     actions.user.mouse_move_continuous_stop()
@@ -71,7 +80,10 @@ def rpg_mouse_click_exit():
     actions.user.mouse_move_continuous_stop()
     actions.user.game_mouse_click()
     parrot_config = default_config
-    show_ui(parrot_config)
+    actions.user.ui_elements_set_state({
+        "parrot_config", default_config,
+        "background_color", "22266688"
+    })
 
 nav_config = {
     "cluck":  ("exit", rpg_mouse_mode_disable),
@@ -104,10 +116,13 @@ peppermint_config = {
 @ctx_game.action_class("user")
 class Actions:
     def on_game_mode_enabled():
-        show_ui(parrot_config)
+        actions.user.ui_elements_show(ui, initial_state={
+            "parrot_config": parrot_config,
+            "background_color": "22266688",
+        })
 
     def on_game_mode_disabled():
-        hide_ui()
+        actions.user.ui_elements_hide_all()
 
     def parrot_config():
         return parrot_config

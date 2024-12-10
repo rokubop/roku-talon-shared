@@ -17,7 +17,6 @@ CREATE_MANIFEST_DIRS = [
     '../game_tools',
     '../mouse_move_adv',
     '../parrot_config',
-    '../ui_elements',
     '../vgamepad',
     '../roku_games/celeste',
     '../roku_games/hi_fi_rush',
@@ -25,6 +24,7 @@ CREATE_MANIFEST_DIRS = [
     '../roku_games/sheepy',
     '../roku_games/stray',
     '../roku_games/talos_2',
+    '../../talon-ui-elements'
 ]
 
 ENTITIES = ["captures", "lists", "modes", "scopes", "settings", "tags", "actions"]

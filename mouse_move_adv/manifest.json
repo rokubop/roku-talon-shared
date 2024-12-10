@@ -31,13 +31,15 @@
       "user.mouse_move_smooth_from_to",
       "user.mouse_move_smooth_queue",
       "user.mouse_move_smooth_to",
+      "user.mouse_move_talon",
       "user.mouse_move_tick",
       "user.mouse_move_tick_down",
       "user.mouse_move_tick_last_direction",
       "user.mouse_move_tick_left",
       "user.mouse_move_tick_reverse_last_direction",
       "user.mouse_move_tick_right",
-      "user.mouse_move_tick_up"
+      "user.mouse_move_tick_up",
+      "user.mouse_move_windows"
     ]
   },
   "depends": {}

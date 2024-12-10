@@ -25,8 +25,8 @@
       "user.game_mode_disable",
       "user.game_state_switch_horizontal",
       "user.game_stopper",
-      "user.game_ui_element_arrows",
-      "user.game_ui_element_key",
+      "user.game_ui_register_live_keys",
+      "user.game_ui_unregister_live_keys",
       "user.on_game_mode_disabled",
       "user.on_game_mode_enabled",
       "user.parrot_config",
@@ -37,10 +37,13 @@
       "user.pedal_center_up",
       "user.pedal_left_down",
       "user.pedal_left_up",
+      "user.pedal_right_down",
+      "user.pedal_right_up",
       "user.ui_elements",
       "user.ui_elements_hide_all",
       "user.ui_elements_highlight",
       "user.ui_elements_set_text",
+      "user.ui_elements_show",
       "user.ui_elements_unhighlight"
     ]
   }

@@ -35,7 +35,7 @@ mod = Module()
 @mod.action_class
 class Actions:
     def game_key(key: str): """Press a key"""; game_key(key)
-    def game_key_hold(key: str, hold_ms: int = None): """Hold a key indefinitely or for a fixed duration e.g. game_key_hold(\"space\", 500)"""; game_key_hold(key, hold_ms)
+    def game_key_hold(key: str, hold_ms: int = None, retrigger: bool = True): """Hold a key indefinitely or for a fixed duration e.g. game_key_hold(\"space\", 500)"""; game_key_hold(key, hold_ms, retrigger)
     def game_key_release(key: str): """Release a key"""; game_key_release(key)
     def game_key_toggle(key: str): """Toggle holding a key"""; game_key_toggle(key)
     def game_key_sequence(keys: str, delay_ms: int = None): """Press a sequence of keys with a delay between each"""; game_key_sequence(keys, delay_ms)

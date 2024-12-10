@@ -34,8 +34,12 @@
       "user.game_xbox_button_toggle",
       "user.game_xbox_gamepad_disable",
       "user.game_xbox_gamepad_enable",
+      "user.game_xbox_right_stick_raw",
       "user.on_game_mode_disabled",
       "user.on_game_mode_enabled",
+      "user.on_tracking_gaze_power",
+      "user.tracking_gaze_power_disable",
+      "user.tracking_gaze_power_enable",
       "user.ui_elements",
       "user.ui_elements_hide_all"
     ]

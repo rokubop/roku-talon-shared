@@ -1,5 +1,5 @@
 from talon import Module, Context, actions
-from .stray_ui import show_ui, hide_ui
+from .stray_ui import ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 mod.apps.stray = "os: windows\nand app.exe: /Stray-Win64-Shipping.exe/i"
@@ -39,7 +39,7 @@ class Actions:
         return parrot_config
 
     def on_game_mode_enabled():
-        show_ui(parrot_config)
+        actions.user.ui_elements_show(ui, props={"parrot_config": parrot_config})
 
     def on_game_mode_disabled():
-        hide_ui()
+        actions.user.ui_elements_hide_all()

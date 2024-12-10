@@ -1,5 +1,5 @@
 from talon import Module, Context, actions
-from .talos_2_ui import show_ui, hide_ui, refresh_ui
+from .talos_2_ui import ui
 
 mod = Module()
 ctx = Context()
@@ -12,12 +12,12 @@ ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 def enter_look_mode():
     global parrot_config
     parrot_config = look_config
-    refresh_ui(parrot_config)
+    actions.user.ui_elements_set_state("parrot_config", look_config)
 
 def exit_look_mode():
     global parrot_config
     parrot_config = default_config
-    refresh_ui(parrot_config)
+    actions.user.ui_elements_set_state("parrot_config", look_config)
 
 def use_scroll_tick():
     global parrot_config
@@ -84,10 +84,13 @@ parrot_config = default_config
 @ctx_game.action_class("user")
 class Actions:
     def on_game_mode_enabled():
-        show_ui(parrot_config)
+        actions.user.ui_elements_show(ui, initial_state={
+            "parrot_config": parrot_config,
+            "background_color": "22266688"
+        })
 
     def on_game_mode_disabled():
-        hide_ui()
+        actions.user.ui_elements_hide_all()
 
     def parrot_config():
         return parrot_config

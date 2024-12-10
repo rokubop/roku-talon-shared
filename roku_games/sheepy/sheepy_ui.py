@@ -4,13 +4,22 @@ commands = None
 keys = None
 accent_color = "87ceeb"
 
-def show_commands(parrot_config):
-    global commands
+key_style = {
+    "padding": 8,
+    "background_color": "333333dd",
+    "flex_direction": "row",
+    "justify_content": "center",
+    "align_items": "center",
+    "margin": 1,
+    "width": 30,
+    "height": 30,
+}
 
-    (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
-    (cmds, acts) = actions.user.parrot_config_format_display(parrot_config)
+def commands_ui(props):
+    screen, div, text = actions.user.ui_elements(["screen", "div", "text"])
+    cmds, acts = actions.user.parrot_config_format_display(props["parrot_config"])
 
-    commands = screen(align_items="flex_start", justify_content="flex_start")[
+    return screen(align_items="flex_start", justify_content="flex_start")[
         div(margin_top=48, flex_direction="row", padding=16, gap=16)[
             div(gap=8)[
                 text("sound", font_weight="bold"),
@@ -23,43 +32,16 @@ def show_commands(parrot_config):
         ]
     ]
 
-    commands.show()
-
-def hide_commands():
-    global commands
-    commands.hide()
-
-def on_key(key, state):
-    if keys:
-        if state == "press":
-            keys.highlight_briefly(key)
-        elif state == "hold":
-            keys.highlight(key)
-        elif state == "release":
-            keys.unhighlight(key)
-
-def show_keys():
-    global keys
-    (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
-
-    key_css = {
-        "padding": 8,
-        "background_color": "333333dd",
-        "flex_direction": "row",
-        "justify_content": "center",
-        "align_items": "center",
-        "margin": 1,
-        "width": 30,
-        "height": 30,
-    }
+def keys_ui():
+    screen, div, text = actions.user.ui_elements(["screen", "div", "text"])
 
     def key(id, key_name=None, width=30):
-        return div(key_css, id=id.lower(), width=width)[text(key_name or id)]
+        return div(key_style, id=id.lower(), width=width)[text(key_name or id)]
 
     def blank_key():
-        return div(key_css, background_color="33333355")[text(" ")]
+        return div(key_style, background_color="33333355")[text(" ")]
 
-    keys = screen(justify_content="flex_start", align_items="flex_start", highlight_color=f"{accent_color}88")[
+    return screen(justify_content="flex_start", align_items="flex_start", highlight_color=f"{accent_color}88")[
         div(flex_direction="row", gap=0, margin_top=325, margin_left=16)[
             div(flex_direction="column")[
                 div(flex_direction="row")[
@@ -86,17 +68,25 @@ def show_keys():
         ]
     ]
 
-    keys.show()
+def on_key(key, state):
+    if state == "press":
+        actions.user.ui_elements_highlight_briefly(key)
+    elif state == "hold":
+        actions.user.ui_elements_highlight(key)
+    elif state == "release":
+        actions.user.ui_elements_unhighlight(key)
+
+def on_mount():
     actions.user.game_event_register_on_key(on_key)
 
-def hide_keys():
+def on_unmount():
     actions.user.game_event_unregister_on_key(on_key)
-    keys.hide()
 
 def show_ui(parrot_config):
-    show_commands(parrot_config)
-    show_keys()
+    actions.user.ui_elements_show(commands_ui, props={
+        "parrot_config": parrot_config
+    })
+    actions.user.ui_elements_show(keys_ui, on_mount=on_mount, on_unmount=on_unmount)
 
 def hide_ui():
-    hide_commands()
-    hide_keys()
+    actions.user.ui_elements_hide_all()

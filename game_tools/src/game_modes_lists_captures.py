@@ -8,7 +8,6 @@ ctx_game.matches = "mode: user.game"
 mod.mode("game", "game play mode")
 mod.mode("game_calibrating_x", "calibrating x")
 mod.mode("game_calibrating_y", "calibrating y")
-
 mod.tag("game_xbox", desc="game xbox")
 mod.list("game_xbox_button", desc="xbox buttons")
 mod.list("game_xbox_stick", desc="xbox stick left or right")

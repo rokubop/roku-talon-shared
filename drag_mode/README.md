@@ -4,6 +4,9 @@ This is an experimental repository. Allows you drag from one point to another us
 
 <img src="preview.png" alt="preview" width="600">
 
+## Requirements
+Depends on [talon-ui-elements](https://github.com/rokubop/talon-ui-elements), which you must install separately.
+
 ## Mode
 | Command | Description |
 | --- | --- |

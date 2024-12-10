@@ -19,9 +19,8 @@ gaze_down = ['gaze_down_left', 'gaze_down_right']
 gaze_left = ['gaze_out_left', 'gaze_in_right']
 gaze_right = ['gaze_in_left', 'gaze_out_right']
 
-def face_tester_enable():
-    ctx.tags = ["user.face_tester"]
-    (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
+def face_tester_ui():
+    screen, div, text = actions.user.ui_elements(["screen", "div", "text"])
 
     def item(key):
         return div(id=key, padding=8)[text(key)]
@@ -32,9 +31,9 @@ def face_tester_enable():
     def subtitle(title):
         return text(title, font_weight="bold", margin_top=16)
 
-    ui = screen(align_items="center", justify_content="center")[
+    return screen(align_items="center", justify_content="center")[
         div(background_color="333333", border_radius=4, padding=16, border_width=1, border_color="555555")[
-            div(flex_direction="row", align_items="flex_end", margin_bottom=16)[
+            div(flex_direction="row", align_items="flex_end", margin_bottom=16, gap=16)[
                 text("Face Tester", font_size=24, font_weight="bold"),
                 text("Say 'face tester' to stop / toggle", color="BBBBBB"),
             ],
@@ -87,7 +86,9 @@ def face_tester_enable():
         ]
     ]
 
-    ui.show()
+def face_tester_enable():
+    ctx.tags = ["user.face_tester"]
+    actions.user.ui_elements_show(face_tester_ui)
 
 def face_tester_disable():
     ctx.tags = []

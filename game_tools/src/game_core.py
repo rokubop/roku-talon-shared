@@ -259,9 +259,9 @@ def stopper():
         step_stop()
     if _held_mouse_buttons:
         mouse_release_all()
-    # if _held_keys:
-    #     for key in _held_keys:
-    #         game_key_release(key)
+    if _held_keys:
+        for key in list(_held_keys):
+            game_key_release(key)
 
 def mouse_reset_center_y():
     """Reset the mouse to the center of the screen."""
@@ -334,14 +334,14 @@ def game_key(key: str):
     if key in _held_keys:
         _held_keys.remove(key)
 
-def game_key_hold(key: str, hold: int = None):
+def game_key_hold(key: str, hold: int = None, retrigger: bool = True):
     """Hold a game key"""
     global _key_up_pending_jobs
     if not hold:
         game_key_down(key)
         return
 
-    if key in _held_keys:
+    if retrigger and key in _held_keys:
         game_key_release(key)
         actions.sleep(_game_key_repeat_wait)
 
@@ -474,6 +474,7 @@ class Actions:
         event_on_game_mode.fire_disabled()
         stopper()
         actions.mode.disable("user.game")
+        ctx.tags = []
         actions.mode.enable("command")
         print("game_mode_disable")
 

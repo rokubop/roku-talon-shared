@@ -48,6 +48,9 @@ dynamic_noises = {
 
 @ctx_game.action_class("user")
 class Actions:
+    # def on_tracking_gaze_power(x, y):
+    #     actions.user.game_xbox_right_stick_raw(x, y)
+
     def dynamic_noises():
         return dynamic_noises
 
@@ -55,9 +58,11 @@ class Actions:
         actions.user.game_csv_game_words_setup(ctx_game, __file__)
         actions.user.game_xbox_gamepad_enable()
         actions.user.dynamic_noises_enable()
+        # actions.user.tracking_gaze_power_enable()
         show_ui()
 
     def on_game_mode_disabled():
         actions.user.game_xbox_gamepad_disable()
         actions.user.dynamic_noises_disable()
+        # actions.user.tracking_gaze_power_disable()
         hide_ui()

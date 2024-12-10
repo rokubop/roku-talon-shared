@@ -2,6 +2,11 @@
 
 This is shared set of Talon tools and scripts to help you play games, build UIs, move/drag the mouse, setup parrot combos or dynamic noises. Compatible alongside community. WIP. Each folder is considered a "package" with its own `manifest.json` telling you what it contributes and depends on.
 
+## Requirements
+
+- You must install [talon-ui-elements](https://github.com/rokubop/talon-ui-elements) separately.
+
+
 ## Features
 | Feature | Description | README |
 | --- | --- | --- |
@@ -11,7 +16,7 @@ This is shared set of Talon tools and scripts to help you play games, build UIs,
 | `mouse_move_adv` | Actions for moving the mouse to and from points. | [README](mouse_move_adv/README.md) |
 | `parrot_config` | Quick and easy way to assign your parrot commands to combos, throttling, debounce, screen positions. Easy to swap out with other configs without using modes or tags. | [README](parrot_config/README.md) |
 | `roku_games` | My personal game setups for reference. | [README](roku_games/README.md) |
-| `ui_elements` | HTML/CSS (object oriented) like syntax for building UIs. Supports div, text, and most CSS properties such as margin, padding, flex_direction, etc... Supports custom ability to highlight divs by ID with an overlay color. WIP. | [README](ui_elements/README.md) |
+| `ui_elements` | Moved to https://github.com/rokubop/talon-ui-elements | - |
 | `vgamepad` | Talon integration with `vgamepad` for controlling video-games that require controller (xbox) input. | [README](vgamepad/README.md) |
 
 ## Partial checkout

@@ -4,12 +4,13 @@ Continous = Move the mouse continuously until manually stopped
 Smooth = Move the mouse smoothly over a duration
 Tick = Move the mouse a short distance in a direction
 """
-from talon import Module, actions, ctrl, cron, settings
+from talon import Module, actions, ctrl, cron, settings, ui
 from typing import Callable, Literal, Union
 from dataclasses import dataclass
 import platform
 import math
 import time
+from talon.screen import Screen
 
 mod = Module()
 mod.setting("mouse_move_api", default="talon", type=str, desc="Mouse API to use for mouse movement - talon or windows")
@@ -37,6 +38,8 @@ _last_unit_vector = UnitVector(0, 0)
 
 @dataclass
 class MouseMoveCallbackEvent:
+    x: float
+    y: float
     dx: float
     dy: float
     type: Literal["start", "tick", "stop"]
@@ -66,8 +69,6 @@ if platform.system() == "Windows":
     import win32api, win32con
     def mouse_move_windows(dx: int, dy: int):
         win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, dx, dy)
-    # def mouse_move(dx: int, dy: int):
-    #     mouse_move_windows(dx, dy)
 
 def mouse_move_smooth_queue(fn: callable):
     """Add to movement _mouse_movement_queue, executed after next mouse_stop."""
@@ -162,10 +163,11 @@ def mouse_move_smooth_delta(
         step_count += 1
         if step_count > steps:
             mouse_stop()
+            (x, y) = ctrl.mouse_pos()
             if mouse_move_event_subscribers:
-                mouse_move_event_trigger(MouseMoveCallbackEvent(dx_total, dy_total, "stop"))
+                mouse_move_event_trigger(MouseMoveCallbackEvent(x, y, dx_total, dy_total, "stop"))
             if callback_tick:
-                callback_tick(MouseMoveCallbackEvent(dx_total, dy_total, "stop"))
+                callback_tick(MouseMoveCallbackEvent(x, y, dx_total, dy_total, "stop"))
             if callback_stop:
                 callback_stop()
             return
@@ -184,14 +186,16 @@ def mouse_move_smooth_delta(
 
         last_x, last_y = current_x, current_y
         if callback_tick:
-            callback_tick(MouseMoveCallbackEvent(current_x, current_y, "tick"))
+            (x, y) = ctrl.mouse_pos()
+            callback_tick(MouseMoveCallbackEvent(x, y, current_x, current_y, "tick"))
 
     update_position()
     _mouse_job = cron.interval("16ms", update_position)
+    (x, y) = ctrl.mouse_pos()
     if mouse_move_event_subscribers:
-        mouse_move_event_trigger(MouseMoveCallbackEvent(dx_total, dy_total, "start"))
+        mouse_move_event_trigger(MouseMoveCallbackEvent(x, y, dx_total, dy_total, "start"))
     if callback_tick:
-        callback_tick(MouseMoveCallbackEvent(0, 0, "start"))
+        callback_tick(MouseMoveCallbackEvent(x, y, 0, 0, "start"))
 
 def mouse_stop(start_next_queue: bool = True):
     """Stop current mouse movement, and start next in the _mouse_movement_queue if it exists."""
@@ -205,7 +209,7 @@ def mouse_stop(start_next_queue: bool = True):
         _mouse_continuous_start_ts = None
         _mouse_continuous_stop_ts = None
         if mouse_move_event_subscribers:
-            mouse_move_event_trigger(MouseMoveCallbackEvent(0, 0, "stop"))
+            mouse_move_event_trigger(MouseMoveCallbackEvent(0, 0, 0, 0, "stop"))
         mouse_move_dir_change_event_trigger(0, 0)
     if start_next_queue and len(_mouse_movement_queue) > 0:
         fn = _mouse_movement_queue.pop(0)
@@ -236,7 +240,7 @@ def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float]
         _mouse_continuous_speed = speed_initial if reset_speed else _mouse_continuous_speed
         _last_unit_vector = unit_vector
         if mouse_move_event_subscribers:
-            mouse_move_event_trigger(MouseMoveCallbackEvent(dx_unit, dy_unit, "start"))
+            mouse_move_event_trigger(MouseMoveCallbackEvent(0,0,dx_unit, dy_unit, "start"))
         mouse_move_dir_change_event_trigger(_last_unit_vector.x, _last_unit_vector.y)
         _mouse_continuous_start_ts = time.perf_counter()
         subpixel_adjuster = SubpixelAdjuster()
@@ -338,6 +342,14 @@ def mouse_move_event_trigger(event: MouseMoveCallbackEvent):
 
 @mod.action_class
 class Actions:
+    def mouse_move_talon(dx: int, dy: int):
+        """Move the mouse using talon api"""
+        mouse_move_talon(dx, dy)
+
+    def mouse_move_windows(dx: int, dy: int):
+        """Move the mouse using windows api"""
+        mouse_move_windows(dx, dy)
+
     def mouse_move_smooth_delta(
         dx: int,
         dy: int,

@@ -1,0 +1,23 @@
+list_value, Spoken form
+dir_left, left
+dir_right, right
+dir_up, up
+dir_down, down
+dir_forward, forward
+dir_backward, back
+xbox_button_a, air | ay
+xbox_button_b, bat | bee
+xbox_button_x, check | plex | ex
+xbox_button_y, yank | why
+xbox_button_lb, lob
+xbox_button_rb, rob
+xbox_button_view, view
+xbox_button_guide, guide
+xbox_button_menu, menu
+xbox_button_left_thumb, ling | link
+xbox_button_right_thumb, ring | rink
+xbox_left_trigger, latch
+xbox_right_trigger, ratch
+xbox_dpad, pad
+xbox_left_stick, go
+xbox_right_stick, cam

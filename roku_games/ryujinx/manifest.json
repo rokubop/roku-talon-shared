@@ -1,0 +1,43 @@
+{
+  "name": "ryujinx",
+  "description": "Auto-generated manifest.",
+  "version": "0.1.0",
+  "contributes": {},
+  "depends": {
+    "modes": [
+      "user.game"
+    ],
+    "actions": [
+      "core.repeat_phrase",
+      "user.drag_mode_hide",
+      "user.drag_mode_show",
+      "user.dynamic_noises",
+      "user.dynamic_noises_disable",
+      "user.dynamic_noises_enable",
+      "user.dynamic_noises_ui_element",
+      "user.dynamic_noises_use_mode",
+      "user.game_csv_game_words_setup",
+      "user.game_mouse_click",
+      "user.game_stopper",
+      "user.game_ui_element_xbox_center_buttons",
+      "user.game_ui_element_xbox_dpad",
+      "user.game_ui_element_xbox_left_bumper",
+      "user.game_ui_element_xbox_left_stick",
+      "user.game_ui_element_xbox_left_trigger",
+      "user.game_ui_element_xbox_primary_buttons",
+      "user.game_ui_element_xbox_right_bumper",
+      "user.game_ui_element_xbox_right_stick",
+      "user.game_ui_element_xbox_right_trigger",
+      "user.game_xbox_button_hold",
+      "user.game_xbox_button_press",
+      "user.game_xbox_button_release",
+      "user.game_xbox_button_toggle",
+      "user.game_xbox_gamepad_disable",
+      "user.game_xbox_gamepad_enable",
+      "user.on_game_mode_disabled",
+      "user.on_game_mode_enabled",
+      "user.ui_elements",
+      "user.ui_elements_hide_all"
+    ]
+  }
+}

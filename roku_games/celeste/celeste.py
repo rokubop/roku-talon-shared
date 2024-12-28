@@ -152,7 +152,8 @@ def stop_move_mode():
 @ctx_game.action_class("user")
 class Actions:
     def on_game_mode_enabled():
-        show_ui(parrot_config)
+        # actions.user.ui_elements_set_state("parrot_config", parrot_config)
+        show_ui()
 
     def on_game_mode_disabled():
         hide_ui()

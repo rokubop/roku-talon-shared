@@ -1,5 +1,11 @@
 # Changelog
 
+## Dec 2024
+- Move ui_elements to its own repo talon-ui-elements
+- Update all code based on new ui_elements architecture
+- Add throttling at end of a parrot combo
+- Update Celeste game actions
+
 ## Sep week 3, 2024
 - Add `face_tester` package
 

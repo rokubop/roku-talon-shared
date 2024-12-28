@@ -1,12 +1,10 @@
 {
   "name": "talos_2",
   "description": "Auto-generated manifest.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "contributes": {},
   "depends": {
-    "modes": [
-      "user.game"
-    ],
+    "modes": ["user.game"],
     "actions": [
       "user.game_key",
       "user.game_mode_disable",

@@ -38,7 +38,8 @@ def vgamepad_enable():
             gamepad = vg.VX360Gamepad()
         except:
             print("""
-                Failed to enable vgamepad. Make sure vgamepad is installed.
+                Failed to enable vgamepad. Make sure vgamepad is installed to use xbox controller emulation.
+                Or delete this folder if you don't need/want this.
                 See the README in roku-talon-shared/vgamepad for more information.
             """)
 

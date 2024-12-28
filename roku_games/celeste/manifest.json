@@ -1,12 +1,10 @@
 {
   "name": "celeste",
   "description": "Auto-generated manifest.",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "contributes": {},
   "depends": {
-    "modes": [
-      "user.game"
-    ],
+    "modes": ["user.game"],
     "actions": [
       "user.game_arrows_hold_down",
       "user.game_arrows_hold_down_horizontal",

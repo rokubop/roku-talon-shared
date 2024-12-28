@@ -13,7 +13,8 @@
   "depends": {
     "actions": [
       "user.ui_elements",
-      "user.ui_elements_hide_all"
+      "user.ui_elements_hide_all",
+      "user.ui_elements_show"
     ]
   }
 }

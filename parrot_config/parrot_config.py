@@ -48,6 +48,7 @@ def categorize_commands(commands):
     base_pairs = set()
     combo_noise_set = set()
     base_noise_set = set()
+    unique_combos = set()
     base_noise_map = {}
     active_commands = []
 
@@ -74,6 +75,9 @@ def categorize_commands(commands):
 
         if "_stop" in noise and len(base_noises) == 1:
             base_pairs.add(base_noises[0].replace("_stop", ""))
+
+        if len(base_noises) > 1:
+            unique_combos.add(base_combo)
 
         for base_noise in base_noises:
             base_noise_set.add(base_noise)
@@ -105,7 +109,8 @@ def categorize_commands(commands):
         "immediate_commands": immediate_commands,
         "delayed_commands": delayed_commands,
         "base_noise_set": base_noise_set,
-        "base_pairs": base_pairs
+        "base_pairs": base_pairs,
+        "unique_combos": unique_combos
     }
 
 def parse_modifiers(sound: str):
@@ -133,6 +138,7 @@ class ParrotConfig():
         self.base_noises = None
         self.pending_combo = None
         self.combo_window = "300ms"
+        self.unique_combos = set()
 
     def setup(self, parrot_config):
         if self.combo_job:
@@ -148,6 +154,7 @@ class ParrotConfig():
         self.delayed_commands = categorized["delayed_commands"]
         self.base_noises = categorized["base_noise_set"]
         self.base_pairs = categorized["base_pairs"]
+        self.unique_combos = categorized["unique_combos"]
 
         combo_window = settings.get("user.parrot_config_combo_window", 300)
         self.combo_window = f"{combo_window}ms"
@@ -199,6 +206,16 @@ class ParrotConfig():
             executeActionOrLocationAction(action)
             command = self.immediate_commands[self.combo_chain][0]
             parrot_config_event_trigger(self.combo_chain, command)
+
+            # if our combo ends in a continuous noise, we should force
+            # a throttle so there is clear separation between the combo
+            # and a followup noise.
+            if self.combo_chain in self.unique_combos:
+                last_noise = self.combo_chain.split(' ')[-1]
+                if last_noise in self.base_pairs:
+                    parrot_throttle(90, last_noise, lambda: None)
+                    parrot_throttle(90, f"{last_noise}_stop", lambda: None)
+
             self.combo_chain = ""
             self.pending_combo = None
         elif noise in self.immediate_commands:

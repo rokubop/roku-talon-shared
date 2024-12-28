@@ -37,7 +37,9 @@
       "user.parrot_config",
       "user.parrot_config_format_display",
       "user.ui_elements",
-      "user.ui_elements_hide_all"
+      "user.ui_elements_hide_all",
+      "user.ui_elements_set_state",
+      "user.ui_elements_show"
     ]
   }
 }

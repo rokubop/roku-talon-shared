@@ -44,9 +44,6 @@
       "user.game_xbox_right_trigger_gears"
     ],
     "tags": [
-      "user.game_parrot",
-      "user.game_parrot_partial",
-      "user.game_talon",
       "user.game_xbox"
     ],
     "actions": [
@@ -82,9 +79,6 @@
       "user.game_key_toggle",
       "user.game_mode_disable",
       "user.game_mode_enable",
-      "user.game_mode_parrot_enable",
-      "user.game_mode_parrot_partial_enable",
-      "user.game_mode_talon_enable",
       "user.game_mouse_calibrate_x_360",
       "user.game_mouse_calibrate_y_90",
       "user.game_mouse_click",
@@ -235,11 +229,9 @@
       "user.ui_elements_hide_all",
       "user.ui_elements_highlight",
       "user.ui_elements_highlight_briefly",
-      "user.ui_elements_register_on_lifecycle",
-      "user.ui_elements_set_state",
+      "user.ui_elements_register_effect",
       "user.ui_elements_set_text",
       "user.ui_elements_unhighlight",
-      "user.ui_elements_unregister_on_lifecycle",
       "user.vgamepad_button_hold",
       "user.vgamepad_button_release",
       "user.vgamepad_disable",

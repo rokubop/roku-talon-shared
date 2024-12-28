@@ -64,7 +64,8 @@
       "user.mouse_move_smooth_queue",
       "user.mouse_move_smooth_to",
       "user.ui_elements",
-      "user.ui_elements_hide"
+      "user.ui_elements_hide",
+      "user.ui_elements_show"
     ]
   }
 }

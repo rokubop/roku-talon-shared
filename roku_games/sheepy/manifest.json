@@ -1,12 +1,10 @@
 {
   "name": "sheepy",
   "description": "Auto-generated manifest.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "contributes": {},
   "depends": {
-    "modes": [
-      "user.game"
-    ],
+    "modes": ["user.game"],
     "actions": [
       "user.game_arrows_hold_down",
       "user.game_arrows_hold_left",
@@ -23,7 +21,11 @@
       "user.parrot_config",
       "user.parrot_config_format_display",
       "user.ui_elements",
-      "user.ui_elements_highlight_briefly"
+      "user.ui_elements_hide_all",
+      "user.ui_elements_highlight",
+      "user.ui_elements_highlight_briefly",
+      "user.ui_elements_show",
+      "user.ui_elements_unhighlight"
     ]
   }
 }

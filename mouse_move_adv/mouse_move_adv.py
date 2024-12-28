@@ -240,7 +240,7 @@ def mouse_move_continuous(dx_unit: Union[int, float], dy_unit: Union[int, float]
         _mouse_continuous_speed = speed_initial if reset_speed else _mouse_continuous_speed
         _last_unit_vector = unit_vector
         if mouse_move_event_subscribers:
-            mouse_move_event_trigger(MouseMoveCallbackEvent(0,0,dx_unit, dy_unit, "start"))
+            mouse_move_event_trigger(MouseMoveCallbackEvent(0, 0, dx_unit, dy_unit, "start"))
         mouse_move_dir_change_event_trigger(_last_unit_vector.x, _last_unit_vector.y)
         _mouse_continuous_start_ts = time.perf_counter()
         subpixel_adjuster = SubpixelAdjuster()

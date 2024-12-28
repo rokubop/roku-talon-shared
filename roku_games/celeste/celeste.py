@@ -1,5 +1,5 @@
 from talon import Module, Context, actions, cron
-from .ui.index import show_ui, hide_ui
+from .ui.celeste_ui import show_ui, hide_ui
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 mod.apps.celeste = "os: windows\nand app.exe: /Celeste.exe/i"
@@ -76,11 +76,21 @@ def restart_chapter():
     actions.user.game_stopper()
     actions.user.game_key_sequence("escape up up c c", 100)
 
+def jump_pause():
+    actions.user.game_key("c")
+    actions.user.game_key("escape")
+
+def pause_jump_pause():
+    actions.user.game_key("escape")
+    actions.sleep("50ms")
+    actions.user.game_key("p") # second jump bound to "p"
+    actions.user.game_key("escape")
+
 default_config = {
     "sh:th_90":   ("jump 1", jump_primary),
     "sh_stop":    ("", lambda: None),
     "ss":         ("jump 2", lambda: actions.user.game_key_hold("p")),
-    "ss_stop:db_5":("", lambda: actions.user.game_key_release("p")),
+    "ss_stop:db_20":("", lambda: actions.user.game_key_release("p")),
     "ah":         ("left", actions.user.game_arrows_hold_left),
     "oh":         ("right", actions.user.game_arrows_hold_right),
     "ee":         ("stop", actions.user.game_stopper),
@@ -104,6 +114,8 @@ default_config = {
     "cluck ee":   ("clear", lambda: actions.key("f4")),
     "cluck guh":  ("debug", lambda: actions.key("f6")),
     "cluck pop":  ("restart chapter", restart_chapter),
+    "cluck sh":   ("jump pause", jump_pause),
+    "cluck ss":   ("pause jump pause", pause_jump_pause),
     "foot 1":     ("grab"),
     "foot 2":     ("move mode"),
     "foot 3":     ("jump 3")
@@ -116,14 +128,17 @@ move_config = {
     "ee":         ("stop", actions.user.game_stopper),
     "guh":        ("down", actions.user.game_arrows_hold_down),
     "eh":         ("up", actions.user.game_arrows_hold_up),
+    "er":         ("r click", actions.user.game_mouse_click_right),
     "t":          ("f-up", actions.user.game_arrows_hold_up_horizontal),
     "mm":         ("f-down", actions.user.game_arrows_hold_down_horizontal),
     "palate":     ("short up", lambda: actions.user.game_key_hold("up", 30)),
     "pop":        ("short down", lambda: actions.user.game_key_hold("down", 30)),
+    "tut":        ("tab", lambda: actions.user.game_key("tab")),
     "sh:th_100":  ("c", lambda: actions.user.game_key("c")),
     "sh_stop":    ("", lambda: None),
     "ss:th_100":  ("x", lambda: actions.user.game_key("x")),
     "ss_stop":    ("", lambda: None),
+    "cluck":      ("escape", lambda: actions.user.game_key("escape")),
 }
 
 pedal_center_up_job = None

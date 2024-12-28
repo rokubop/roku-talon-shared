@@ -1,9 +1,4 @@
-from talon import actions, cron
-
-ui_noise_command = None
-accent_color = "87ceeb"
-
-live_keys_timeout = None
+from talon import actions
 
 key_style = {
     "padding": 8,
@@ -17,31 +12,6 @@ key_style = {
     "opacity": 0.5,
 }
 
-def reset_live_keys():
-    global live_keys_timeout
-    actions.user.ui_elements_set_text("noise", "")
-    actions.user.ui_elements_set_text("command", "")
-    live_keys_timeout = None
-
-def on_noise(noise, command_name):
-    global live_keys_timeout
-    if command_name:
-        actions.user.ui_elements_set_text("noise", noise)
-        actions.user.ui_elements_set_text("command", command_name)
-        if live_keys_timeout:
-            cron.cancel(live_keys_timeout)
-        live_keys_timeout = cron.after("2s", reset_live_keys)
-
-def ui_noise_command():
-    (screen, div, text) = actions.user.ui_elements(["screen", "div", "text"])
-
-    return  screen()[
-        div(padding=40, margin_top=130, margin_left=50)[
-            text("", id="noise", font_size=140, font_weight="bold", color="FFFFFF"),
-            text("", id="command", font_size=60, margin_top=32, color="FFFFFF"),
-        ]
-    ]
-
 def key(key_name, text_content, width=30):
     div, text = actions.user.ui_elements(["div", "text"])
 
@@ -54,10 +24,10 @@ def blank_key():
 
     return div(key_style)[text(" ")]
 
-def ui_keys():
-    screen, div = actions.user.ui_elements(["screen", "div"])
+def keys():
+    active_window, div = actions.user.ui_elements(["active_window", "div"])
 
-    return screen(justify_content="flex_end", highlight_color="FFFFFF55")[
+    return active_window(justify_content="flex_end", highlight_color="FFFFFF55")[
         div(flex_direction="row", margin_bottom=20, margin_left=20, opacity=0.5)[
             div(flex_direction="column")[
                 div(flex_direction="row")[
@@ -82,17 +52,10 @@ def ui_keys():
         ],
     ]
 
-def show_big_text_ui():
-    actions.user.ui_elements_show(ui_noise_command)
-    actions.user.ui_elements_show(ui_keys)
+def show_keys():
+    actions.user.ui_elements_show(keys)
     actions.user.game_ui_register_live_keys()
-    actions.user.parrot_config_event_register(on_noise)
 
-def hide_big_text_ui():
+def hide_keys():
     actions.user.game_ui_unregister_live_keys()
-    actions.user.parrot_config_event_unregister(on_noise)
-    actions.user.ui_elements_hide_all()
-
-def refresh_big_text_ui():
-    hide_big_text_ui()
-    show_big_text_ui()
+    actions.user.ui_elements_hide(keys)

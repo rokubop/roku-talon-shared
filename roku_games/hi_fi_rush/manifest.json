@@ -1,12 +1,10 @@
 {
   "name": "hi_fi_rush",
   "description": "Auto-generated manifest.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "contributes": {},
   "depends": {
-    "modes": [
-      "user.game"
-    ],
+    "modes": ["user.game"],
     "actions": [
       "user.game_mode_disable",
       "user.game_mouse_click",

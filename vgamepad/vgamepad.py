@@ -9,27 +9,30 @@ gamepad = None
 
 # not available on macOS
 if sys.platform != "darwin":
-    import vgamepad as vg
+    try:
+        import vgamepad as vg
 
-    xbox_button_map = {
-        "a": vg.XUSB_BUTTON.XUSB_GAMEPAD_A,
-        "b": vg.XUSB_BUTTON.XUSB_GAMEPAD_B,
-        "x": vg.XUSB_BUTTON.XUSB_GAMEPAD_X,
-        "y": vg.XUSB_BUTTON.XUSB_GAMEPAD_Y,
-        "dpad_up": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_UP,
-        "dpad_down": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_DOWN,
-        "dpad_left": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_LEFT,
-        "dpad_right": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_RIGHT,
-        "left_shoulder": vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER,
-        "right_shoulder": vg.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER,
-        "left_thumb": vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB,
-        "right_thumb": vg.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_THUMB,
-        "start": vg.XUSB_BUTTON.XUSB_GAMEPAD_START,
-        "back": vg.XUSB_BUTTON.XUSB_GAMEPAD_BACK,
-        "guide": vg.XUSB_BUTTON.XUSB_GAMEPAD_GUIDE,
-    }
+        xbox_button_map = {
+            "a": vg.XUSB_BUTTON.XUSB_GAMEPAD_A,
+            "b": vg.XUSB_BUTTON.XUSB_GAMEPAD_B,
+            "x": vg.XUSB_BUTTON.XUSB_GAMEPAD_X,
+            "y": vg.XUSB_BUTTON.XUSB_GAMEPAD_Y,
+            "dpad_up": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_UP,
+            "dpad_down": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_DOWN,
+            "dpad_left": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_LEFT,
+            "dpad_right": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_RIGHT,
+            "left_shoulder": vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER,
+            "right_shoulder": vg.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER,
+            "left_thumb": vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB,
+            "right_thumb": vg.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_THUMB,
+            "start": vg.XUSB_BUTTON.XUSB_GAMEPAD_START,
+            "back": vg.XUSB_BUTTON.XUSB_GAMEPAD_BACK,
+            "guide": vg.XUSB_BUTTON.XUSB_GAMEPAD_GUIDE,
+        }
 
-    button_map = xbox_button_map
+        button_map = xbox_button_map
+    except:
+        pass
 
 def vgamepad_enable():
     global gamepad

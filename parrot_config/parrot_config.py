@@ -275,7 +275,15 @@ def parrot_config_event_register(on_noise: callable):
     event_subscribers.append(on_noise)
 
 def parrot_config_event_unregister(on_noise: callable):
-    event_subscribers.remove(on_noise)
+    try:
+        event_subscribers.remove(on_noise)
+    except ValueError:
+        # we may have lost the reference
+        # see if the callback looks like one of the subscribers
+        for subscriber in event_subscribers:
+            if subscriber.__name__ == on_noise.__name__:
+                event_subscribers.remove(subscriber)
+                break
 
 def parrot_config_event_trigger(noise: str, command: str):
     for on_noise_subscriber in event_subscribers:

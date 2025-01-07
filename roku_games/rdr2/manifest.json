@@ -4,7 +4,9 @@
   "version": "0.2.3",
   "contributes": {},
   "depends": {
-    "modes": ["user.game"],
+    "modes": [
+      "user.game"
+    ],
     "actions": [
       "core.repeat_phrase",
       "user.drag_mode_hide",

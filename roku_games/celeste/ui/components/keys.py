@@ -2,51 +2,57 @@ from talon import actions
 
 key_style = {
     "padding": 8,
-    "background_color": "333333",
+    "background_color": "33333388",
     "flex_direction": "row",
     "justify_content": "center",
     "align_items": "center",
     "margin": 1,
-    "width": 60,
+    "min_width": 60,
     "height": 60,
-    "opacity": 0.5,
 }
 
-def key(key_name, text_content, width=30):
+def key(key_name, text_content):
     div, text = actions.user.ui_elements(["div", "text"])
 
-    return div(key_style, id=key_name, width=width, background_color="333333")[
+    if isinstance(text_content, list):
+        return div(key_style, flex_direction="column", id=key_name, gap=8)[
+            text(text_content[0]),
+            text(text_content[1], font_size=12)
+        ]
+
+    return div(key_style, id=key_name)[
         text(text_content)
     ]
 
 def blank_key():
     div, text = actions.user.ui_elements(["div", "text"])
 
-    return div(key_style)[text(" ")]
+    return div(key_style, opacity=0.5)[text(" ")]
 
 def keys():
     active_window, div = actions.user.ui_elements(["active_window", "div"])
 
     return active_window(justify_content="flex_end", highlight_color="FFFFFF55")[
-        div(flex_direction="row", margin_bottom=20, margin_left=20, opacity=0.5)[
+        div(flex_direction="row", margin_bottom=20, margin_left=40)[
             div(flex_direction="column")[
                 div(flex_direction="row")[
-                    blank_key(), key("up", "↑", 60), blank_key()
+                    blank_key(), key("up", "↑"), blank_key()
                 ],
                 div(flex_direction="row")[
-                    key("left", "←", 60), key("down", "↓", 60), key("right", "→", 60)
+                    key("left", "←"), key("down", "↓"), key("right", "→")
                 ]
             ],
             div()[
                 div(flex_direction="row")[
-                    key("c", "jump", 60),
-                    key("p", "jump 2", 60),
-                    key("foot_left", "foot1: grab", 60),
+                    key("c", "jump"),
+                    key("p", "jump 2"),
+                    key("x", "dash"),
+                    key("t", "demo"),
                 ],
-                div(flex_direction="row")[
-                    key("x", "dash", 60),
-                    key("t", "demo", 60),
-                    key("foot_center", "foot2: move", 60)
+                div(flex_direction="row", justify_content="space_evenly")[
+                    key("foot_left", ["grab", "pedal 1"]),
+                    key("foot_center", ["move", "pedal 2"]),
+                    key("foot_right", ["jump 3", "pedal 3"])
                 ]
             ],
         ],

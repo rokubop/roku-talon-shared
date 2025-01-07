@@ -1,5 +1,6 @@
 # WIP
 game settings: user.game_settings()
+# game setup: user.game_setup()
 # game create files:
 #     user.game_ui_hide_game_modal_large()
 #     user.game_create_files()

@@ -4,7 +4,9 @@
   "version": "0.1.1",
   "contributes": {},
   "depends": {
-    "modes": ["user.game"],
+    "modes": [
+      "user.game"
+    ],
     "actions": [
       "user.game_arrows_hold_down",
       "user.game_arrows_hold_left",

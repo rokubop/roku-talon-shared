@@ -146,6 +146,7 @@
       "user.game_mouse_toggle_right",
       "user.game_prep_create_files",
       "user.game_settings",
+      "user.game_setup",
       "user.game_state_switch_horizontal",
       "user.game_stop_all",
       "user.game_stopper",
@@ -220,6 +221,8 @@
   },
   "depends": {
     "actions": [
+      "edit.file_end",
+      "user.edit_text_file",
       "user.mouse_move_continuous",
       "user.mouse_move_continuous_stop",
       "user.mouse_move_info",
@@ -231,6 +234,8 @@
       "user.ui_elements_highlight_briefly",
       "user.ui_elements_register_effect",
       "user.ui_elements_set_text",
+      "user.ui_elements_svg",
+      "user.ui_elements_toggle",
       "user.ui_elements_unhighlight",
       "user.vgamepad_button_hold",
       "user.vgamepad_button_release",

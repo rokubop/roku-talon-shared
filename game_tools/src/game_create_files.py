@@ -69,7 +69,6 @@ def get_app_name(text: str, max_len=20) -> str:
         list(islice(pattern.findall(text.replace(".exe", "")), max_len))
     ).lower()
 
-
 def create_file(path: Path, content: str) -> bool:
     if path.is_file():
         return False

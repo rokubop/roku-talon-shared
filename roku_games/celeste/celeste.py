@@ -10,12 +10,12 @@ jump_primary_ms = 300
 
 def dash_forward_up():
     actions.user.game_dir_hold_last_horizontal()
-    actions.user.game_key_hold("up", 100),
+    actions.user.game_key_hold("up", 120),
     actions.user.game_key("x")
 
 def dash_forward_down():
     actions.user.game_dir_hold_last_horizontal()
-    actions.user.game_key_hold("down", 100, retrigger=False)
+    actions.user.game_key_hold("down", 120, retrigger=False)
     actions.user.game_key("x")
 
 def dash_forward():
@@ -162,9 +162,9 @@ class Actions:
         return parrot_config
 
     def pedal_left_down():
-        # we manage highlighting here, but not the action
-        # command mananged by playability app
-        # it will hold "z", otherwise key gets untriggered every
+        # We manage highlighting here, but not the action
+        # Command mananged by playability app
+        # It will hold "z", otherwise key gets untriggered every
         # time we issue another key with talon
         actions.user.ui_elements_highlight("foot_left")
 
@@ -181,7 +181,7 @@ class Actions:
 
     def pedal_center_up():
         global pedal_center_up_job
-        pedal_center_up_job = cron.after("100ms", stop_move_mode)
+        pedal_center_up_job = cron.after("20ms", stop_move_mode)
 
     def pedal_right_down():
         actions.user.ui_elements_highlight("foot_right")

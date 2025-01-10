@@ -137,6 +137,9 @@ class Actions:
         else:
             parrot_tester_disable()
 
+def copy_all_data_to_clipboard():
+    clip.set_text(pp.pformat(data))
+
 def copy_data_to_clipboard(noise):
     return lambda e: clip.set_text(pp.pformat(data[noise])) if noise in data else None
 
@@ -200,8 +203,14 @@ def parrot_tester_ui(props):
         div(draggable=True, background_color="1D2126", border_radius=8, border_width=1)[
             div(flex_direction='row', justify_content="space_between", border_bottom=1, border_color="555555")[
                 text("Parrot Tester", font_size=24, padding=16),
-                button(on_click=parrot_tester_disable)[
-                    icon("close", size=20, padding=6)
+                div(flex_direction="row", gap=16)[
+                    button(border_radius=4, on_click=copy_all_data_to_clipboard, align_items="center", flex_direction="row", gap=8)[
+                        text("Copy all"),
+                        icon("copy")
+                    ],
+                    button(on_click=parrot_tester_disable)[
+                        icon("close", size=20, padding=6)
+                    ]
                 ]
             ],
             div(flex_direction="row", padding=16)[

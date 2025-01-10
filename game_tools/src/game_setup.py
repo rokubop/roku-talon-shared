@@ -140,14 +140,11 @@ def scan_games_dir_row(dir):
     ]
 
 def game_setup_ui(props):
-    elements = ["screen", "div", "text", "button", "icon", "input_text", "state", "ref", "effect"]
-    screen, div, text, button, icon, input_text, state, ref, effect = actions.user.ui_elements(elements)
+    elements = ["screen", "div", "text", "button", "icon", "input_text", "state"]
+    screen, div, text, button, icon, input_text, state = actions.user.ui_elements(elements)
 
     games, set_games = state.use("games")
-    game_name_input = ref("game_name")
     new_game_name, set_new_game_name = state.use("new_game_name", props["app_name"])
-
-    effect(lambda: game_name_input.focus(), [])
 
     def on_game_name_change(e):
         set_new_game_name(e.value)
@@ -183,7 +180,7 @@ def game_setup_ui(props):
                 div(flex_direction="column", margin_top=16)[
                     div(flex_direction="column", gap=16)[
                         text('New app name', font_size=18),
-                        input_text(id="game_name", on_change=on_game_name_change, font_size=20, border_radius=4, background_color="444444", value=props["app_name"]),
+                        input_text(id="game_name", autofocus=True, on_change=on_game_name_change, font_size=20, border_radius=4, background_color="444444", value=props["app_name"]),
                     ],
                 ],
                 div(gap=16, margin_top=16)[

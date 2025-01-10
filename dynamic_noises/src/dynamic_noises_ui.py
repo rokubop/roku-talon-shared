@@ -85,7 +85,6 @@ container_style = {
     "background_color": "222222",
     "opacity": 0.8,
     "margin_right": 32,
-    "padding": 16,
     "flex_direction": "column",
     "border_width": 1,
     "border_color": "666666",
@@ -93,28 +92,39 @@ container_style = {
 }
 
 def dynamic_noise_tester_ui():
-    screen, div, text, state = actions.user.ui_elements(["screen", "div", "text", "state"])
+    screen, div, text, state, button, icon, state = actions.user.ui_elements(["screen", "div", "text", "state", "button", "icon", "state"])
 
     position = state.get("position", "right")
+    open, set_open = state.use("open", True)
 
     return screen(screen_align_style[position])[
-        div(container_style, gap=16)[
-            text("Dynamic noises", margin_bottom=16),
-            dynamic_noises_ui(),
-            text("Commands", font_weight="bold"),
-            text("<noise> <phrase>", color=accent_color),
-            div(flex_direction="ropw")[
-                text("<noise>", color=accent_color), text(" clear")
+        div(container_style, gap=16, draggable=True)[
+            div(flex_direction="row", justify_content="space_between", align_items="center")[
+                div(flex_direction="row", align_items="center", gap=8)[
+                    button(on_click=lambda: set_open(not open))[
+                        icon("chevron_down" if open else "chevron_right", size=20),
+                    ],
+                    text("Dynamic noises"),
+                ],
+                button(on_click=actions.user.ui_elements_hide_all)[icon("close")]
             ],
-             div(flex_direction="row")[
-                text("<noise>", color=accent_color), text(" revert")
-            ],
-            text("dynamic clear"),
-            text("view (hide | show)", margin_top=16),
-            text("view (left | right)"),
-            div(flex_direction="row", margin_top=16)[
-                text("dynamic (stop | quit)")
+            open and div(padding=16, padding_top=0)[
+                dynamic_noises_ui(),
             ]
+            # text("Commands", font_weight="bold"),
+            # text("<noise> <phrase>", color=accent_color),
+            # div(flex_direction="row")[
+            #     text("<noise>", color=accent_color), text(" clear")
+            # ],
+            #  div(flex_direction="row")[
+            #     text("<noise>", color=accent_color), text(" revert")
+            # ],
+            # text("dynamic clear"),
+            # text("view (hide | show)", margin_top=16),
+            # text("view (left | right)"),
+            # div(flex_direction="row", margin_top=16)[
+            #     text("dynamic (stop | quit)")
+            # ]
         ]
     ]
 

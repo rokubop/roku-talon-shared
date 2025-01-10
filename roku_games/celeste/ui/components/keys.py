@@ -2,13 +2,14 @@ from talon import actions
 
 key_style = {
     "padding": 8,
-    "background_color": "33333388",
+    "background_color": "333333",
     "flex_direction": "row",
     "justify_content": "center",
     "align_items": "center",
     "margin": 1,
     "min_width": 60,
     "height": 60,
+    "opacity": 0.7,
 }
 
 def key(key_name, text_content):
@@ -25,9 +26,9 @@ def key(key_name, text_content):
     ]
 
 def blank_key():
-    div, text = actions.user.ui_elements(["div", "text"])
+    div = actions.user.ui_elements(["div"])
 
-    return div(key_style, opacity=0.5)[text(" ")]
+    return div(key_style, opacity=0.5)
 
 def keys():
     active_window, div = actions.user.ui_elements(["active_window", "div"])

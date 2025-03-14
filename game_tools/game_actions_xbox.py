@@ -15,7 +15,9 @@ from .src.game_xbox import (
     xbox_right_stick,
     xbox_preferred_dir_mode,
     xbox_preferred_dir_mode_set,
+    xbox_state_held,
     xbox_stopper,
+    xbox_stop_all,
     xbox_mode_enable,
     xbox_mode_disable
 )
@@ -102,4 +104,6 @@ class Actions:
     def game_xbox_right_trigger_set_gear(gear: Union[int, str]): """Set right trigger gear from 1 to 5"""; xbox_set_gear("right_trigger", gear)
     def game_xbox_preferred_dir_mode_set(subject: str, type: str = None): """Set the preferred subject for direction commands. left_stick, right_stick, dpad"""; xbox_preferred_dir_mode_set(subject, type)
     def game_xbox_preferred_dir_mode(dir: str | tuple, type: str = None): """Execute the preferred dir mode - left_stick, right_stick, or dpad, with preferred press or hold"""; xbox_preferred_dir_mode(dir, type)
+    def game_xbox_state_held(subject_or_button: str): """Get the current state of held xbox buttons"""; return xbox_state_held(subject_or_button)
     def game_xbox_stopper(): """General stopper based on priority for xbox actions"""; xbox_stopper()
+    def game_xbox_stop_all(): """Stop all xbox actions"""; xbox_stop_all()

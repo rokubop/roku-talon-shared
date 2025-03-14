@@ -365,6 +365,10 @@ def get_held_keys():
     """Get the held keys"""
     return _held_keys
 
+def game_key_is_held(key: str):
+    """Check if a key is held"""
+    return key in _held_keys
+
 def get_held_mouse_buttons():
     """Get the held mouse buttons"""
     return _held_mouse_buttons

@@ -20,7 +20,11 @@ gaze_left = ['gaze_out_left', 'gaze_in_right']
 gaze_right = ['gaze_in_left', 'gaze_out_right']
 
 def face_tester_ui():
-    screen, div, text = actions.user.ui_elements(["screen", "div", "text"])
+    version = actions.user.ui_elements_version()
+    if version < "0.6.0":
+        print("Face Tester requires talon-ui-elements version 0.6.0 or higher.")
+
+    screen, div, text, icon, button = actions.user.ui_elements(["screen", "div", "text", "icon", "button"])
 
     def item(key):
         return div(id=key, padding=8)[text(key)]
@@ -32,12 +36,17 @@ def face_tester_ui():
         return text(title, font_weight="bold", margin_top=16)
 
     return screen(align_items="center", justify_content="center")[
-        div(background_color="333333", border_radius=4, padding=16, border_width=1, border_color="555555")[
-            div(flex_direction="row", align_items="flex_end", margin_bottom=16, gap=16)[
-                text("Face Tester", font_size=24, font_weight="bold"),
-                text("Say 'face tester' to stop / toggle", color="BBBBBB"),
+        div(draggable=True, background_color="333333", border_radius=4, border_width=1, border_color="555555")[
+            div(flex_direction="row", justify_content="space_between", align_items="center")[
+                div(flex_direction="row", padding=16, gap=16, align_items="flex_end")[
+                    text("Face Tester", font_size=24, font_weight="bold"),
+                    text("Say 'face tester' to stop / toggle", color="BBBBBB"),
+                ],
+                button(on_click=face_tester_disable, margin=0)[
+                    icon("close", padding=6),
+                ]
             ],
-            div(flex_direction="row", gap=16)[
+            div(flex_direction="row", padding=16, gap=16)[
                 div(flex_direction="column", gap=8, border_width=1, border_color="555555", padding=16)[
                     title("Eyes"),
                     subtitle("Blink"),

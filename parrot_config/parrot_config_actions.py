@@ -1,5 +1,7 @@
 from talon import Module
 from .parrot_config import (
+    parrot_config_get_mode,
+    parrot_config_set_mode,
     parrot_config_noise,
     parrot_config_event_register,
     parrot_config_event_unregister,
@@ -57,6 +59,32 @@ class Actions:
         ```
         """
         return {}
+
+    def parrot_config_set_mode(mode: str):
+        """
+        Change the current mode. Only applicable for parrot configs that define
+        "default" and other modes.
+
+        Example:
+        ```py
+        parrot_config = {
+            "default": parrot_config_default,
+            "other": {
+                **parrot_config_default,
+                **parrot_config_other,
+            }
+        }
+
+        actions.user.parrot_config_mode("other")
+        ```
+        """
+        parrot_config_set_mode(mode)
+
+    def parrot_config_get_mode() -> str:
+        """
+        Get the current mode
+        """
+        return parrot_config_get_mode()
 
     def parrot_config_format_display(
         parrot_config: dict[str, tuple[str, callable]],

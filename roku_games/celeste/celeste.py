@@ -8,21 +8,28 @@ ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 
 jump_primary_ms = 300
 
-def dash_forward_up():
-    actions.user.game_dir_hold_last_horizontal()
-    actions.user.game_key_hold("up", 120),
-    actions.user.game_key("x")
+def release_down():
+    if actions.user.game_key_is_held("down"):
+        actions.user.game_key_release("down")
 
 def dash_forward_down():
     actions.user.game_dir_hold_last_horizontal()
-    actions.user.game_key_hold("down", 120, retrigger=False)
+    actions.user.game_key_hold("down", 150, retrigger=False)
+    actions.user.game_key("x")
+
+def dash_forward_up():
+    release_down()
+    actions.user.game_dir_hold_last_horizontal()
+    actions.user.game_key_hold("up", 150),
     actions.user.game_key("x")
 
 def dash_forward():
+    release_down()
     actions.user.game_dir_hold_last_horizontal()
     actions.user.game_key("x")
 
 def dash_up():
+    release_down()
     actions.user.game_arrows_hold_up(),
     actions.user.game_key("x")
 
@@ -31,6 +38,7 @@ def dash_down():
     actions.user.game_key("x")
 
 def dash_demo():
+    release_down()
     actions.user.game_dir_hold_last_horizontal()
     actions.user.game_key("t")
 
@@ -166,9 +174,11 @@ class Actions:
         # Command mananged by playability app
         # It will hold "z", otherwise key gets untriggered every
         # time we issue another key with talon
+        # actions.user.game_key_hold("z", retrigger=False)
         actions.user.ui_elements_highlight("foot_left")
 
     def pedal_left_up():
+        # actions.user.game_key_release("z")
         actions.user.ui_elements_unhighlight("foot_left")
 
     def pedal_center_down():
@@ -184,7 +194,9 @@ class Actions:
         pedal_center_up_job = cron.after("20ms", stop_move_mode)
 
     def pedal_right_down():
+        print("pedal_right_down")
         actions.user.ui_elements_highlight("foot_right")
 
     def pedal_right_up():
+        print("pedal_right_up")
         actions.user.ui_elements_unhighlight("foot_right")

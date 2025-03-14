@@ -4,7 +4,7 @@ from .src.game_core import (
     camera_snap_dynamic,
     game_key,
     game_key_hold,
-    game_key_hold,
+    game_key_is_held,
     game_key_toggle,
     game_key_release,
     game_key_sequence,
@@ -39,6 +39,7 @@ class Actions:
     def game_key_release(key: str): """Release a key"""; game_key_release(key)
     def game_key_toggle(key: str): """Toggle holding a key"""; game_key_toggle(key)
     def game_key_sequence(keys: str, delay_ms: int = None): """Press a sequence of keys with a delay between each"""; game_key_sequence(keys, delay_ms)
+    def game_key_is_held(key: str): """Get the 'is held' state of a key"""; return game_key_is_held(key)
     def game_mouse_click(button: int = 0): """Mouse click; 0=left, 1=right, 2=middle"""; mouse_click(button)
     def game_mouse_click_left(): """Left click"""; mouse_click(0)
     def game_mouse_click_right(): """Right click"""; mouse_click(1)
@@ -111,6 +112,7 @@ class Actions:
     def game_mouse_move_deg_down_45(mouse_button: int = None): """Look down 45 degrees"""; mouse_move_deg(0, 45)
     def game_mouse_move_deg_down_90(mouse_button: int = None): """Look down 90 degrees"""; mouse_move_deg(0, 90)
     def game_mouse_move_deg_down(deg: int = 20, mouse_button: int = None): """Look down y degrees"""; mouse_move_deg(0, deg, mouse_button)
+    def game_mouse_move_continuous(x: int, y: int, speed: int = 5, mouse_button: int = None): """Move the mouse continuously at speed x, y; Optionally specify mouse button 0=left, 1=right, 2=middle to hold"""; mouse_move_continuous(x, y, speed, mouse_button)
     def game_mouse_move_continuous_right(speed: int = 20, mouse_button: int = None): """Turn right continuously at speed x; Optionally specify mouse button 0=left, 1=right, 2=middle to hold"""; mouse_move_continuous(1, 0, speed, mouse_button)
     def game_mouse_move_continuous_right_5(mouse_button: int = None): """Turn right continuously speed 5; Optionally specify mouse button 0=left, 1=right, 2=middle to hold"""; mouse_move_continuous(1, 0, 5, mouse_button)
     def game_mouse_move_continuous_right_10(mouse_button: int = None): """Turn right continuously speed 10; Optionally specify mouse button 0=left, 1=right, 2=middle to hold"""; mouse_move_continuous(1, 0, 10, mouse_button)

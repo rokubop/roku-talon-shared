@@ -129,7 +129,8 @@ def parse_modifiers(sound: str):
 
 class ParrotConfig():
     def __init__(self):
-        self.parrot_config_ref = None
+        self.parrot_config_user_ref = None
+        self.current_mode = None
         self.immediate_commands = {}
         self.delayed_commands = {}
         self.base_pairs = set()
@@ -140,13 +141,20 @@ class ParrotConfig():
         self.combo_window = "300ms"
         self.unique_combos = set()
 
-    def setup(self, parrot_config):
+    def setup_mode(self, mode):
+        if mode:
+            if mode == self.current_mode:
+                return
+            else:
+                parrot_config = self.parrot_config_user_ref[mode]
+        else:
+            parrot_config = self.parrot_config_user_ref
         if self.combo_job:
             cron.cancel(self.combo_job)
             self.combo_job = None
+        self.current_mode = mode
         self.combo_chain = ""
         self.pending_combo = None
-        self.parrot_config_ref = parrot_config
         commands = parrot_config.get("commands", {}) if "commands" in parrot_config else parrot_config
 
         categorized = categorize_commands(commands)
@@ -158,6 +166,13 @@ class ParrotConfig():
 
         combo_window = settings.get("user.parrot_config_combo_window", 300)
         self.combo_window = f"{combo_window}ms"
+
+    def setup(self, parrot_config):
+        self.parrot_config_user_ref = parrot_config
+        if "default" in parrot_config:
+            self.setup_mode("default")
+        else:
+            self.setup_mode(None)
 
     def _delayed_combo_execute(self):
         if self.combo_job:
@@ -265,7 +280,7 @@ def parrot_debounce(time_ms: int, id: str, command: callable):
 
 def parrot_config_noise(sound: str):
     config = actions.user.parrot_config()
-    if parrot_config_saved.parrot_config_ref != config:
+    if parrot_config_saved.parrot_config_user_ref != config:
         print("init parrot config")
         parrot_config_saved.setup(config)
 
@@ -288,3 +303,14 @@ def parrot_config_event_unregister(on_noise: callable):
 def parrot_config_event_trigger(noise: str, command: str):
     for on_noise_subscriber in event_subscribers:
         on_noise_subscriber(noise, command)
+
+def parrot_config_get_mode() -> str:
+    return parrot_config_saved.current_mode
+
+def parrot_config_set_mode(mode: str):
+    config = actions.user.parrot_config()
+    if mode in config:
+        # probably need to build a queue for this instead
+        cron.after("30ms", lambda: parrot_config_saved.setup_mode(mode))
+    else:
+        raise ValueError(f"Mode '{mode}' not found in parrot_config")

@@ -175,7 +175,7 @@ def game_setup_ui(props):
                     icon("close", size=20, padding=6),
                 ],
             ],
-            div(padding=16, gap=16)[
+            div(padding=16, gap=16, overflow_y="auto", max_height=400)[
                 text("Step 1 of 3", font_size=20),
                 div(flex_direction="column", margin_top=16)[
                     div(flex_direction="column", gap=16)[

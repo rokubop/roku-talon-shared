@@ -168,7 +168,7 @@ def game_setup_ui(props):
         return fn
 
     return screen(justify_content="center", align_items="center")[
-        div(draggable=True, background_color="272727", border_radius=8, min_width=600, min_height=400, border_width=1)[
+        div(draggable=True, background_color="272727", border_radius=8, min_width=600, border_width=1)[
             div(drag_handle=True, flex_direction='row', justify_content="space_between", align_items="center", border_bottom=1, border_color="555555")[
                 text("Game setup", font_size=24, padding=16),
                 button(on_click=actions.user.ui_elements_hide_all)[
@@ -227,7 +227,8 @@ def game_setup_ui(props):
                             ]
                         ],
                     ],
-                ],
+                ]
+            ],
                 # div(flex_direction="column", padding=16)[
                 #     text("Scan folders for games & templates", font_size=20, margin_bottom=16),
                 #     div(border_width=1)[
@@ -240,25 +241,24 @@ def game_setup_ui(props):
                 #         *[game_row(game, selected, on_toggle(game)) for game, selected in games.items()],
                 #     ],
                 # ],
-                div(flex_direction="row", justify_content="flex_end", gap=16, padding_top=8)[
-                    button("Cancel",
-                        font_weight="normal",
-                        on_click=actions.user.ui_elements_hide_all,
-                        border_width=1,
-                        border_radius=4,
-                        padding=12,
-                        padding_left=24,
-                        padding_right=24
-                    ),
-                    button("Continue",
-                        on_click=actions.user.ui_elements_hide_all,
-                        background_color=BLUE if any(game for game in games.values()) else "444444",
-                        border_radius=4,
-                        padding=12,
-                        padding_left=24,
-                        padding_right=24
-                    )
-                ]
+            div(flex_direction="row", justify_content="flex_end", gap=16, padding=16)[
+                button("Cancel",
+                    font_weight="normal",
+                    on_click=actions.user.ui_elements_hide_all,
+                    border_width=1,
+                    border_radius=4,
+                    padding=12,
+                    padding_left=24,
+                    padding_right=24
+                ),
+                button("Continue",
+                    on_click=actions.user.ui_elements_hide_all,
+                    background_color=BLUE if any(game for game in games.values()) else "444444",
+                    border_radius=4,
+                    padding=12,
+                    padding_left=24,
+                    padding_right=24
+                )
             ]
         ]
     ]

@@ -10,6 +10,7 @@ def reset_live_keys():
 
 def on_noise(noise, command_name):
     global live_keys_timeout
+
     if command_name:
         actions.user.ui_elements_set_text("noise", noise)
         actions.user.ui_elements_set_text("command", command_name)

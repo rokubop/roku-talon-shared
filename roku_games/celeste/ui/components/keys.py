@@ -33,8 +33,8 @@ def blank_key():
 def keys():
     active_window, div = actions.user.ui_elements(["active_window", "div"])
 
-    return active_window(justify_content="flex_end", highlight_color="FFFFFF55")[
-        div(flex_direction="row", margin_bottom=20, margin_left=40)[
+    return active_window(align_items="flex_end", justify_content="flex_start", highlight_color="FFFFFF55")[
+        div(flex_direction="row", margin_top=50, margin_right=300)[
             div(flex_direction="column")[
                 div(flex_direction="row")[
                     blank_key(), key("up", "↑"), blank_key()

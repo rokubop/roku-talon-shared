@@ -198,13 +198,13 @@ def game_setup_ui(props):
                                 text('"""', font_family="consolas", color="CCCCCC"),
                             ],
                             div()[
-                                button()[icon("copy", color="CCCCCC")]
+                                button(padding=8)[icon("copy", color="CCCCCC")]
                             ]
                         ],
                     ],
                 ],
                 div(flex_direction="column", gap=12, margin_top=16)[
-                    div(flex_direction="row", align_items="center")[
+                    div(flex_direction="row", align_items="center", gap=16)[
                         text("Your Talon games folder", font_size=18),
                         button(on_click=game_settings_open)[
                             text("Change", color=BLUE),
@@ -216,7 +216,7 @@ def game_setup_ui(props):
                     text('This is where the new game folder will be created', font_size=14),
                     div(background_color="111111", border_radius=4, flex_direction="row")[
                         text(props["target_dir"], font_family="consolas", color="CCCCCC", padding=16),
-                        button()[icon("copy", color="CCCCCC")]
+                        button(padding=8)[icon("copy", color="CCCCCC")]
                     ],
                     div(border_width=1, padding=8, background_color="222222")[
                         folder_row(props["target_dir_shorthand"], False),

@@ -32,11 +32,22 @@ def use_scroll_tick():
         "shush_stop":  ("", lambda: None),
     }
 
+look_down = False
+
+def toggle_look_down():
+    global look_down
+    look_down = not look_down
+    if look_down:
+        actions.user.game_mouse_move_deg_down_45()
+    else:
+        actions.user.game_mouse_move_reset_center_y()
+
+
 default_config = {
     "eh":         ("forward", actions.user.game_wasd_hold_w),
     "guh":        ("back", actions.user.game_wasd_hold_s),
-    "ah":         ("left", actions.user.game_wasd_hold_a_curved),
-    "oh":         ("right", actions.user.game_wasd_hold_d_curved),
+    "ah":         ("left", actions.user.game_mouse_move_continuous_left_5),
+    "oh":         ("right", actions.user.game_mouse_move_continuous_right_5),
     "ee":         ("stop", actions.user.game_stopper),
     "hiss":       ("turn left", actions.user.game_mouse_move_continuous_left_10),
     "hiss_stop":  ("", actions.user.game_mouse_move_continuous_stop),
@@ -44,12 +55,13 @@ default_config = {
     "shush_stop": ("", actions.user.game_mouse_move_continuous_stop),
     "-":          ("-"),
     "nn":         ("E", lambda: actions.user.game_key("e")),
-    "palate":     ("space", lambda: actions.user.game_key("space")),
+    # "palate":     ("toggle look down", lambda: actions.user.game_key("space")),
+    "palate":     ("toggle look down", toggle_look_down),
     "pop":        ("L click", actions.user.game_mouse_click_left),
     "cluck":      ("R click", actions.user.game_mouse_click_right),
     "t":          ("shift", lambda: actions.user.game_key("shift")),
     "-":          ("-"),
-    "tut":        ("reset y", actions.user.game_mouse_move_reset_center_y),
+    "tut tut":    ("reset y", actions.user.game_mouse_move_reset_center_y),
     "tut tut":    ("look mode", enter_look_mode),
     "tut hiss":   ("look down", lambda: (
         actions.user.game_mouse_move_deg_down_15(),

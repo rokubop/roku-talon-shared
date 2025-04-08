@@ -314,3 +314,16 @@ def parrot_config_set_mode(mode: str):
         cron.after("30ms", lambda: parrot_config_saved.setup_mode(mode))
     else:
         raise ValueError(f"Mode '{mode}' not found in parrot_config")
+
+def parrot_config_cycle_mode() -> str:
+    config = actions.user.parrot_config()
+    modes = list(config.keys())
+    current_mode = parrot_config_get_mode()
+    if current_mode in modes:
+        current_index = modes.index(current_mode)
+        next_index = (current_index + 1) % len(modes)
+        next_mode = modes[next_index]
+        parrot_config_set_mode(next_mode)
+        return next_mode
+    else:
+        raise ValueError(f"Mode '{current_mode}' not found in parrot_config")

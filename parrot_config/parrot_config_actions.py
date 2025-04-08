@@ -1,5 +1,6 @@
 from talon import Module
 from .parrot_config import (
+    parrot_config_cycle_mode,
     parrot_config_get_mode,
     parrot_config_set_mode,
     parrot_config_noise,
@@ -26,9 +27,7 @@ class Actions:
 
     def parrot_config():
         """
-        Return the parrot configuration for the current context
-        Default should be `{}`. Override this in your
-        preferred contexts.
+        Define your parrot config in a ctx here.
 
         Example:
         ```py
@@ -37,6 +36,19 @@ class Actions:
             "hiss":      ("hiss", lambda: actions.scroll(1)),
             "hiss_stop": ("hiss", lambda: actions.scroll(-1)),
         }
+
+        # or
+        parrot_config = {
+            "default": {
+                "pop":       ("pop", lambda: actions.mouse_click(0)),
+                "hiss":      ("hiss", lambda: actions.scroll(1)),
+                ...
+            },
+            "other_mode": {
+                "pop":       ("pop", lambda: actions.mouse_click(0)),
+                "hiss":      ("hiss", lambda: actions.scroll(1)),
+                ...
+            },
 
         @ctx.action_class("user")
         class user_actions:
@@ -52,10 +64,6 @@ class Actions:
         "noise:th"      - default throttle
         "noise:db_100"  - debounce of 100ms (triggered after 100ms of continuous noise)
         "noise:db"      - default debounce
-        "noise@left"    - action at the left side of the screen
-        "noise@right"   - action at the right side of the screen
-        "noise@up"      - action at the top side of the screen
-        "noise@down"    - action at the bottom side of the screen
         ```
         """
         return {}
@@ -79,6 +87,24 @@ class Actions:
         ```
         """
         parrot_config_set_mode(mode)
+
+    def parrot_config_cycle_mode() -> str:
+        """
+        Cycle to the next mode. Only works if you have defined
+        multiple modes in your `parrot_config`. Also returns the
+        string value of the next mode.
+
+        ```
+        parrot_config = {
+            "default": parrot_config_default,
+            "other": {
+                **parrot_config_default,
+                **parrot_config_other,
+            }
+        }
+        ```
+        """
+        parrot_config_cycle_mode()
 
     def parrot_config_get_mode() -> str:
         """

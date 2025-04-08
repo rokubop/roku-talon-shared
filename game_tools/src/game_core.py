@@ -20,6 +20,7 @@ _curve_type = "inward"
 _curve_speed = None
 _held_keys = set()
 _held_mouse_buttons = set()
+_immune_stop_keys = set()
 _key_up_pending_jobs = {}
 _camera_speed = None
 _camera_snap_angle = None
@@ -251,7 +252,6 @@ def stopper():
         if _held_mouse_buttons:
             mouse_release_all()
         return
-
     curve_dir_stop()
     if _move_dir:
         move_dir_stop()
@@ -261,7 +261,8 @@ def stopper():
         mouse_release_all()
     if _held_keys:
         for key in list(_held_keys):
-            game_key_release(key)
+            if key not in _immune_stop_keys:
+                game_key_release(key)
 
 def mouse_reset_center_y():
     """Reset the mouse to the center of the screen."""
@@ -310,13 +311,17 @@ def game_calibrate_90_y(dy_90: int):
 
 def game_key_release(key):
     global _key_up_pending_jobs
-    actions.key(f"{key}:up")
-    event_on_key.fire_release(key)
+    # actions.key(f"{key}:up")
+    # event_on_key.fire_release(key)
     if _key_up_pending_jobs.get(key):
         cron.cancel(_key_up_pending_jobs[key])
         _key_up_pending_jobs[key] = None
     if key in _held_keys:
+        actions.key(f"{key}:up")
+        event_on_key.fire_release(key)
         _held_keys.remove(key)
+    if key in _immune_stop_keys:
+        _immune_stop_keys.remove(key)
 
 def game_key_down(key: str):
     """Hold a key down"""
@@ -334,9 +339,12 @@ def game_key(key: str):
     if key in _held_keys:
         _held_keys.remove(key)
 
-def game_key_hold(key: str, hold: int = None, retrigger: bool = True):
+def game_key_hold(key: str, hold: int = None, retrigger: bool = True, release_on_stop: bool = True):
     """Hold a game key"""
     global _key_up_pending_jobs
+    if release_on_stop == False:
+        _immune_stop_keys.add(key)
+
     if not hold:
         game_key_down(key)
         return

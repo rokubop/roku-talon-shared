@@ -33,14 +33,50 @@ parrot_config = {
     "tut ah":      ("turn left", actions.user.game_mouse_move_deg_left_90),
     "tut oh":      ("turn right", actions.user.game_mouse_move_deg_right_90),
     "tut guh":     ("turn around", actions.user.game_mouse_move_deg_180),
-    "cluck@left":  ("left", lambda: actions.user.game_key("a")), # WIP
-    "cluck@right": ("right", lambda: actions.user.game_key("d")), # WIP
 }
 
 @ctx.action_class("user")
 class Actions:
     def parrot_config():
         return parrot_config
+```
+
+## Define different modes:
+```py
+default_config = {
+    "pop":         ("use", lambda: actions.user.game_key("e")),
+    "cluck":       ("attack", lambda: actions.mouse_click(0)),
+    "cluck cluck": ("hard attack", lambda: actions.mouse_click(1)),
+    "cluck pop":   ("special", lambda: actions.mouse_click(2)),
+    "hiss:db_100": ("jump", lambda: actions.user.game_key("space")),
+    "hiss:stop":   ("", lambda: None),
+    "shush:th_100":("crouch", lambda: actions.user.game_key("c")),
+}
+move_config = {
+    **default_config,
+    "pop":         ("left", lambda: actions.user.go_left()),
+    "cluck":     ("right", lambda: actions.user.go_right()),
+}
+combat_config = {
+    **default_config,
+    "cluck":       ("attack", lambda: actions.mouse_click(0)),
+    "cluck cluck": ("hard attack", lambda: actions.mouse_click(1)),
+}
+parrot_config = {
+    "default": default_config,
+    "move": move_config,
+    "combat": combat_config,
+}
+
+@ctx.action_class("user")
+class Actions:
+    def parrot_config():
+        return parrot_config
+
+# Actions
+actions.user.parrot_config_set_mode("default")
+actions.user.parrot_config_cycle_mode()
+actions.user.parrot_config_get_mode()
 ```
 
 ## Throttling
@@ -61,7 +97,7 @@ Debouncing at the stop of a command basically just means the stop will be delaye
 ```
 
 ## Switching config dynamically
-If you want to swap out the parrot config, you can override the variable, and it will automatically update.
+If you don't want to use modes, you can also swap out the parrot config on the fly, and it will automatically update.
 
 ```py
 parrot_config = default_config
@@ -86,24 +122,6 @@ class Actions:
 | `"pop:th"` | Default throttle for the pop command. |
 | `"hiss:db_100"` | Debounces the hiss command to only trigger after 100ms of continuous popping. |
 | `"hiss:db"` | Default debounce for the hiss command. |
-
-## WIP:
-| Definition | Description |
-|------------|-------------|
-| `"pop@left"` | Triggers when you pop on the left side of the screen. |
-| `"pop@right"` | Triggers when you pop on the right side of the screen. |
-| `"pop@up"` | Triggers when you pop on the top side of the screen. |
-| `"pop@down"` | Triggers when you pop on the bottom side of the screen. |
-| `"hiss:db@left"` | Debounces the hiss command to only trigger after 100ms of continuous popping on the left side of the screen. |
-
-## Actions
-| Action | Description |
-| --- | --- |
-| `parrot_config` | Return the parrot configuration for the current context. Default should be `{}`. Override this in your preferred contexts. |
-| `parrot_config_noise` | parrot noises should call this in order to use current `parrot_config` e.g. `parrot(pop): user.parrot_config_noise("pop")` |
-| `parrot_config_format_display` | Format the parrot config in a convenient tuple format for displaying in a UI. |
-| `parrot_config_event_register` | Register noise event triggered from parrot_config. |
-| `parrot_config_event_unregister` | Unregister event set by actions.user.parrot_config_event_register |
 
 ## Dependencies
 none

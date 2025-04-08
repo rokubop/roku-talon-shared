@@ -1,7 +1,8 @@
-from talon import Module, Context, actions, cron
+from talon import Module, Context, actions, cron, ctrl
 from .ui.celeste_ui import show_ui, hide_ui
 from .ui.components.history_log import append_history_log
 import time
+from pynput import keyboard
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 mod.apps.celeste = "os: windows\nand app.exe: /Celeste.exe/i"
@@ -151,17 +152,6 @@ move_config = {
     "cluck":      ("escape", lambda: actions.user.game_key("escape")),
 }
 
-pedal_left_up_job = None
-pedal_center_up_job = None
-pedal_right_up_job = None
-last_down_time = 0
-pedal_left_held = False
-pedal_left_disabled_job = None
-
-def reenable_pedal_left():
-    global pedal_left_disabled_job
-    pedal_left_disabled_job = None
-
 def stop_move_mode():
     global pedal_center_up_job
     pedal_center_up_job = None
@@ -169,118 +159,54 @@ def stop_move_mode():
     actions.user.ui_elements_unhighlight("foot_center")
     actions.user.ui_elements_set_state("side_b", False)
 
-def pedal_left_up_released():
-    global pedal_left_up_job, pedal_left_held, pedal_left_disabled_job
-    print("actually release pedal_left_up ", time.perf_counter())
-    pedal_left_up_job = None
-    pedal_left_held = False
-    pedal_left_disabled_job = cron.after("50ms", reenable_pedal_left)
-    print("REAL KEY RELEASE")
-    actions.key("z:up")
-    # actions.user.game_key_release("z")
-    actions.user.ui_elements_set_state("grab", False)
-    actions.user.ui_elements_unhighlight("foot_left")
-
-def pedal_right_up_released():
-    global pedal_right_up_job
-    pedal_right_up_job = None
-    actions.user.game_key_release("p")
-    actions.user.ui_elements_set_state("hold_jump", False)
-    actions.user.ui_elements_unhighlight("foot_right")
-
 @ctx_game.action_class("user")
 class Actions:
     def on_game_mode_enabled():
         # actions.user.ui_elements_set_state("parrot_config", parrot_config)
         show_ui()
+        actions.user.pynput_pedal_enable()
 
     def on_game_mode_disabled():
         hide_ui()
+        actions.user.pynput_pedal_disable()
 
     def parrot_config():
         return parrot_config
 
-    def pedal_left_down():
-        global pedal_left_up_job, last_down_time, pedal_left_held, pedal_left_disabled_job
-        if pedal_left_disabled_job:
-            return
-
-        last_down_time = time.perf_counter()
-        # print("pedal_left_down ", time.perf_counter())
-        # We manage highlighting and state here, but not the action.
-        # Action mananged by third party app because of Talon bug
-        # which retriggers pedals while issuing other commands.
-        # This is mapped to "z" for grab
-
-
-        if pedal_left_up_job:
-            cron.cancel(pedal_left_up_job)
-
-        if pedal_left_held:
-            return
-            # do nothing - already running
-        # else:
-        print("actually hold pedal_left_down ", time.perf_counter())
-        pedal_left_held = True
-
-        pedal_left_disabled_job = cron.after("50ms", reenable_pedal_left)
-        print("REAL KEY DOWN")
-        actions.key("z:down")
-        # actions.user.game_key_hold("z")
+    def pynput_pedal_left_down():
+        actions.user.game_key_hold("z", release_on_stop=False)
         append_history_log("pedal 1", "grab")
         actions.user.ui_elements_set_state("grab", True)
         actions.user.ui_elements_highlight("foot_left")
 
-    def pedal_left_up():
-        # print("pedal_left_up ", time.perf_counter())
-        global pedal_left_up_job, last_down_time, pedal_left_held, pedal_left_disabled_job
-        if pedal_left_disabled_job:
-            return
+    def pynput_pedal_left_up():
+        actions.user.game_key_release("z")
+        actions.user.ui_elements_set_state("grab", False)
+        actions.user.ui_elements_unhighlight("foot_left")
 
-        now = time.perf_counter()
-        if now - last_down_time < 0.05:
-            # print("NOPE")
-            if pedal_left_up_job:
-                cron.cancel(pedal_left_up_job)
-            return
-        # else:
-            # print("YEP ", now - last_down_time)
+    def pynput_pedal_middle_down():
+        use_move_mode()
+        append_history_log("pedal 2", "side b")
+        actions.user.ui_elements_set_state("side_b", True)
+        actions.user.ui_elements_highlight("foot_center")
 
-        if pedal_left_up_job:
-            cron.cancel(pedal_left_up_job)
+    def pynput_pedal_middle_up():
+        stop_move_mode()
 
-        print("await release... ", time.perf_counter())
+    def pynput_pedal_right_down():
+        actions.user.game_key_hold("p", release_on_stop=False)
+        append_history_log("pedal 3", "jump 3")
+        actions.user.ui_elements_set_state("hold_jump", True)
+        actions.user.ui_elements_highlight("foot_right")
 
-        pedal_left_up_job = cron.after("100ms", pedal_left_up_released)
+    def pynput_pedal_right_up():
+        actions.user.game_key_release("p")
+        actions.user.ui_elements_set_state("hold_jump", False)
+        actions.user.ui_elements_unhighlight("foot_right")
 
-        # pedal_left_up_released()
-
-
-    def pedal_center_down():
-        if pedal_center_up_job:
-            cron.cancel(pedal_center_up_job)
-            # do nothing - already running
-        else:
-            use_move_mode()
-            append_history_log("pedal 2", "side b")
-            actions.user.ui_elements_set_state("side_b", True)
-            actions.user.ui_elements_highlight("foot_center")
-
-    def pedal_center_up():
-        global pedal_center_up_job
-        pedal_center_up_job = cron.after("20ms", stop_move_mode)
-
-    def pedal_right_down():
-        if pedal_right_up_job:
-            cron.cancel(pedal_right_up_job)
-            # do nothing - already running
-        else:
-            actions.key("p:down")
-            # actions.user.game_key_hold("p")
-            append_history_log("pedal 3", "jump 3")
-            actions.user.ui_elements_set_state("hold_jump", True)
-            actions.user.ui_elements_highlight("foot_right")
-
-    def pedal_right_up():
-        global pedal_right_up_job
-        pedal_right_up_job = cron.after("20ms", pedal_right_up_released)
+    def pedal_left_down(): actions.skip()
+    def pedal_left_up(): actions.skip()
+    def pedal_center_down(): actions.skip()
+    def pedal_center_up(): actions.skip()
+    def pedal_right_down(): actions.skip()
+    def pedal_right_up(): actions.skip()

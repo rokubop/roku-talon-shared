@@ -11,19 +11,19 @@ Usage: `python ./scripts/manifest_builder.py`
 """
 
 CREATE_MANIFEST_DIRS = [
-    '../drag_mode',
-    '../dynamic_noises',
-    '../face_tester',
-    '../game_tools',
-    '../mouse_move_adv',
-    '../parrot_config',
-    '../vgamepad',
-    '../roku_games/celeste',
-    '../roku_games/hi_fi_rush',
-    '../roku_games/rdr2',
-    '../roku_games/sheepy',
-    '../roku_games/stray',
-    '../roku_games/talos_2',
+    # 'drag_mode',
+    # 'dynamic_noises',
+    # 'face_tester',
+    # 'game_tools',
+    # 'mouse_move_adv',
+    # 'parrot_config',
+    # 'vgamepad',
+    # 'roku_games/celeste',
+    # 'roku_games/hi_fi_rush',
+    # 'roku_games/rdr2',
+    # 'roku_games/sheepy',
+    # 'roku_games/stray',
+    # 'roku_games/talos_2',
     '../../talon-ui-elements'
 ]
 
@@ -86,7 +86,7 @@ class EntityVisitor(ParentNodeVisitor):
                         if dec.func.attr == 'action_class':
                             if isinstance(dec.args[0], ast.Constant):
                                 # @ctx.action_class("context")
-                                context = dec.args[0].s
+                                context = dec.args[0].value
                                 full_action_name = f"{context}.{node.name}"
                                 if full_action_name not in self.all_entities.depends.actions:
                                     self.all_entities.depends.actions.add(full_action_name)
@@ -101,7 +101,7 @@ class EntityVisitor(ParentNodeVisitor):
                 if isinstance(dec, ast.Call) and isinstance(dec.func, ast.Attribute):
                     if dec.func.attr == 'action' and isinstance(dec.args[0], ast.Constant):
                         # Assume full action name is already provided in the decorator
-                        full_action_name = dec.args[0].s
+                        full_action_name = dec.args[0].value
                         if full_action_name not in self.all_entities.contributes.actions:
                             self.all_entities.contributes.actions.add(full_action_name)
 
@@ -128,14 +128,14 @@ class EntityVisitor(ParentNodeVisitor):
                     if isinstance(value, ast.List):
                         for elt in value.elts:
                             if isinstance(elt, ast.Constant):
-                                self.all_entities.depends.tags.add(elt.s)
+                                self.all_entities.depends.tags.add(elt.value)
 
             if isinstance(node.targets[0], ast.Attribute) and node.targets[0].attr == 'matches':
                 if isinstance(node.value, ast.Constant):
-                    full_string = node.value.s
+                    full_string = node.value.value
                 elif isinstance(node.value, ast.JoinedStr):
                     full_string = "".join(
-                        value.s if isinstance(value, ast.Constant) else "" for value in node.value.values
+                        value.value if isinstance(value, ast.Constant) else "" for value in node.value.values
                     )
                 else:
                     full_string = ""
@@ -163,13 +163,13 @@ class EntityVisitor(ParentNodeVisitor):
 
                     # Handle positional arguments
                     if node.args and isinstance(node.args[0], ast.Constant):
-                        entity_name = node.args[0].s
+                        entity_name = node.args[0].value
 
                     # Handle keyword arguments
                     if not entity_name and node.keywords:
                         for kw in node.keywords:
                             if kw.arg == "name" and isinstance(kw.value, ast.Constant):
-                                entity_name = kw.value.s
+                                entity_name = kw.value.value
 
                     if entity_name and func_attr in MOD_ATTR_CALLS:
                         attr_name = func_attr + 's'
@@ -187,7 +187,7 @@ class EntityVisitor(ParentNodeVisitor):
             if isinstance(node.func, ast.Attribute) and node.func.attr == 'get' and isinstance(node.func.value, ast.Name) and node.func.value.id == 'settings':
                 arg = node.args[0]
                 if isinstance(arg, ast.Constant):
-                    entity_name = arg.s
+                    entity_name = arg.value
                     if entity_name not in self.all_entities.depends.settings:
                         self.all_entities.depends.settings.add(entity_name)
 

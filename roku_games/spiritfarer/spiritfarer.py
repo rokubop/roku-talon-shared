@@ -23,7 +23,7 @@ default_config = {
     "pop":        ("1", lambda: actions.user.game_key("1")),
     "t":          ("2", lambda: actions.user.game_key("2")),
     "mm":         ("e", lambda: actions.user.game_key("e")),
-    "palate_click": ("tab", lambda: actions.user.game_key("tab")),
+    "palate":     ("tab", lambda: actions.user.game_key("tab")),
     "er":         ("r", lambda: actions.user.game_key("r")),
     "cluck":      ("mode cycle", mode_cycle),
     "tut":        ("escape", lambda: actions.user.game_key("escape")),

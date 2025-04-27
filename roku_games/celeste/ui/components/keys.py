@@ -18,12 +18,24 @@ def key(key_name, text_content):
     if isinstance(text_content, list):
         return div(key_style, flex_direction="column", id=key_name, gap=8)[
             text(text_content[0]),
+            # text(text_content[0], font_family="roboto"),
             text(text_content[1], font_size=12)
         ]
 
     return div(key_style, id=key_name)[
         text(text_content)
     ]
+    # return div(key_style, id=key_name)[
+    #     text(text_content, font_family="roboto")
+    # ]
+
+def key_svg(key_name, icon_name):
+    div, icon = actions.user.ui_elements(["div", "icon"])
+
+    return div(key_style, id=key_name)[
+        icon(icon_name, stroke_width=2, size=30, stroke_linecap="butt")
+    ]
+
 
 def blank_key():
     div = actions.user.ui_elements(["div"])
@@ -43,6 +55,14 @@ def keys():
                     key("left", "←"), key("down", "↓"), key("right", "→")
                 ]
             ],
+            # div(flex_direction="column")[
+            #     div(flex_direction="row")[
+            #         blank_key(), key_svg("up", "arrow_up"), blank_key()
+            #     ],
+            #     div(flex_direction="row")[
+            #         key_svg("left", "arrow_left"), key_svg("down", "arrow_down"), key_svg("right", "arrow_right")
+            #     ]
+            # ],
             div()[
                 div(flex_direction="row")[
                     key("c", "jump"),

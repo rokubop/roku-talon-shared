@@ -28,6 +28,14 @@ def current_noise():
         ]
     ]
 
+    # return active_window()[
+    #     # div(padding=40, margin_top=120, margin_left=25)[
+    #     div(padding=40, margin_top=120, margin_left=40)[
+    #         text("", id="noise", font_size=80, color="FFFFFF", font_family="renogare"),
+    #         text("", id="command", font_size=35, margin_top=16, color="FFFFFF", font_family="renogare"),
+    #     ]
+    # ]
+
 def show_current_noise():
     actions.user.ui_elements_show(current_noise)
     actions.user.parrot_config_event_register(on_noise)

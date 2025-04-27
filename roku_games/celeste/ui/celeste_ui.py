@@ -3,6 +3,7 @@ from .components.current_noise import show_current_noise, hide_current_noise
 from .components.commands import show_commands, hide_commands
 from .components.history_log import show_history_log, hide_history_log
 
+
 def show_ui():
     # show_commands()
     show_keys()

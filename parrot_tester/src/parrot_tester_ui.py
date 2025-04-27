@@ -503,7 +503,7 @@ def log():
 
 
 
-def timeline():
+def Timeline():
     div, state, effect = actions.user.ui_elements(["div", "state", "effect"])
 
     effect(init_graph, [])
@@ -704,19 +704,20 @@ def header():
     ]
 
 def parrot_tester_ui_2(props):
-    div, text, screen, icon, button, input_text = actions.user.ui_elements(["div", "text", "screen", "icon", "button", "input_text"])
+    div, text, screen, window = actions.user.ui_elements(["div", "text", "screen", "window"])
 
     return screen(justify_content="center", align_items="center")[
-        div(draggable=True, background_color="222222", border_radius=8, border_width=1)[
+        window(id="parrot_tester", title="Parrot Tester", on_close=parrot_tester_disable, on_minimize=parrot_tester_disable)[
+        # div(draggable=True, background_color="222222", border_radius=8, border_width=1)[
             # div(flex_direction='row')[
                 # sidebar(),
-            header(),
+            # header(),
             div(flex_direction='column', width="100%", gap=16, padding=16)[
                 # controls(),
                 filters(),
                 noises_ui(),
                 # log(),
-                timeline(),
+                Timeline,
                 # nav(),
                 controls(),
             ]
@@ -769,12 +770,17 @@ def graph(props):
         ]
     ]
 
+
+
 def init_graph():
     timeline_node = actions.user.ui_elements_get_node("timeline")
     rect = timeline_node.box_model.padding_rect
-    actions.user.ui_elements_show(graph, props={
-        "rect": rect,
-    })
+    actions.user.ui_elements_show(
+        graph,
+        props={
+            "rect": rect,
+        }
+    )
 
 def listen():
     ctx.tags = ["user.parrot_tester"]

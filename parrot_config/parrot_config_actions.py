@@ -104,7 +104,7 @@ class Actions:
         }
         ```
         """
-        parrot_config_cycle_mode()
+        return parrot_config_cycle_mode()
 
     def parrot_config_get_mode() -> str:
         """

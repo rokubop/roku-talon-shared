@@ -36,7 +36,7 @@ def mod(color):
     svg, rect = actions.user.ui_elements_svg(["svg", "rect"])
 
     return svg(size=12)[
-        rect(x=0, y=0, width=10, height=24, fill=color),
+        rect(x=0, y=0, width=8, height=24, fill=color),
     ]
 
 def grab_mod():
@@ -135,7 +135,7 @@ def history_log():
     history_list_state = state.get("history_list", [])
 
     return screen(flex_direction="row", align_items="flex_start", justify_content="flex_end")[
-        div(margin_left=48, padding=16, margin_top=400, height=450, margin_right=50, background_color="000000BB")[
+        div(margin_left=24, padding=16, margin_top=400, height=450, margin_right=30, background_color="00000099")[
             div(gap=8)[
                 *[history_item(data) for data in history_list_state]
             ],

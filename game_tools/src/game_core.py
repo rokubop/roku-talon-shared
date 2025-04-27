@@ -313,15 +313,18 @@ def game_key_release(key):
     global _key_up_pending_jobs
     # actions.key(f"{key}:up")
     # event_on_key.fire_release(key)
-    if _key_up_pending_jobs.get(key):
-        cron.cancel(_key_up_pending_jobs[key])
-        _key_up_pending_jobs[key] = None
-    if key in _held_keys:
-        actions.key(f"{key}:up")
-        event_on_key.fire_release(key)
-        _held_keys.remove(key)
-    if key in _immune_stop_keys:
-        _immune_stop_keys.remove(key)
+    try:
+        if _key_up_pending_jobs.get(key):
+            cron.cancel(_key_up_pending_jobs[key])
+            _key_up_pending_jobs[key] = None
+        if key in _held_keys:
+            actions.key(f"{key}:up")
+            event_on_key.fire_release(key)
+            _held_keys.remove(key)
+        if key in _immune_stop_keys:
+            _immune_stop_keys.remove(key)
+    except Exception as e:
+        pass
 
 def game_key_down(key: str):
     """Hold a key down"""

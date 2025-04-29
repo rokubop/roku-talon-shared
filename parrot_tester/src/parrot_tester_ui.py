@@ -6,6 +6,7 @@ import random
 import math
 import time
 from .utils import parrot_tester_initialize, restore_patterns
+from .parrot_tester_envisioned_ui import parrot_tester_new_ui
 
 pp = pprint.PrettyPrinter()
 
@@ -878,11 +879,11 @@ def parrot_tester_toggle():
     """Toggle parrot tester"""
     global start_time
 
-    if actions.user.ui_elements_is_active(parrot_tester_ui_2):
+    if actions.user.ui_elements_is_active(parrot_tester_new_ui):
         parrot_tester_disable()
     else:
         parrot_tester_initialize()
-        actions.user.ui_elements_show(parrot_tester_ui_2, initial_state={
+        actions.user.ui_elements_show(parrot_tester_new_ui, initial_state={
             "noises": init_parrot_noises_state(),
             "log": [],
         })

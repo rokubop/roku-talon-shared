@@ -117,7 +117,7 @@ def parrot_tester_wrap_parrot_integration(parrot_delegate, file: str):
         with open(file, "r", encoding="utf-8") as f:
             print("Wrapping pattern_integration.py")
             original_pattern_match = parrot_delegate.pattern_match
-            parrot_delegate.pattern_match = wrap_pattern_match(parrot_delegate.pattern_match)
+            # parrot_delegate.pattern_match = wrap_pattern_match(parrot_delegate.pattern_match)
             parrot_delegate.set_patterns(json.load(f))
 
 def parrot_tester_restore_parrot_integration(parrot_delegate, original_file: str):

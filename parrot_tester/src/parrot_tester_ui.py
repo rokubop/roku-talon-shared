@@ -703,6 +703,41 @@ def header():
         ]
     ]
 
+def tabs():
+    div, text, icon, button, state = actions.user.ui_elements(["div", "text", "icon", "button", "state"])
+
+    tab, set_tab = state.use("tab", "activity")
+
+    def tab_button(name):
+        return button(
+            on_click=lambda e: set_tab(name),
+            padding=8,
+            border_radius=4,
+            border_color="333333",
+            border_width=1,
+            background_color="161616" if tab == name else "212141",
+            flex_direction="row",
+            gap=8,
+        )[
+            text(name.capitalize()),
+        ]
+
+    return div(flex_direction='row', justify_content="space_between")[
+        tab_button("activity"),
+        tab_button("log"),
+        tab_button("timeline"),
+        tab_button("stats"),
+        tab_button("patterns"),
+    ]
+
+def body():
+    div, text, icon, button, state = actions.user.ui_elements(["div", "text", "icon", "button", "state"])
+    tab = state.get("tab", "activity")
+    return div(flex_direction='row', justify_content="space_between")[
+        text("Hello"),
+        text(f"Current Tab: {tab}"),
+    ]
+
 def parrot_tester_ui_2(props):
     div, text, screen, window = actions.user.ui_elements(["div", "text", "screen", "window"])
 
@@ -713,16 +748,40 @@ def parrot_tester_ui_2(props):
                 # sidebar(),
             # header(),
             div(flex_direction='column', width="100%", gap=16, padding=16)[
+                play_button(),
+                tabs(),
+                body(),
                 # controls(),
-                filters(),
-                noises_ui(),
-                # log(),
-                Timeline,
-                # nav(),
-                controls(),
+                # filters(),
+                # noises_ui(),
+                # # log(),
+                # Timeline,
+                # # nav(),
+                # controls(),
             ]
         ]
     ]
+
+# def parrot_tester_ui_2(props):
+#     div, text, screen, window = actions.user.ui_elements(["div", "text", "screen", "window"])
+
+#     return screen(justify_content="center", align_items="center")[
+#         window(id="parrot_tester", title="Parrot Tester", on_close=parrot_tester_disable, on_minimize=parrot_tester_disable)[
+#         # div(draggable=True, background_color="222222", border_radius=8, border_width=1)[
+#             # div(flex_direction='row')[
+#                 # sidebar(),
+#             # header(),
+#             div(flex_direction='column', width="100%", gap=16, padding=16)[
+#                 # controls(),
+#                 filters(),
+#                 noises_ui(),
+#                 # log(),
+#                 Timeline,
+#                 # nav(),
+#                 controls(),
+#             ]
+#         ]
+#     ]
 
 def log_to_vertical_lines(log, noises):
     max_power = 40

@@ -18,15 +18,27 @@ def on_noise(noise, command_name):
             cron.cancel(live_keys_timeout)
         live_keys_timeout = cron.after("2s", reset_live_keys)
 
-def current_noise():
-    active_window, div, text = actions.user.ui_elements(["active_window", "div", "text"])
+def on_mount():
+    actions.user.parrot_config_event_register(on_noise)
 
-    return active_window()[
-        div(padding=40, margin_top=120, margin_left=25)[
-            text("", id="noise", font_size=100, font_weight="bold", color="FFFFFF"),
-            text("", id="command", font_size=50, margin_top=30, color="FFFFFF"),
-        ]
+def on_unmount():
+    actions.user.parrot_config_event_unregister(on_noise)
+
+def current_noise(**props):
+    div, text, effect = actions.user.ui_elements(["div", "text", "effect"])
+
+    effect(on_mount, on_unmount, [])
+
+    return div(gap=8, padding_left=12, **props)[
+        # text("Noise - command", font_size=12),
+        text("", id="noise", font_size=40, font_family="renogare"),
+        text("", id="command", font_size=24, font_family="roboto"),
     ]
+
+    # return div(padding=40, **props)[
+    #     text("", id="noise", font_size=100, font_weight="bold", color="FFFFFF"),
+    #     text("", id="command", font_size=50, margin_top=30, color="FFFFFF"),
+    # ]
 
     # return active_window()[
     #     # div(padding=40, margin_top=120, margin_left=25)[
@@ -36,10 +48,10 @@ def current_noise():
     #     ]
     # ]
 
-def show_current_noise():
-    actions.user.ui_elements_show(current_noise)
-    actions.user.parrot_config_event_register(on_noise)
+# def show_current_noise():
+#     actions.user.ui_elements_show(current_noise)
+#     actions.user.parrot_config_event_register(on_noise)
 
-def hide_current_noise():
-    actions.user.parrot_config_event_unregister(on_noise)
-    actions.user.ui_elements_hide_all()
+# def hide_current_noise():
+#     actions.user.parrot_config_event_unregister(on_noise)
+#     actions.user.ui_elements_hide_all()

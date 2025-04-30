@@ -59,9 +59,45 @@ def build_relative_import_path(current_file: Path, target_file: Path) -> str:
 
     return f"{dot_prefix}.{target_module}"
 
-def wrap_pattern_match(pattern_match: callable):
+class Buffer:
+    def __init__(self, size: int = 30):
+        self.size = size
+        self.buffer = []
+        self.buffer_last = []
+
+    def add(self, item):
+        if len(self.buffer) > self.size:
+            self.buffer_last = self.buffer.copy()
+            self.buffer = []
+        self.buffer.append(item)
+
+    def get(self):
+        return self.buffer_last + self.buffer
+
+    def clear(self):
+        """Clear the buffer."""
+        self.buffer = []
+        self.buffer_last = []
+
+class Capture:
+    # there should be a timeout for what is considered a capture
+    # a capture contains all of the frames for our capture window
+    # a capture is a list of frames
+    # I will know the moment when a sound is active and I can initialize at that time
+    # look at the throttles for that sound. the capture should be at LEAST the time of the throttles
+    # in initialization, I will also check the buffer and prepend back a duration - maybe .5 seconds
+    # that duration is called the grace period I guess? or the grace window
+    # once initialization happens, how do I know when to stop capturing?
+    # well I know the noise, be I continue to monitor that noise?
+    def __init__(self, grace_period: float = 0.5, capture_window: float = 1.0):
+        self.grace_period = grace_period
+        self.active = False
+        self.frames = []
+        self.noises = []
+
+def wrap_pattern_match(parrot_delegate):
     def wrapper(frame: ParrotFrame):
-        print("items", frame.classes.items())
+        # print("items", frame.classes.items())
         # winner_label, winner_prob = next(iter(frame.classes.items()))
         # print('parrot', f"predict {winner_label} {winner_prob * 100:.2f}% pow={frame.power:.2f} f0={frame.f0:.3f} f1={frame.f1:.3f} f2={frame.f2:.3f}")
 
@@ -90,19 +126,154 @@ def wrap_pattern_match(pattern_match: callable):
 # items dict_items([('tut', 0.8555885940703041), ('guh', 0.07996410786787657), ('Background', 0.04453293180067547), ('Palate', 0.007079732757478463), ('pop', 0.0022950475689680616), ('cough', 0.0022488514905528874), ('eh', 0.002032040319083517), ('ss', 0.0017285250031749925), ('t', 0.0016742530187425116), ('ah', 0.0011400484870219333), ('sh', 0.0010288282464989626), ('nn', 0.0003237136536664169), ('yi', 0.00012535403788526157), ('ay', 6.596237818737149e-05), ('Alveolar click', 6.0913143656876526e-05), ('oo', 5.6586323302112326e-05), ('oh', 5.436449029648777e-05), ('er', 1.4534262802358707e-07)])
 # items dict_items([('cough', 0.45614683174678694), ('tut', 0.3
 
-        active =  pattern_match(frame)
-        if active:
-            print("----------------------")
-            # print(f"{len(active)} active patterns")
-            # print("active", active)
-            top_classes = sorted(frame.classes.items(), key=lambda item: item[1], reverse=True)
-            print('parrot', f"top classes: {[(k, round(v*100, 2)) for k, v in top_classes[:3]]} pow={frame.power:.2f}")
+        active: set[str] = set()
+        for pattern in parrot_delegate.patterns.values():
+            if pattern.name == "pop":
+                # pattern.get_throttles() {'pop': 0.15, 'ah': 0.1, 'eh': 0.15, 'oh': 0.1, 'oo': 0.15, 'guh': 0.15}
+                # 1 ------------------ 1428105.1104308001 ----------------
+                # OUT pattern.is_active(frame.ts) True
+                # OUT frame.power 14.375865417734762
+                # OUT frame.ts 1428105.1104308001
+                # OUT top 3 frame.classes.items() [('cough', 0.9553141169423712), ('oh', 0.027970081532787294), ('guh', 0.013876626098384887)]
+                # OUT detect(frame) False
+                # OUT pattern.timestamps NoiseTimestamps(
+                    # last_detected_at=0.0,
+                    # duration_start=0.0,
+                    # detection_after=0.0,
+                    # graceperiod_until=0,
+                    # throttled_at=0.0,
+                    # throttled_until=0.0)
+                # 2 ------------------ 1428105.1284038 ----------------
+                # OUT pattern.is_active(frame.ts) True
+                # OUT frame.power 18.7176749139649
+                # OUT frame.ts 1428105.1284038
+                # OUT top 3 frame.classes.items() [('pop', 0.9999004155709847), ('oh', 9.204145298130013e-05), ('cough', 3.9758382584555595e-06)]
+                # OUT detect(frame) True
+                # OUT pattern.timestamps NoiseTimestamps(
+                    # last_detected_at=1428105.1284038,
+                    # duration_start=1428105.1284038,
+                    # detection_after=0.0,
+                    # graceperiod_until=1428105.1284038,
+                    # throttled_at=0.0,
+                    # throttled_until=0.0)
+                # 3 ------------------ 1428105.1464374 ----------------
+                # OUT pattern.is_active(frame.ts) False
+                # OUT frame.power 12.298429060623587
+                # OUT frame.ts 1428105.1464374
+                # OUT top 3 frame.classes.items() [('pop', 0.9999999104716559), ('Alveolar click', 6.046851758586652e-08), ('Palate', 2.050488837965456e-08)]
+                # OUT detect(frame) False
+                # OUT pattern.timestamps NoiseTimestamps(
+                    # last_detected_at=1428105.1284038,
+                    # duration_start=0,
+                    # detection_after=0.0,
+                    # graceperiod_until=0,
+                    # throttled_at=1428105.1284038,
+                    # throttled_until=1428105.2784038)
+                # 4 ------------------ 1428105.1464374 ----------------
+                # OUT pattern.is_active(frame.ts) False
+                # OUT frame.power 2.776240470933892
+                # OUT frame.ts 1428105.1464374
+                # OUT top 3 frame.classes.items() [('pop', 0.8089588437351394), ('ah', 0.12546019778082154), ('oo', 0.034558506357845624)]
+                # OUT detect(frame) False
+                # OUT pattern.timestamps NoiseTimestamps(
+                    # last_detected_at=1428105.1284038,
+                    # duration_start=0,
+                    # detection_after=0.0,
+                    # graceperiod_until=0,
+                    # throttled_at=1428105.1284038,
+                    # throttled_until=1428105.2784038)
+                print(f"------------------ {frame.ts} ----------------")
+                print("OUT pattern.is_active(frame.ts)", pattern.is_active(frame.ts))
+                # basically ALWAYS true - any noise has some power
+                print("OUT frame.power", frame.power)
+                print("OUT frame.ts", frame.ts)
+                print("OUT top 3 frame.classes.items()", sorted(frame.classes.items(), key=lambda x: x[1], reverse=True)[:3])
+                # OUT top 3 frame.classes.items() [
+                    # ('pop', 0.9999004155709847),
+                    # ('oh', 9.204145298130013e-05),
+                    # ('cough', 3.9758382584555595e-06)]
+            detect = pattern.detect(frame)
+            if pattern.name == "pop":
+                print("OUT detect(frame)", detect)
+                # OUT detect(frame) True
+                print("OUT pattern.timestamps", pattern.timestamps)
+                # OUT pattern.timestamps NoiseTimestamps(
+                    # last_detected_at=1428105.1284038,
+                    # duration_start=1428105.1284038,
+                    # detection_after=0.0,
+                    # graceperiod_until=1428105.1284038,
+                    # throttled_at=0.0,
+                    # throttled_until=0.0)
+            if detect and pattern.name == "pop":
+                print("parrot_delegate.patterns", parrot_delegate.patterns)
+                # parrot_delegate.patterns {'ah': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CB15B0D130>, 'cluck': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CB15B0D3B0>, 'ee': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CB15B0D6D0>, 'eh': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CB15B0D810>, 'er': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CB15B0DE50>, 'guh': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB605A2B0>, 'hiss': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB605A670>, 'nn': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB60596D0>, 'oh': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB60598B0>, 'palate_click': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB6059950>, 'pop': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB6059A90>, 'shush': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB6059B30>, 'tut': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB605B390>, 't': <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB6059DB0>}
+                print("parrot_delegate.last_frame_was_forwardpass", parrot_delegate.last_frame_was_forwardpass)
+                # parrot_delegate.last_frame_was_forwardpass True
+                print("parrot_delegate.classes", parrot_delegate.classes)
+                # parrot_delegate.classes {'nn', 'Background', 'cough', 'eh', 'yi', 't', 'oo', 'ss', 'pop', 'ah', 'ay', 'guh', 'tut', 'sh', 'er', 'Alveolar click', 'Palate', 'oh'}
+                print("parrot_delegate.raw_patterns", parrot_delegate.raw_patterns)
+                # parrot_delegate.raw_patterns [<user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CB15B0D130>, <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CB15B0D3B0>, <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CB15B0D6D0>, <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CB15B0D810>, <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CB15B0DE50>, <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB605A2B0>, <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB605A670>, <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB60596D0>, <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB60598B0>, <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB6059950>, <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB6059A90>, <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB6059B30>, <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB605B390>, <user.roku_parrot_model.parrot_integration.NoisePattern object at 0x000002CAB6059DB0>]
+                print("pattern.name", pattern.name)
+                # pattern.name pop
+                print("pattern.timestamps", pattern.timestamps)
+                # pattern.timestamps NoiseTimestamps(
+                    # last_detected_at=1426520.8396164002,
+                    # duration_start=1426520.8396164002,
+                    # detection_after=0.0,
+                    # graceperiod_until=1426520.8396164002,
+                    # throttled_at=0.0,
+                    # throttled_until=0.0)
+                print("pattern.labels", pattern.labels)
+                # pattern.labels frozenset({'pop'})
+                print("pattern.duration", pattern.duration)
+                # pattern.duration 0.0
+                print("pattern.detect(frame)", detect)
+                # pattern.detect(frame) True
+                print("pattern.is_active(frame.ts)", pattern.is_active(frame.ts))
+                # pattern.is_active(frame.ts) True
+                print("pattern.get_throttles()", pattern.get_throttles())
+                # pattern.get_throttles() {'pop': 0.15, 'ah': 0.1, 'eh': 0.15, 'oh': 0.1, 'oo': 0.15, 'guh': 0.15}
+                print("frame.ts", frame.ts)
+                # frame.ts 1426520.8396164002
+                print("frame.power", frame.power)
+                # frame.power 39.933950936818874
+                print("frame.f0", frame.f0)
+                # frame.f0 898.4927001837166
+                print("frame.f1", frame.f1)
+                # frame.f1 902.213422530152
+                print("frame.f2", frame.f2)
+                # frame.f2 1500.9914116803834
+                print("frame.classes.items()", frame.classes.items())
+                # frame.classes.items() dict_items([
+                    # ('pop', 0.9958910125246806),
+                    # ('Alveolar click', 0.0040627052015612935),
+                    # ('cough', 4.527995330714863e-05),
+                    # ('ah', 4.015631081593758e-07), ('Palate', 3.8920934214307495e-07), ('Background', 1.3384880086858307e-07), ('tut', 4.071646983046745e-08), ('oh', 3.5903728732795296e-08), ('guh', 1.0277698407137148e-09), ('oo', 3.5015050106608664e-11), ('eh', 7.918394017877206e-12), ('ay', 6.53537260488096e-12), ('t', 1.371437144253744e-12), ('ss', 3.665947940944725e-13), ('er', 2.0899067816113937e-14), ('sh', 2.454768423369115e-15), ('yi', 1.11281544871009e-15), ('nn', 1.020983630896868e-16)])
 
-            top = sorted(frame.classes.items(), key=lambda item: item[1], reverse=True)
-            if len(top) > 1:
-                first, second = top[0], top[1]
-                if second[1] > 0.6 * first[1]:  # tweak threshold as needed
-                    print(f"[SPY] Close call: {first[0]} ({first[1]:.2f}) vs {second[0]} ({second[1]:.2f})")
+            if detect:
+                active.add(pattern.name)
+                # print(f"active {pattern.name} {frame.ts} {frame.power:.2f} f0={frame.f0:.3f} f1={frame.f1:.3f} f2={frame.f2:.3f}")
+                throttles = pattern.get_throttles()
+                # print(f"throttles {throttles}")
+                parrot_delegate.throttle_patterns(throttles, frame.ts)
+
+        # if active:
+        #     # print("----------------------")
+        #     # print(f"{len(active)} active patterns")
+        #     # print("active", active)
+        #     top_classes = sorted(frame.classes.items(), key=lambda item: item[1], reverse=True)
+        #     # print('parrot', f"top classes: {[(k, round(v*100, 2)) for k, v in top_classes[:3]]} pow={frame.power:.2f}")
+        #     # for pattern in parrot_delegate.patterns.values():
+        #     #     if pattern.detect(frame):
+        #     #         pattern.get_throttles()
+        #     #         active.add(pattern.name)
+        #     #         parrot_delegate.throttle_patterns(pattern.get_throttles(), frame.ts)
+
+        #     top = sorted(frame.classes.items(), key=lambda item: item[1], reverse=True)
+        #     if len(top) > 1:
+        #         first, second = top[0], top[1]
+        #         if second[1] > 0.6 * first[1]:  # tweak threshold as needed
+        #             print(f"[SPY] Close call: {first[0]} ({first[1]:.2f}) vs {second[0]} ({second[1]:.2f})")
             # for a in active:
             #     winner_label, winner_prob = next(iter(frame.classes.items()))
             #     print('parrot', f"predict {winner_label} {winner_prob * 100:.2f}% pow={frame.power:.2f} f0={frame.f0:.3f} f1={frame.f1:.3f} f2={frame.f2:.3f}")
@@ -117,7 +288,7 @@ def parrot_tester_wrap_parrot_integration(parrot_delegate, file: str):
         with open(file, "r", encoding="utf-8") as f:
             print("Wrapping pattern_integration.py")
             original_pattern_match = parrot_delegate.pattern_match
-            # parrot_delegate.pattern_match = wrap_pattern_match(parrot_delegate.pattern_match)
+            parrot_delegate.pattern_match = wrap_pattern_match(parrot_delegate)
             parrot_delegate.set_patterns(json.load(f))
 
 def parrot_tester_restore_parrot_integration(parrot_delegate, original_file: str):

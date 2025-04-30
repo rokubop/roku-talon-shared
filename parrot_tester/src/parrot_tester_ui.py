@@ -6,7 +6,6 @@ import random
 import math
 import time
 from .utils import parrot_tester_initialize, restore_patterns
-from .parrot_tester_envisioned_ui import parrot_tester_new_ui
 
 pp = pprint.PrettyPrinter()
 
@@ -887,3 +886,96 @@ def parrot_tester_toggle():
             "noises": init_parrot_noises_state(),
             "log": [],
         })
+
+
+HEADER_TEXT = "Parrot Tester"
+DOCS_BUTTON_TEXT = "parrot.py documentation"
+PATTERNS_BUTTON_TEXT = "patterns.json"
+TABS = ["Activity", "Log", "Timeline", "Stats", "Patterns"]
+SIDEBAR_ITEMS = [f"Item {i}" for i in range(1, 9)]
+CHART_DATA = [10, 20, 30, 40, 50, 40, 30, 20]
+DETAILS_TEXT = [f"pop {i*10}, gu4 {i*5}" for i in range(1, 9)]
+GREEN = "3D7D3D"
+
+def play_button():
+    div, text, icon, button, state = actions.user.ui_elements(["div", "text", "icon", "button", "state"])
+    play, set_play = state.use("play", False)
+    play_bg_color = "161616"
+
+    def toggle_play(e):
+        is_live = not play
+        set_play(is_live)
+
+    if play:
+        return div(flex_direction="row", align_items="center", gap=8)[
+            button(on_click=toggle_play, background_color="991111", align_items="center", gap=16, padding=8, padding_left=14, padding_right=18, flex_direction="row", border_color="333333", border_radius=8)[
+                icon("stop", color="FF0000", size=16, stroke_width=4),
+                text("Stop listening", font_size=16, font_weight="bold"),
+            ],
+            text("Listening..."),
+        ]
+    else:
+        return button(on_click=toggle_play, autofocus=True, align_items="center", background_color=GREEN, gap=16, padding=8, padding_left=14, padding_right=18, flex_direction="row", border_color="333333", border_radius=8)[
+            icon("play", fill=play_bg_color, size=16, stroke_width=4),
+            text("Start listening", font_size=16, font_weight="bold"),
+        ]
+
+def parrot_tester_new_ui():
+    window, div, text, screen, button, icon, state = actions.user.ui_elements([
+        "window", "div", "text", "screen", "button", "icon", "state"
+    ])
+
+    tab, set_tab = state.use("tab", "Activity")
+
+    return screen(justify_content="center", align_items="center")[
+        window(title=HEADER_TEXT, on_close=parrot_tester_disable, flex_direction="column", min_width=800, background_color="1D2126", border_radius=8, border_width=1, border_color="555555")[
+            # Header Section
+            div(flex_direction="row", justify_content="space_between", align_items="center", padding=16)[
+                play_button(),
+                div(flex_direction="row", gap=8, align_items="center")[
+                    button(on_click=lambda e: print("Docs clicked"), border_radius=4, gap=8, padding=8, flex_direction="row", align_items="center")[
+                        text(DOCS_BUTTON_TEXT, font_size=16, color="FFFFFF"),
+                        icon("external_link", size=16)
+                    ],
+                    button(on_click=lambda e: print("Patterns clicked"), border_radius=4, gap=8, padding=8, flex_direction="row", align_items="center")[
+                        text(PATTERNS_BUTTON_TEXT, font_size=16, color="FFFFFF"),
+                        icon("file_text", size=16)
+                    ]
+                ]
+            ],
+            # Tabs Section
+            div(flex_direction="row", border_color="333333", border_width=1, background_color="161616", margin_right=16, margin_left=16)[
+                *[button(on_click=lambda e, l=label: set_tab(l), border_right=1, padding=16, background_color="3D7D3D" if tab == label else "161616")[
+                    text(label, font_size=16, color="FFFFFF")
+                ] for label in TABS]
+            ],
+            # Main Content Section
+            div(flex_direction="row", flex=1, padding=16, gap=16)[
+                # Sidebar
+                div(flex_direction="column", width="20%", background_color="161616", border_radius=4, padding=8, gap=8)[
+                    *[button(text=item, on_click=lambda e, i=item: print(f"{i} clicked")) for item in SIDEBAR_ITEMS]
+                ],
+                # Graph and Details
+                div(flex_direction="column", flex=1, gap=16)[
+                    # Graph Section
+                    div(flex_direction="column", height="50%", background_color="161616", border_radius=4, padding=8, min_height=200)[
+                        div(flex_direction="row", align_items="center", margin_bottom=8, gap=8)[
+                            text("10.123", font_size=20),
+                            text("pop", font_size=20, color="FFFFFF"),
+                            text("20", font_size=20),
+                        ],
+                        div(width="100%", height="100%", background_color="2A2A2A")
+                    ],
+                    # Details Section
+                    div(flex_direction="row", flex=1, gap=8)[
+                        div(flex_direction="column", width="30%", background_color="161616", border_radius=4, padding=8, gap=4)[
+                            *[text(f"{i}", font_size=16, color="FFFFFF") for i in range(1, 9)]
+                        ],
+                        div(flex_direction="column", flex=1, background_color="161616", border_radius=4, padding=8, gap=4)[
+                            *[text(detail, font_size=16, color="FFFFFF") for detail in DETAILS_TEXT]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    ]

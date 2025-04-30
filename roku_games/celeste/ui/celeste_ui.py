@@ -6,10 +6,12 @@ from .components.history_log import show_history_log, hide_history_log
 from .components.apm import apm
 
 def layout():
-    screen, active_window, div = actions.user.ui_elements(["screen", "active_window", "div"])
+    screen, active_window, div, state = actions.user.ui_elements(["screen", "active_window", "div", "state"])
+
+    screen_index = state.get("screen_index", 0)
 
     # For OBS second screen
-    return screen(1)[
+    return screen(screen_index)[
         div(margin_top=100, margin_left=50)[
             div(gap=2)[
                 keys(),

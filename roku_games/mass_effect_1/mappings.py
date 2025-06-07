@@ -107,16 +107,31 @@ def set_parrot_config(config_name):
     actions.user.ui_elements_set_state("parrot_config", parrot_config)
     actions.user.ui_elements_set_state("background_color", config_colors[config_name])
 
+def switch_mode():
+    global parrot_config
+    if parrot_config == default_config:
+        set_parrot_config("controller")
+    elif parrot_config == controller_config:
+        set_parrot_config("roaming")
+    elif parrot_config == roaming_config:
+        set_parrot_config("fighting")
+    elif parrot_config == fighting_config:
+        set_parrot_config("ui")
+    elif parrot_config == ui_config:
+        set_parrot_config("controller")
+
 common_config = {
-    "cluck cluck": ("exit", actions.user.game_mode_disable),
+    # "cluck cluck": ("exit", actions.user.game_mode_disable),
+    "cluck":       ("switch mode", switch_mode),
     "cluck ss":    ("controller mode", lambda: set_parrot_config("controller")),
     "cluck sh":    ("roaming mode", lambda: set_parrot_config("roaming")),
     "cluck t":     ("fighting mode", lambda: set_parrot_config("fighting")),
     "cluck pop":   ("ui mode", lambda: set_parrot_config("ui")),
-    "cluck oh":    ("dpad right", lambda: actions.user.game_xbox_dpad_press_dir("right")),
-    "cluck ah":    ("dpad left", lambda: actions.user.game_xbox_dpad_press_dir("left")),
-    "cluck guh":   ("dpad down", lambda: actions.user.game_xbox_dpad_press_dir("down")),
-    "cluck eh":    ("dpad up", lambda: actions.user.game_xbox_dpad_press_dir("up")),
+    # "cluck oh":    ("dpad right", lambda: actions.user.game_xbox_dpad_press_dir("right")),
+    # "cluck ah":    ("dpad left", lambda: actions.user.game_xbox_dpad_press_dir("left")),
+    # "cluck guh":   ("dpad down", lambda: actions.user.game_xbox_dpad_press_dir("down")),
+    # "cluck eh":    ("dpad up", lambda: actions.user.game_xbox_dpad_press_dir("up")),
+    "tut tut":     ("exit", actions.user.game_mode_disable),
 }
 
 
@@ -131,13 +146,13 @@ controller_config = {
     "palate":   ("Y", lambda: actions.user.game_xbox_button_press("Y")),
     "er":       ("X", lambda: actions.user.game_xbox_button_press("B")),
     "tut":      ("L1", lambda: actions.user.game_xbox_button_press("LB")),
-    "tut tut":  ("R1", lambda: actions.user.game_xbox_button_press("RB")),
+    # "tut tut":  ("R1", lambda: actions.user.game_xbox_button_press("RB")),
     "t":        ("R2", lambda: actions.user.game_xbox_button_press("RT")),
     "pop":      ("L2", lambda: actions.user.game_xbox_button_press("LT")),
     "tut ah":   ("view", lambda: actions.user.game_xbox_button_press("view")),
     "tut oh":   ("menu", lambda: actions.user.game_xbox_button_press("guide")),
     "tut guh":  ("back", lambda: actions.user.game_xbox_button_press("back")),
-    "cluck":    ("start", lambda: actions.user.game_xbox_button_press("menu")),
+    # "cluck":    ("start", lambda: actions.user.game_xbox_button_press("menu")),
     "mm ah":    ("dpad left hold", lambda: actions.user.game_xbox_dpad_hold_only_dir("left")),
     "mm oh":    ("dpad right hold", lambda: actions.user.game_xbox_dpad_hold_only_dir("right")),
     "mm guh":   ("dpad down hold", lambda: actions.user.game_xbox_dpad_hold_only_dir("down")),
@@ -181,8 +196,8 @@ default_config = {
     "tut ah":   ("left 90", actions.user.game_mouse_move_deg_left_90),
     "tut oh":   ("right 90", actions.user.game_mouse_move_deg_right_90),
     "tut guh":  ("180", actions.user.game_mouse_move_deg_180),
-    "tut tut":  ("holster", lambda: actions.user.game_xbox_button_press("view")),
-    "cluck":    ("exit", actions.user.game_mode_disable),
+    "tut":      ("holster", lambda: actions.user.game_xbox_button_press("view")),
+    **common_config
 }
 
 aim_config = {

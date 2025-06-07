@@ -101,7 +101,7 @@ default_config = {
     "sh:th_90":   ("jump 1", jump_primary),
     "sh_stop":    ("", lambda: None),
     "ss":         ("jump 2", lambda: actions.user.game_key_hold("p")),
-    "ss_stop:db_20":("", lambda: actions.user.game_key_release("p")),
+    "ss_stop":    ("", lambda: actions.user.game_key_release("p")),
     "ah":         ("left", actions.user.game_arrows_hold_left),
     "oh":         ("right", actions.user.game_arrows_hold_right),
     "ee":         ("stop", actions.user.game_stopper),
@@ -145,6 +145,14 @@ move_config = {
     "palate":     ("short up", lambda: actions.user.game_key_hold("up", 30)),
     "pop":        ("short down", lambda: actions.user.game_key_hold("down", 30)),
     "tut":        ("tab", lambda: actions.user.game_key("tab")),
+    "tut t":      ("b-up", lambda: (
+        actions.user.game_state_switch_horizontal(),
+        actions.user.game_arrows_hold_up_horizontal()
+    )),
+    "tut mm":     ("b-down", lambda: (
+        actions.user.game_state_switch_horizontal(),
+        actions.user.game_arrows_hold_down_horizontal()
+    )),
     "sh:th_100":  ("c", lambda: actions.user.game_key("c")),
     "sh_stop":    ("", lambda: None),
     "ss:th_100":  ("x", lambda: actions.user.game_key("x")),
@@ -157,7 +165,7 @@ def stop_move_mode():
     pedal_center_up_job = None
     use_default_mode()
     actions.user.ui_elements_unhighlight("foot_center")
-    actions.user.ui_elements_set_state("side_b", False)
+    # actions.user.ui_elements_set_state("side_b", False)
 
 @ctx_game.action_class("user")
 class Actions:
@@ -175,19 +183,19 @@ class Actions:
 
     def pynput_pedal_left_down():
         actions.user.game_key_hold("z", release_on_stop=False)
-        append_history_log("pedal 1", "grab")
-        actions.user.ui_elements_set_state("grab", True)
+        # append_history_log("pedal 1", "grab")
+        # actions.user.ui_elements_set_state("grab", True)
         actions.user.ui_elements_highlight("foot_left")
 
     def pynput_pedal_left_up():
         actions.user.game_key_release("z")
-        actions.user.ui_elements_set_state("grab", False)
+        # actions.user.ui_elements_set_state("grab", False)
         actions.user.ui_elements_unhighlight("foot_left")
 
     def pynput_pedal_middle_down():
         use_move_mode()
-        append_history_log("pedal 2", "side b")
-        actions.user.ui_elements_set_state("side_b", True)
+        # append_history_log("pedal 2", "side b")
+        # actions.user.ui_elements_set_state("side_b", True)
         actions.user.ui_elements_highlight("foot_center")
 
     def pynput_pedal_middle_up():
@@ -195,13 +203,13 @@ class Actions:
 
     def pynput_pedal_right_down():
         actions.user.game_key_hold("p", release_on_stop=False)
-        append_history_log("pedal 3", "jump 3")
-        actions.user.ui_elements_set_state("hold_jump", True)
+        # append_history_log("pedal 3", "jump 3")
+        # actions.user.ui_elements_set_state("hold_jump", True)
         actions.user.ui_elements_highlight("foot_right")
 
     def pynput_pedal_right_up():
         actions.user.game_key_release("p")
-        actions.user.ui_elements_set_state("hold_jump", False)
+        # actions.user.ui_elements_set_state("hold_jump", False)
         actions.user.ui_elements_unhighlight("foot_right")
 
     def pedal_left_down(): actions.skip()

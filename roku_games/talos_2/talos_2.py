@@ -9,15 +9,15 @@ mod.apps.talos_2 = "os: windows\nand app.exe: /Talos2-Win64-Shipping.exe/i"
 ctx.matches = "os: windows\napp: talos_2"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 
-def enter_look_mode():
-    global parrot_config
-    parrot_config = look_config
-    actions.user.ui_elements_set_state("parrot_config", look_config)
+# def enter_look_mode():
+#     global parrot_config
+#     parrot_config = look_config
+#     actions.user.ui_elements_set_state("parrot_config", look_config)
 
-def exit_look_mode():
-    global parrot_config
-    parrot_config = default_config
-    actions.user.ui_elements_set_state("parrot_config", look_config)
+# def exit_look_mode():
+#     global parrot_config
+#     parrot_config = default_config
+#     actions.user.ui_elements_set_state("parrot_config", look_config)
 
 def use_scroll_tick():
     global parrot_config
@@ -42,34 +42,64 @@ def toggle_look_down():
     else:
         actions.user.game_mouse_move_reset_center_y()
 
+state = {
+    "eh": 1,
+    "guh": 1,
+    "ah": 1,
+    "oh": 1,
+    "ee": 1,
+    "hiss": 1,
+    "shush": 1,
+    "nn": 1,
+    "pop": 1,
+    "palate": 1,
+    "t": 1,
+    "er": 1,
+    "mode": "game",
+}
 
-default_config = {
-    "eh":         ("forward", actions.user.game_wasd_hold_w),
-    "guh":        ("back", actions.user.game_wasd_hold_s),
-    "ah":         ("left", actions.user.game_mouse_move_continuous_left_5),
-    "oh":         ("right", actions.user.game_mouse_move_continuous_right_5),
-    "ee":         ("stop", actions.user.game_stopper),
-    "hiss":       ("turn left", actions.user.game_mouse_move_continuous_left_10),
+def on_palate():
+    if state["palate"] == 1:
+        actions.user.game_mouse_click_right()
+    else:
+        actions.user.game_mouse_hold_right()
+
+def on_pop():
+    if state["pop"] == 1:
+        actions.user.game_mouse_click_left()
+    else:
+        actions.user.game_mouse_hold_left()
+
+
+parrot_config = {
+    # movement
+    "eh":         ("go, up slow", actions.user.game_wasd_hold_w),
+    "guh":        ("back, down slow", actions.user.game_wasd_hold_s),
+    "ah":         ("left slow, move left", actions.user.game_mouse_move_continuous_left_5),
+    "oh":         ("right slow, move right", actions.user.game_mouse_move_continuous_right_5),
+    "ee":         ("stop, hard stop", actions.user.game_stopper),
+    "hiss":       ("left strong, left 90", actions.user.game_mouse_move_continuous_left_10),
     "hiss_stop":  ("", actions.user.game_mouse_move_continuous_stop),
-    "shush":      ("turn right", actions.user.game_mouse_move_continuous_right_10),
+    "shush":      ("right strong, right 90", actions.user.game_mouse_move_continuous_right_10),
     "shush_stop": ("", actions.user.game_mouse_move_continuous_stop),
+    # actions
+    "nn":         ("E, hold E", lambda: actions.user.game_key("e")),
+    "pop":        ("M1, hold M1", on_pop),
+    "palate":     ("M2, hold M2", on_palate),
+    "t":          ("toggle shift, toggle down", lambda: actions.user.game_key("shift")),
+    # "palate":     ("toggle look down", toggle_look_down),
+    "er":         ("space, hold space", actions.user.game_mode_disable),
     "-":          ("-"),
-    "nn":         ("E", lambda: actions.user.game_key("e")),
-    # "palate":     ("toggle look down", lambda: actions.user.game_key("space")),
-    "palate":     ("toggle look down", toggle_look_down),
-    "pop":        ("L click", actions.user.game_mouse_click_left),
     "cluck":      ("R click", actions.user.game_mouse_click_right),
-    "t":          ("shift", lambda: actions.user.game_key("shift")),
-    "-":          ("-"),
     "tut tut":    ("reset y", actions.user.game_mouse_move_reset_center_y),
-    "tut tut":    ("look mode", enter_look_mode),
+    # "tut tut":    ("look mode", enter_look_mode),
     "tut hiss":   ("look down", lambda: (
         actions.user.game_mouse_move_deg_down_15(),
-        enter_look_mode()
+        # enter_look_mode()
     )),
     "tut shush":  ("look up", lambda: (
         actions.user.game_mouse_move_deg_up_15(),
-        enter_look_mode()
+        # enter_look_mode()
     )),
     "tut ah":     ("left 90", actions.user.game_mouse_move_deg_left_90),
     "tut oh":     ("right 90", actions.user.game_mouse_move_deg_right_90),
@@ -79,19 +109,6 @@ default_config = {
     "tut ee":     ("scroll tick mode", use_scroll_tick),
     "er":         ("exit mode", actions.user.game_mode_disable),
 }
-
-look_config = {
-    **default_config,
-    "ah":         ("look left", actions.user.game_mouse_move_continuous_left_5),
-    "oh":         ("look right", actions.user.game_mouse_move_continuous_right_5),
-    "hiss":       ("look down", actions.user.game_mouse_move_continuous_down_10),
-    "hiss_stop":  ("", actions.user.game_mouse_move_continuous_stop),
-    "shush":      ("look up", actions.user.game_mouse_move_continuous_up_10),
-    "shush_stop": ("", actions.user.game_mouse_move_continuous_stop),
-    "er":         ("exit look", exit_look_mode),
-}
-
-parrot_config = default_config
 
 @ctx_game.action_class("user")
 class Actions:

@@ -19,11 +19,11 @@ def layout():
                     current_noise(
                         flex=1,
                         padding=8,
-                        background_color="11111188",
+                        background_color="0E0E0E67",
                     ),
                     apm(
                         padding=8,
-                        background_color="11111188",
+                        background_color="0E0E0E67",
                     ),
                 ],
             ]

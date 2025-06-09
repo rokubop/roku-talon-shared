@@ -2,7 +2,7 @@ from talon import actions
 
 key_style = {
     "padding": 8,
-    "background_color": "11111188",
+    "background_color": "0E0E0E67",
     "flex_direction": "row",
     "justify_content": "center",
     "align_items": "center",
@@ -10,14 +10,14 @@ key_style = {
     "min_width": 60,
     "height": 60,
     "highlight_style": {
-        "background_color": "#1589ad",
+        "background_color": "#0d7cbd",
     },
 }
 
 foot_key_style = {
     **key_style,
     "highlight_style": {
-        "background_color": "#7b31b0",
+        "background_color": "#a73064",
     },
 }
 

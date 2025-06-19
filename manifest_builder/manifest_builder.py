@@ -24,7 +24,8 @@ CREATE_MANIFEST_DIRS = [
     # 'roku_games/sheepy',
     # 'roku_games/stray',
     # 'roku_games/talos_2',
-    '../../parrot_mode_14_noise_v6',
+    # '../../parrot_mode_14_noise_v6',
+    '../../parrot_tester',
 ]
 
 ENTITIES = ["captures", "lists", "modes", "scopes", "settings", "tags", "actions"]

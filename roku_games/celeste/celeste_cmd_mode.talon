@@ -7,3 +7,6 @@ settings():
 
 ^game [mode]$: user.game_mode_enable()
 ^game stop$: user.game_mode_disable()
+
+UI screen right: actions.user.ui_elements_set_state("screen_index", 0)
+UI screen left: actions.user.ui_elements_set_state("screen_index", 1)

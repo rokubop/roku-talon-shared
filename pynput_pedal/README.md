@@ -1,6 +1,6 @@
 # pynput pedal
 
-Allows you to setup pedal actions that don't trigger repeats or unwanted releases while pressing other keys with Talon.
+Provides pedal context actions that don't trigger unwanted repeats or releases while pressing other keys with Talon.
 
 Workaround for Talon issue https://github.com/talonvoice/talon/issues/684
 

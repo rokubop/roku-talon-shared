@@ -8,7 +8,7 @@ from .components.apm import apm
 def layout():
     screen, active_window, div, state = actions.user.ui_elements(["screen", "active_window", "div", "state"])
 
-    screen_index = state.get("screen_index", 1)
+    screen_index = state.get("screen_index", 0)
 
     # For OBS second screen
     return screen(screen_index)[

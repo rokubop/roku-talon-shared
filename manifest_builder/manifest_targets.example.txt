@@ -1,0 +1,7 @@
+# Copy this file to manifest_targets.txt
+# Lines starting with # are ignored
+# List relative paths which manifest_builder.py will apply to
+
+../my-folder-1
+../my-folder-2
+../../my-folder-3

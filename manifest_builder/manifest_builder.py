@@ -3,30 +3,33 @@ from dataclasses import dataclass, field
 import json
 import os
 import re
+import sys
 
 """
 Script that creates manifest.json file for each CREATE_MANIFEST_DIRS
 
 Usage: `python ./scripts/manifest_builder.py`
+
+All fields are included in the manifest.json even if empty, to serve as a template for users.
+
+Manifest fields:
+- name: The identifier of the package (required)
+- title: Human-readable title of the package
+- description: A brief description of what the package does
+- version: Version number of the package (semver format)
+- github: Link to the GitHub repository
+- preview: URL to preview image
+- author: The name of the package author
+- tags: List of tags that categorize the package
+- dependencies: Dictionary of other packages this package depends on with version constraints
+- install: Installation instructions for different platforms (mac_linux, windows_powershell, windows_bash)
+- post_install_message: Message to display after installation
+- contributes: Entities this package provides (auto-generated)
+- depends: Entities this package relies on (auto-generated)
 """
 
-CREATE_MANIFEST_DIRS = [
-    # 'drag_mode',
-    # 'dynamic_noises',
-    # 'face_tester',
-    # 'game_tools',
-    # 'mouse_move_adv',
-    # 'parrot_config',
-    # 'vgamepad',
-    # 'roku_games/celeste',
-    # 'roku_games/hi_fi_rush',
-    # 'roku_games/rdr2',
-    # 'roku_games/sheepy',
-    # 'roku_games/stray',
-    # 'roku_games/talos_2',
-    # '../../parrot_mode_14_noise_v6',
-    '../../parrot_tester',
-]
+# Add a comment with the value True to test creating a new manifest from scratch
+TEST_NEW_MANIFEST = False
 
 ENTITIES = ["captures", "lists", "modes", "scopes", "settings", "tags", "actions"]
 MOD_ATTR_CALLS = ["setting", "tag", "mode", "list"]
@@ -240,8 +243,10 @@ def prune_empty_arrays(data):
 
 def prune_manifest_data(manifest_data):
     """
-    Prune empty arrays from the 'contributes' and 'depends' sections of the manifest data.
+    Prune empty arrays from the 'contributes' and 'depends' sections of the manifest data,
+    but keep other empty fields for documentation purposes.
     """
+    # Prune contributes and depends sections only
     if 'contributes' in manifest_data:
         manifest_data['contributes'] = prune_empty_arrays(manifest_data['contributes'])
 
@@ -257,10 +262,41 @@ def load_existing_manifest(package_dir: str) -> dict:
             return json.load(f)
     return {}
 
+def create_default_install_instructions(package_name):
+    return {
+        "mac_linux": [
+            f"cd ~/.talon/user",
+            f"git clone https://github.com/yourusername/{package_name}"
+        ],
+        "windows_powershell": [
+            f"cd \"$env:APPDATA\\talon\\user\"",
+            f"git clone https://github.com/yourusername/{package_name}"
+        ],
+        "windows_bash": [
+            f"cd \"$(cygpath \"$APPDATA\")/talon/user\"",
+            f"git clone https://github.com/yourusername/{package_name}"
+        ]
+    }
+
+def load_manifest_targets(filename="manifest_targets.txt"):
+    file_path = os.path.join(os.path.dirname(__file__), filename)
+    if not os.path.exists(file_path):
+        print(f"Error: '{filename}' not found in {os.path.abspath(os.path.dirname(__file__))}")
+        print("Please create the file with a list of target directories (one per line).\nYou can copy manifest_targets.example.txt as a starting point.")
+        sys.exit(1)
+    with open(file_path, "r", encoding="utf-8") as f:
+        return [
+            line.split("#", 1)[0].strip()
+            for line in f
+            if line.strip() and not line.strip().startswith("#") and line.split("#", 1)[0].strip()
+        ]
+
 def create_or_update_manifest() -> None:
     root_path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
-
     print(f"Packages path: {root_path}")
+
+    # Load target directories from manifest_targets.txt
+    CREATE_MANIFEST_DIRS = load_manifest_targets()
 
     if not os.path.exists(root_path):
         print(f"Error: Packages directory not found at {root_path}")
@@ -271,6 +307,7 @@ def create_or_update_manifest() -> None:
 
         if os.path.isdir(full_package_dir):
             existing_manifest_data = load_existing_manifest(full_package_dir)
+            is_new_manifest = not existing_manifest_data
             new_entity_data = entity_extract(full_package_dir)
 
             for key in ENTITIES:
@@ -282,10 +319,45 @@ def create_or_update_manifest() -> None:
                 setattr(new_entity_data.contributes, key, contributes_set)
                 setattr(new_entity_data.depends, key, depends_filtered)
 
+            package_name = os.path.basename(full_package_dir)
+
+            if is_new_manifest:
+                install_config = create_default_install_instructions(package_name)
+            else:
+                default_install = {
+                    "mac_linux": [],
+                    "windows_powershell": [],
+                    "windows_bash": []
+                }
+
+                install_config = existing_manifest_data.get("install", default_install)
+
+                for key in default_install:
+                    if key not in install_config:
+                        install_config[key] = []
+
+            if is_new_manifest:
+                install_config = create_default_install_instructions(os.path.basename(full_package_dir))
+
+            default_description = "Add a description of your Talon package here." if is_new_manifest else "Auto-generated manifest."
+
             new_manifest_data = {
                 "name": existing_manifest_data.get("name", os.path.basename(full_package_dir)),
-                "description": existing_manifest_data.get("description", "Auto-generated manifest."),
+                "title": existing_manifest_data.get("title", ""),
+                "description": existing_manifest_data.get("description", default_description),
                 "version": existing_manifest_data.get("version", "0.1.0"),
+                "github": existing_manifest_data.get("github", ""),
+                "preview": existing_manifest_data.get("preview", ""),
+                "author": existing_manifest_data.get("author", ""),
+                "tags": existing_manifest_data.get("tags", []),
+                "install": install_config,
+                "post_install_message": existing_manifest_data.get(
+                    "post_install_message",
+                    f"✅ {package_name} installed." if is_new_manifest else ""
+                ),
+                "dependencies": existing_manifest_data.get("dependencies", {}),
+
+                # Auto-generated entities
                 "contributes": vars(new_entity_data.contributes),
                 "depends": vars(new_entity_data.depends)
             }

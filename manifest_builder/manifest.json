@@ -1,0 +1,50 @@
+{
+  "name": "manifest_builder",
+  "title": "Manifest Builder",
+  "description": "A tool to generate manifest.json files for target folders.",
+  "version": "0.2.0",
+  "github": "https://github.com/rokubop/manifest_builder",
+  "preview": "",
+  "author": "Rokubop",
+  "tags": [],
+  "install": {
+    "mac": [
+      "cd ~/.talon/user",
+      "git clone https://github.com/rokubop/manifest_builder",
+      "cd manifest_builder",
+      "cp manifest_targets.example.txt manifest_targets.txt"
+    ],
+    "linux": [
+      "cd ~/.talon/user",
+      "git clone https://github.com/rokubop/manifest_builder",
+      "cd manifest_builder",
+      "cp manifest_targets.example.txt manifest_targets.txt"
+    ],
+    "windows_powershell": [
+      "cd \"$env:APPDATA\\talon\\user\"",
+      "git clone https://github.com/rokubop/manifest_builder",
+      "cd manifest_builder",
+      "Copy-Item manifest_targets.example.txt manifest_targets.txt"
+    ],
+    "windows_cmd": [
+      "cd %APPDATA%\\talon\\user",
+      "git clone https://github.com/rokubop/manifest_builder",
+      "cd manifest_builder",
+      "copy manifest_targets.example.txt manifest_targets.txt"
+    ],
+    "windows_bash": [
+      "cd \"$(cygpath \"$APPDATA\")/talon/user\"",
+      "git clone https://github.com/rokubop/manifest_builder",
+      "cd manifest_builder",
+      "cp manifest_targets.example.txt manifest_targets.txt"
+    ]
+  },
+  "post_install_message": [
+    "✅ manifest_builder installed.",
+    "✏️ Next step: Edit the 'manifest_targets.txt' file to specify the target folder(s).",
+    "▶️ Then run `py manifest_builder.py` to generate the manifest.json file(s)."
+  ],
+  "dependencies": {},
+  "contributes": {},
+  "depends": {}
+}

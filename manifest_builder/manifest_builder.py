@@ -6,11 +6,11 @@ import re
 import sys
 
 """
-Script that creates manifest.json file for each CREATE_MANIFEST_DIRS
+Script that creates manifest.json file for each manifest_targets.txt folder.
 
-Usage: `python ./scripts/manifest_builder.py`
-
-All fields are included in the manifest.json even if empty, to serve as a template for users.
+Usage:
+✏️ Edit `manifest_targets.txt` to include the relative paths of directories where you want to create or update manifests.
+▶️ Run: python manifest_builder.py
 
 Manifest fields:
 - name: The identifier of the package (required)
@@ -27,9 +27,6 @@ Manifest fields:
 - contributes: Entities this package provides (auto-generated)
 - depends: Entities this package relies on (auto-generated)
 """
-
-# Add a comment with the value True to test creating a new manifest from scratch
-TEST_NEW_MANIFEST = False
 
 ENTITIES = ["captures", "lists", "modes", "scopes", "settings", "tags", "actions"]
 MOD_ATTR_CALLS = ["setting", "tag", "mode", "list"]
@@ -229,8 +226,8 @@ def entity_extract(folder_path: str) -> AllEntities:
 
 def update_manifest(package_dir: str, manifest_data) -> None:
     manifest_path = os.path.join(package_dir, 'manifest.json')
-    with open(manifest_path, 'w') as f:
-        json.dump(manifest_data, f, indent=2)
+    with open(manifest_path, 'w', encoding='utf-8') as f:
+        json.dump(manifest_data, f, indent=2, ensure_ascii=False)
 
 def prune_empty_arrays(data):
     """
@@ -264,12 +261,20 @@ def load_existing_manifest(package_dir: str) -> dict:
 
 def create_default_install_instructions(package_name):
     return {
-        "mac_linux": [
+        "mac": [
+            f"cd ~/.talon/user",
+            f"git clone https://github.com/yourusername/{package_name}"
+        ],
+        "linux": [
             f"cd ~/.talon/user",
             f"git clone https://github.com/yourusername/{package_name}"
         ],
         "windows_powershell": [
             f"cd \"$env:APPDATA\\talon\\user\"",
+            f"git clone https://github.com/yourusername/{package_name}"
+        ],
+        "windows_cmd": [
+            f"cd %APPDATA%\\talon\\user",
             f"git clone https://github.com/yourusername/{package_name}"
         ],
         "windows_bash": [
@@ -295,7 +300,6 @@ def create_or_update_manifest() -> None:
     root_path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
     print(f"Packages path: {root_path}")
 
-    # Load target directories from manifest_targets.txt
     CREATE_MANIFEST_DIRS = load_manifest_targets()
 
     if not os.path.exists(root_path):

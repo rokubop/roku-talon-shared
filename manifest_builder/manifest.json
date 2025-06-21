@@ -7,6 +7,25 @@
   "preview": "",
   "author": "Rokubop",
   "tags": [],
+  "vars": {
+    "repo": "https://github.com/yourusername/manifest_builder"
+  },
+  "platforms": [
+    "mac",
+    "linux",
+    "windows_powershell",
+    "windows_cmd",
+    "windows_bash"
+  ],
+  "commands": {
+    "cd_user": {
+      "mac": "cd ~/.talon/user",
+      "linux": "cd ~/.talon/user",
+      "windows_powershell": "cd \"$env:APPDATA\\talon\\user\"",
+      "windows_cmd": "cd %APPDATA%\\talon\\user",
+      "windows_bash": "cd \"$(cygpath \"$APPDATA\")/talon/user\""
+    }
+  },
   "install": {
     "mac": [
       "cd ~/.talon/user",
@@ -37,7 +56,8 @@
       "git clone https://github.com/rokubop/manifest_builder",
       "cd manifest_builder",
       "cp manifest_targets.example.txt manifest_targets.txt"
-    ]
+    ],
+    "mac_linux": []
   },
   "post_install_message": [
     "✅ manifest_builder installed.",

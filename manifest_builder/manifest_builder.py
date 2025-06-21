@@ -259,29 +259,36 @@ def load_existing_manifest(package_dir: str) -> dict:
             return json.load(f)
     return {}
 
-def create_default_install_instructions(package_name):
+def create_default_vars(package_name):
     return {
-        "mac": [
-            f"cd ~/.talon/user",
-            f"git clone https://github.com/yourusername/{package_name}"
-        ],
-        "linux": [
-            f"cd ~/.talon/user",
-            f"git clone https://github.com/yourusername/{package_name}"
-        ],
-        "windows_powershell": [
-            f"cd \"$env:APPDATA\\talon\\user\"",
-            f"git clone https://github.com/yourusername/{package_name}"
-        ],
-        "windows_cmd": [
-            f"cd %APPDATA%\\talon\\user",
-            f"git clone https://github.com/yourusername/{package_name}"
-        ],
-        "windows_bash": [
-            f"cd \"$(cygpath \"$APPDATA\")/talon/user\"",
-            f"git clone https://github.com/yourusername/{package_name}"
-        ]
+        "repo": f"https://github.com/yourusername/{package_name}"
     }
+
+def create_default_platforms():
+    return [
+        "mac",
+        "linux",
+        "windows_powershell",
+        "windows_cmd",
+        "windows_bash"
+    ]
+
+def create_default_commands():
+    return {
+        "cd_user": {
+            "mac": "cd ~/.talon/user",
+            "linux": "cd ~/.talon/user",
+            "windows_powershell": "cd \"$env:APPDATA\\talon\\user\"",
+            "windows_cmd": "cd %APPDATA%\\talon\\user",
+            "windows_bash": "cd \"$(cygpath \"$APPDATA\")/talon/user\""
+        }
+    }
+
+def create_default_install(package_name):
+    return [
+        "${commands.cd_user}",
+        "git clone ${vars.repo}"
+    ]
 
 def load_manifest_targets(filename="manifest_targets.txt"):
     file_path = os.path.join(os.path.dirname(__file__), filename)
@@ -325,43 +332,40 @@ def create_or_update_manifest() -> None:
 
             package_name = os.path.basename(full_package_dir)
 
-            if is_new_manifest:
-                install_config = create_default_install_instructions(package_name)
-            else:
-                default_install = {
-                    "mac_linux": [],
-                    "windows_powershell": [],
-                    "windows_bash": []
-                }
+            # New defaults
+            default_vars = create_default_vars(package_name)
+            default_platforms = create_default_platforms()
+            default_commands = create_default_commands()
+            default_install = create_default_install(package_name)
 
+            if is_new_manifest:
+                install_config = default_install
+            else:
                 install_config = existing_manifest_data.get("install", default_install)
 
-                for key in default_install:
-                    if key not in install_config:
-                        install_config[key] = []
-
-            if is_new_manifest:
-                install_config = create_default_install_instructions(os.path.basename(full_package_dir))
-
-            default_description = "Add a description of your Talon package here." if is_new_manifest else "Auto-generated manifest."
+            default_post_install = [
+                f"✅ {package_name} installed.",
+                f"▶️ Try ..."
+            ]
 
             new_manifest_data = {
                 "name": existing_manifest_data.get("name", os.path.basename(full_package_dir)),
                 "title": existing_manifest_data.get("title", ""),
-                "description": existing_manifest_data.get("description", default_description),
+                "description": existing_manifest_data.get("description", "Add a description of your Talon package here." if is_new_manifest else "Auto-generated manifest."),
                 "version": existing_manifest_data.get("version", "0.1.0"),
                 "github": existing_manifest_data.get("github", ""),
                 "preview": existing_manifest_data.get("preview", ""),
                 "author": existing_manifest_data.get("author", ""),
                 "tags": existing_manifest_data.get("tags", []),
+                "vars": existing_manifest_data.get("vars", default_vars),
+                "platforms": existing_manifest_data.get("platforms", default_platforms),
+                "commands": existing_manifest_data.get("commands", default_commands),
                 "install": install_config,
                 "post_install_message": existing_manifest_data.get(
                     "post_install_message",
-                    f"✅ {package_name} installed." if is_new_manifest else ""
+                    default_post_install
                 ),
                 "dependencies": existing_manifest_data.get("dependencies", {}),
-
-                # Auto-generated entities
                 "contributes": vars(new_entity_data.contributes),
                 "depends": vars(new_entity_data.depends)
             }

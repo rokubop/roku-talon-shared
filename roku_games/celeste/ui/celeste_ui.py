@@ -1,4 +1,5 @@
 from talon import actions
+from .colors import BG_PRIMARY
 from .components.keys import keys
 from .components.current_noise import current_noise
 from .components.commands import show_commands, hide_commands
@@ -6,9 +7,18 @@ from .components.history_log import show_history_log, hide_history_log
 from .components.apm import apm
 
 def layout():
-    screen, active_window, div, state = actions.user.ui_elements(["screen", "active_window", "div", "state"])
+    screen, active_window, div, state, style = actions.user.ui_elements(
+        ["screen", "active_window", "div", "state", "style"]
+    )
 
-    screen_index = state.get("screen_index", 0)
+    screen_index = state.get("screen_index", 1)
+
+    style({
+        "text": {
+            "stroke_color": "000000",
+            "stroke_width": 4
+        }
+    })
 
     # For OBS second screen
     return screen(screen_index)[
@@ -19,11 +29,11 @@ def layout():
                     current_noise(
                         flex=1,
                         padding=8,
-                        background_color="0E0E0E67",
+                        background_color=f"{BG_PRIMARY}67",
                     ),
                     apm(
                         padding=8,
-                        background_color="0E0E0E67",
+                        background_color=f"{BG_PRIMARY}67",
                     ),
                 ],
             ]

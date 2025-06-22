@@ -1,8 +1,9 @@
 from talon import actions
+from ..colors import BG_PRIMARY, ACTIVE_1, ACTIVE_2
 
 key_style = {
     "padding": 8,
-    "background_color": "0E0E0E67",
+    "background_color": f"{BG_PRIMARY}88",
     "flex_direction": "row",
     "justify_content": "center",
     "align_items": "center",
@@ -10,14 +11,14 @@ key_style = {
     "min_width": 60,
     "height": 60,
     "highlight_style": {
-        "background_color": "#0d7cbd",
+        "background_color": ACTIVE_1,
     },
 }
 
 foot_key_style = {
     **key_style,
     "highlight_style": {
-        "background_color": "#a73064",
+        "background_color": ACTIVE_2,
     },
 }
 
@@ -25,7 +26,7 @@ def key(key_name, text_content):
     div, text = actions.user.ui_elements(["div", "text"])
 
     return div(key_style, id=key_name)[
-        text(text_content, font_family="roboto")
+        text(text_content, font_family="roboto", stroke_width=3)
     ]
 
 def foot_key(key_name, text_content):
@@ -33,19 +34,19 @@ def foot_key(key_name, text_content):
 
     if isinstance(text_content, list):
         return div(foot_key_style, flex_direction="column", id=key_name, gap=8)[
-            text(text_content[0], font_family="roboto"),
-            text(text_content[1], font_size=12, font_family="roboto")
+            text(text_content[0], font_family="roboto", stroke_width=3),
+            text(text_content[1], font_size=12, font_family="roboto", stroke_width=3)
         ]
 
     return div(foot_key_style, id=key_name)[
-        text(text_content, font_family="roboto")
+        text(text_content, font_family="roboto", stroke_width=3)
     ]
 
 def key_svg(key_name, icon_name):
     div, icon = actions.user.ui_elements(["div", "icon"])
 
     return div(key_style, id=key_name)[
-        icon(icon_name, stroke_width=3, size=30, stroke_linecap="butt")
+        icon(icon_name, fill="FFFFFF", stroke="000000", stroke_width=3, size=30)
     ]
 
 def blank_key():

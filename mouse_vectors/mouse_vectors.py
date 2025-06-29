@@ -12,14 +12,47 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple, Union, Callable, Literal, Any
 
 from talon import Module, actions, ctrl, cron, settings, ui, app
+from talon.screen import Screen
 
 mod = Module()
 
 # Settings
-mod.setting("mouse_vectors_tick_rate", default=60, type=int,
+mod.setting("mouse_vectors_tick_rate", default=90, type=int,
            desc="Physics update rate in Hz (60-120 recommended)")
 mod.setting("mouse_vectors_enabled", default=True, type=bool,
            desc="Enable/disable the mouse vectors system")
+mod.setting("mouse_vectors_dpi_scaling", default=True, type=bool,
+           desc="Enable DPI-aware scaling for consistent movement across different displays")
+
+# Global screen tracking for DPI scaling
+_current_screen: Screen = None
+_last_mouse_pos = (0, 0)
+_cached_dpi_scale = 1.0
+
+def get_current_screen(x: float = None, y: float = None) -> Screen:
+    """Get the screen containing the current mouse position or specified coordinates"""
+    global _current_screen, _last_mouse_pos, _cached_dpi_scale
+
+    if x is None or y is None:
+        x, y = ctrl.mouse_pos()
+
+    # Only update screen if mouse moved significantly or we don't have a screen yet
+    pos_changed = abs(x - _last_mouse_pos[0]) > 100 or abs(y - _last_mouse_pos[1]) > 100
+
+    if _current_screen is None or pos_changed or not _current_screen.contains(x, y):
+        _current_screen = ui.screen_containing(x, y)
+        _last_mouse_pos = (x, y)
+        _cached_dpi_scale = _current_screen.dpi / 96.0
+
+    return _current_screen
+
+def get_cached_dpi_scale() -> float:
+    """Get the cached DPI scale to avoid repeated calculations"""
+    global _cached_dpi_scale
+    if _cached_dpi_scale == 1.0 and _current_screen is None:
+        # Initialize on first use
+        get_current_screen()
+    return _cached_dpi_scale
 
 def mouse_move_talon(dx: int, dy: int):
     (x, y) = ctrl.mouse_pos()
@@ -29,6 +62,14 @@ def mouse_move_windows(dx: int, dy: int):
     pass
 
 def mouse_move(dx: int, dy: int):
+    """Move mouse with optional DPI scaling"""
+    # Apply DPI scaling if enabled
+    if settings.get("user.mouse_vectors_dpi_scaling"):
+        # Use cached DPI scale to avoid repeated screen lookups
+        dpi_scale = get_cached_dpi_scale()
+        dx = int(dx * dpi_scale)
+        dy = int(dy * dpi_scale)
+
     if settings.get("user.mouse_move_api") == "windows":
         mouse_move_windows(dx, dy)
     else:
@@ -187,6 +228,21 @@ class MouseVectorsSystem:
         if name is None:
             name = f"unnamed_{uuid.uuid4().hex[:8]}"
 
+        # Handle alternative property names before creating vector
+        direction = properties.pop('direction', None)
+        speed = properties.pop('speed', None)
+        acceleration_magnitude = properties.pop('acceleration', None)
+
+        # Convert direction+speed to velocity
+        if direction is not None and speed is not None:
+            direction_normalized = self._normalize_vector(direction)
+            properties['v'] = (direction_normalized[0] * speed, direction_normalized[1] * speed)
+
+        # Convert direction+acceleration to acceleration vector
+        if direction is not None and acceleration_magnitude is not None:
+            direction_normalized = self._normalize_vector(direction)
+            properties['a'] = (direction_normalized[0] * acceleration_magnitude, direction_normalized[1] * acceleration_magnitude)
+
         # Get existing vector or create new one
         if name in self.vectors:
             vector = self.vectors[name]
@@ -212,19 +268,6 @@ class MouseVectorsSystem:
             vector._base_v = vector.v
             vector._base_a = vector.a
             self.vectors[name] = vector
-
-        # Handle alternative property names
-        if 'direction' in properties and 'speed' in properties:
-            direction = self._normalize_vector(properties['direction'])
-            speed = properties['speed']
-            vector.v = (direction[0] * speed, direction[1] * speed)
-            vector._base_v = vector.v
-
-        if 'direction' in properties and 'acceleration' in properties:
-            direction = self._normalize_vector(properties['direction'])
-            acceleration = properties['acceleration']
-            vector.a = (direction[0] * acceleration, direction[1] * acceleration)
-            vector._base_a = vector.a
 
         # Start physics if not running
         self._ensure_physics_running()
@@ -456,6 +499,29 @@ def mouse_vectors_list() -> List[str]:
     """Get list of all active vector names"""
     return _mouse_vectors_system.list_vectors()
 
+def mouse_vectors_enable_dpi_scaling():
+    """Enable DPI-aware scaling for consistent movement across displays"""
+    settings.set("user.mouse_vectors_dpi_scaling", True)
+
+def mouse_vectors_disable_dpi_scaling():
+    """Disable DPI scaling for raw pixel movement"""
+    settings.set("user.mouse_vectors_dpi_scaling", False)
+
+def mouse_vectors_get_dpi_info() -> dict:
+    """Get current DPI information"""
+    current_pos = ctrl.mouse_pos()
+    screen = get_current_screen(current_pos[0], current_pos[1])
+    return {
+        'dpi': screen.dpi,
+        'scale': screen.dpi / 96.0,
+        'screen_rect': {
+            'x': screen.rect.x,
+            'y': screen.rect.y,
+            'width': screen.rect.width,
+            'height': screen.rect.height
+        }
+    }
+
 # Talon Actions
 @mod.action_class
 class Actions:
@@ -588,6 +654,18 @@ class Actions:
     def mouse_vectors_list() -> list:
         """Get list of all active vector names"""
         return mouse_vectors_list()
+
+    def mouse_vectors_enable_dpi_scaling():
+        """Enable DPI-aware scaling for consistent movement across displays"""
+        mouse_vectors_enable_dpi_scaling()
+
+    def mouse_vectors_disable_dpi_scaling():
+        """Disable DPI scaling for raw pixel movement"""
+        mouse_vectors_disable_dpi_scaling()
+
+    def mouse_vectors_get_dpi_info() -> dict:
+        """Get current DPI information for debugging"""
+        return mouse_vectors_get_dpi_info()
 
 
 def on_ready():

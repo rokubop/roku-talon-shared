@@ -139,9 +139,52 @@ def scan_games_dir_row(dir):
         ],
     ]
 
+parrot_map = {
+    "ah": "key hold - A (WASD)",
+    "oh": "key hold - D (WASD)",
+    "guh": "key hold - S (WASD)",
+    "eh": "key hold - W (WASD)",
+    "pop": "mouse click - LMB",
+    "cluck": "mouse click - RMB",
+    "ee": "stop",
+    "mm": "key press - F",
+    "shush": "key press - shift",
+    "hiss": "key press - E",
+    "tut": "key press - escape",
+    "tut pop": "mouse hold - LMB",
+    "tut cluck": "mouse hold - RMB",
+    "tut mm": "key hold - F",
+    "tut shush": "key hold - shift",
+    "tut hiss": "key hold - E",
+    "tut tut": "exit game mode",
+}
+
+def commands_parrot():
+    table, th, td, tr, text = actions.user.ui_elements(["table", "th", "td", "tr", "text"])
+    button, style = actions.user.ui_elements(["button", "style"])
+
+    style({
+        "td": {
+            "padding": 2,
+        },
+    })
+
+    return table()[
+        *[tr()[
+            td(justify_content="center")[
+                text(key, font_size=18),
+            ],
+            td(justify_content="center")[
+                button(border_width=1, padding=8)[
+                    text(value)
+                ],
+            ],
+        ] for key, value in parrot_map.items()],
+    ]
+
 def game_setup_ui(props):
-    elements = ["screen", "div", "text", "button", "icon", "input_text", "state"]
-    screen, div, text, button, icon, input_text, state = actions.user.ui_elements(elements)
+    screen, window, div, text = actions.user.ui_elements(["screen", "window", "div", "text"])
+    button, icon, input_text, state = actions.user.ui_elements(["button", "icon", "input_text", "state"])
 
     games, set_games = state.use("games")
     new_game_name, set_new_game_name = state.use("new_game_name", props["app_name"])
@@ -168,66 +211,62 @@ def game_setup_ui(props):
         return fn
 
     return screen(justify_content="center", align_items="center")[
-        div(draggable=True, background_color="272727", border_radius=8, min_width=600, border_width=1)[
-            div(drag_handle=True, flex_direction='row', justify_content="space_between", align_items="center", border_bottom=1, border_color="555555")[
-                text("Game setup", font_size=24, padding=16),
-                button(on_click=actions.user.ui_elements_hide_all)[
-                    icon("close", size=20, padding=6),
+        window(title="Game Setup", border_radius=8, min_width=1100)[
+            div(padding=16, gap=16, overflow_y="auto", height=750)[
+                # text("Step 1 of 3", font_size=20),
+                # div(flex_direction="column", margin_top=16)[
+                div(flex_direction="row", gap=16, align_items="center")[
+                    text('New app name', font_size=18),
+                    input_text(id="game_name", autofocus=True, on_change=on_game_name_change, font_size=20, border_radius=4, background_color="444444", value=props["app_name"]),
                 ],
-            ],
-            div(padding=16, gap=16, overflow_y="auto", max_height=400)[
-                text("Step 1 of 3", font_size=20),
-                div(flex_direction="column", margin_top=16)[
-                    div(flex_direction="column", gap=16)[
-                        text('New app name', font_size=18),
-                        input_text(id="game_name", autofocus=True, on_change=on_game_name_change, font_size=20, border_radius=4, background_color="444444", value=props["app_name"]),
-                    ],
-                ],
-                div(gap=16, margin_top=16)[
-                    text("The following code will be used to define the app", font_size=18),
-                    div(background_color="111111", border_radius=4)[
-                        div(flex_direction="row", justify_content="space_between")[
-                            div(gap=12, padding=16)[
-                                div(flex_direction="row")[
-                                    text('mod.apps.', font_family="consolas", color="CCCCCC"),
-                                    text(new_game_name, font_family="consolas", color="FFCC00"),
-                                    text(' = r"""', font_family="consolas", color="CCCCCC"),
-                                ],
-                                text(f'os: {props["os"]}', font_family="consolas", color="CCCCCC"),
-                                text(f'and {props["app_context"]}', font_family="consolas", color="CCCCCC"),
-                                text('"""', font_family="consolas", color="CCCCCC"),
-                            ],
-                            div()[
-                                button(padding=8)[icon("copy", color="CCCCCC")]
-                            ]
-                        ],
-                    ],
-                ],
-                div(flex_direction="column", gap=12, margin_top=16)[
-                    div(flex_direction="row", align_items="center", gap=16)[
-                        text("Your Talon games folder", font_size=18),
-                        button(on_click=game_settings_open)[
-                            text("Change", color=BLUE),
-                        ],
-                        button(on_click=target_dir_open)[
-                            text("Open", color=BLUE),
-                        ],
-                    ],
-                    text('This is where the new game folder will be created', font_size=14),
-                    div(background_color="111111", border_radius=4, flex_direction="row")[
-                        text(props["target_dir"], font_family="consolas", color="CCCCCC", padding=16),
-                        button(padding=8)[icon("copy", color="CCCCCC")]
-                    ],
-                    div(border_width=1, padding=8, background_color="222222")[
-                        folder_row(props["target_dir_shorthand"], False),
-                        div(flex_direction="row")[
-                            div(width=1, margin_top=4, margin_bottom=4, margin_left=8, margin_right=8, background_color="666666"),
-                            div(flex_direction="column")[
-                                *[folder_row(game_name, data["new"]) for game_name, data in sorted(games.items())],
-                            ]
-                        ],
-                    ],
-                ]
+
+                commands_parrot(),
+                # ],
+                # div(gap=16, margin_top=16)[
+                #     text("The following code will be used to define the app", font_size=18),
+                #     div(background_color="111111", border_radius=4)[
+                #         div(flex_direction="row", justify_content="space_between")[
+                #             div(gap=12, padding=16)[
+                #                 div(flex_direction="row")[
+                #                     text('mod.apps.', font_family="consolas", color="CCCCCC"),
+                #                     text(new_game_name, font_family="consolas", color="FFCC00"),
+                #                     text(' = r"""', font_family="consolas", color="CCCCCC"),
+                #                 ],
+                #                 text(f'os: {props["os"]}', font_family="consolas", color="CCCCCC"),
+                #                 text(f'and {props["app_context"]}', font_family="consolas", color="CCCCCC"),
+                #                 text('"""', font_family="consolas", color="CCCCCC"),
+                #             ],
+                #             div()[
+                #                 button(padding=8)[icon("copy", color="CCCCCC")]
+                #             ]
+                #         ],
+                #     ],
+                # ],
+                # div(flex_direction="column", gap=12, margin_top=16)[
+                #     div(flex_direction="row", align_items="center", gap=16)[
+                #         text("Your Talon games folder", font_size=18),
+                #         button(on_click=game_settings_open)[
+                #             text("Change", color=BLUE),
+                #         ],
+                #         button(on_click=target_dir_open)[
+                #             text("Open", color=BLUE),
+                #         ],
+                #     ],
+                #     text('This is where the new game folder will be created', font_size=14),
+                #     div(background_color="111111", border_radius=4, flex_direction="row")[
+                #         text(props["target_dir"], font_family="consolas", color="CCCCCC", padding=16),
+                #         button(padding=8)[icon("copy", color="CCCCCC")]
+                #     ],
+                #     div(border_width=1, padding=8, background_color="222222")[
+                #         folder_row(props["target_dir_shorthand"], False),
+                #         div(flex_direction="row")[
+                #             div(width=1, margin_top=4, margin_bottom=4, margin_left=8, margin_right=8, background_color="666666"),
+                #             div(flex_direction="column")[
+                #                 *[folder_row(game_name, data["new"]) for game_name, data in sorted(games.items())],
+                #             ]
+                #         ],
+                #     ],
+                # ]
             ],
                 # div(flex_direction="column", padding=16)[
                 #     text("Scan folders for games & templates", font_size=20, margin_bottom=16),

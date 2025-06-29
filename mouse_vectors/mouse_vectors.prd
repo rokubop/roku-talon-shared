@@ -1,0 +1,269 @@
+# Mouse Vectors System PRD
+
+## 1. Overview
+A physics-based mouse motion system using the intuitive concept of **force vectors**. Like arrows in Blender's transform gizmo, each vector represents a velocity or acceleration that combines additively to create realistic mouse movement.
+
+## 2. Core Concept: Physics Vectors
+The mouse is controlled by multiple named vectors that combine using real physics:
+- **Velocity vectors**: Direct motion (pixels per second)
+- **Acceleration vectors**: Forces that change velocity over time (pixels per second²)
+- **Additive combination**: All active vectors sum together each frame
+- **True physics**: Prefer you control forces directly, and result based transitions secondarily
+
+## 3. API Design
+
+### 3.1 Core Function
+```python
+def mouse_vectors(name: str = None, **properties) -> dict:
+    """Create, update, or query motion vectors"""
+```
+
+### 3.2 Vector Properties
+
+#### Basic Properties
+- **`v` or **: `(x, y)` - Velocity vector in pixels/second
+- **`a` or **: `(x, y)` - Acceleration vector in pixels/second²
+- **`duration`**: `float` - How long vector exists in milliseconds (optional - permanent if not specified)
+- **`enabled`**: `bool` - Whether vector affects movement (default: True)
+- **`speed`**: `float` - Magnitude in pixels/second
+- **`direction`**: `(x, y)` - Unit vector for direction
+
+#### Animation Properties
+- **`a_keyframes`**: `list` - Acceleration multipliers over time
+- **`a_interpolation`**: `str` - How to interpolate between keyframes ("linear", "bezier", "cubic", etc.)
+- **`v_keyframes`**: `list` - Velocity multipliers over time (optional)
+- **`v_interpolation`**: `str` - Velocity interpolation type
+
+## 4. Usage Examples
+
+### 4.1 Basic Movement
+```python
+# Create/update named vectors
+mouse_vectors("movement", v=(50, 0))                    # Move right at 50 px/s
+mouse_vectors("movement", v=(0, 50))                    # Update to move down
+mouse_vectors("movement", enabled=False)                # Stop movement
+
+# Query existing vectors
+current = mouse_vectors("movement")                     # Get current state as a class
+```
+
+### 4.2 Physics-Based Control
+```python
+# Apply acceleration forces
+mouse_vectors("thrust", a=(100, 0), duration=1000)     # Accelerate right for 1s
+mouse_vectors("turn", a=(0, 50), duration=500)         # Add downward force
+mouse_vectors("brake", a=(-30, 0))                     # Apply opposing force
+
+# Stop forces
+mouse_vectors("thrust", enabled=False)                 # Stop thrust
+mouse_vectors("turn", a=(0, 0))                       # Zero the turn force
+```
+
+All vectors accumulate to a single state applied to the mouse on tick.
+
+### 4.3 Direction + Speed Interface
+```python
+# Alternative syntax for intuitive control
+mouse_vectors("move", direction=(1, 0), speed=50)      # Move right at 50 px/s
+mouse_vectors("boost", direction=(0, 1), acceleration=100, duration=500)  # Boost down
+```
+
+### 4.4 Advanced Animation
+```python
+# Variable acceleration over time
+mouse_vectors("gas", a=(150, 0),
+              a_keyframes=[0.0, 1.0, 0.3],
+              a_interpolation="ease_in_out",
+              duration=2000)
+
+# Pulsing motion
+mouse_vectors("pulse", a=(80, 0),
+              a_keyframes=[0.0, 1.0, 0.0, 1.0, 0.0],
+              a_interpolation="linear",
+              duration=1000)
+```
+
+### 4.5 Multiple Vector Composition
+```python
+# Base movement + temporary effects
+mouse_vectors("base", v=(30, 0))                       # Base rightward motion
+mouse_vectors("boost", a=(100, 0), duration=500)       # Temporary acceleration
+mouse_vectors("drift", v=(0, 10))                      # Perpendicular drift
+mouse_vectors("wobble", a=(0, 20),
+              a_keyframes=[1.0, -1.0, 1.0, -1.0],
+              duration=2000)                           # Oscillating force
+
+# All vectors combine additively for final motion
+```
+
+## 5. Physics Behavior
+
+### 5.1 Vector Combination
+```python
+# All enabled vectors sum each frame:
+final_velocity = sum(all_velocity_vectors)
+final_acceleration = sum(all_acceleration_vectors)
+
+# Physics integration:
+velocity += acceleration * time_delta
+position += velocity * time_delta
+```
+
+### 5.2 Realistic Motion Patterns
+```python
+# Car-like acceleration
+mouse_vectors("engine", a=(80, 0))                     # Apply gas
+mouse_vectors("engine", a=(0, 0))                     # Release gas (coast)
+mouse_vectors("brake", a=(-50, 0), duration=1000)     # Apply brakes
+
+# Projectile motion
+mouse_vectors("launch", v=(100, -50))                  # Initial velocity
+mouse_vectors("gravity", a=(0, 30))                   # Constant downward force
+
+# Orbital motion
+mouse_vectors("orbit", a=perpendicular_to_position)    # Centripetal force
+```
+
+## 6. Control Functions
+
+### 6.1 State Management
+```python
+def mouse_vectors_get_state() -> dict:
+    """Get complete system state including all vectors and resulting motion"""
+
+def mouse_vectors_stop() -> None:
+    """Remove all vectors (instant stop)"""
+
+def mouse_vectors_disable() -> None:
+    """Disable all vectors without removing them"""
+```
+
+### 6.2 Vector Management
+```python
+def mouse_vectors_remove(name: str) -> None:
+    """Remove specific named vector"""
+
+def mouse_vectors_list() -> list[str]:
+    """Get list of all active vector names"""
+```
+
+## 7. State Information
+maybe dict, maybe classes in here, idk
+```python
+{
+    "total_velocity": {"x": float, "y": float},         # Sum of all velocity vectors
+    "total_acceleration": {"x": float, "y": float},     # Sum of all acceleration vectors
+    "speed": float,                                     # Magnitude of total velocity
+    "direction": float,                                 # Angle in degrees
+    "vectors": {
+        "movement": {
+            "v": {"x": 50, "y": 0},
+            "a": {"x": 0, "y": 0},
+            "enabled": True,
+            "duration": None,                           # Permanent
+            "time_remaining": None
+        },
+        "boost": {
+            "v": {"x": 0, "y": 0},
+            "a": {"x": 100, "y": 0},
+            "enabled": True,
+            "duration": 500,
+            "time_remaining": 200,
+            "a_keyframes": [0.0, 1.0, 0.0],
+            "a_interpolation": "ease_in_out"
+        }
+    }
+}
+```
+
+## 8. Keyframe System
+
+### 8.1 Keyframe Values
+Keyframes are **multipliers** applied to the base vector value:
+```python
+# Base acceleration of (100, 0) with keyframes [0.0, 1.0, 0.0]
+# t=0ms: (100, 0) × 0.0 = (0, 0)
+# t=250ms: (100, 0) × 1.0 = (100, 0)
+# t=500ms: (100, 0) × 0.0 = (0, 0)
+```
+
+### 8.2 Interpolation Types
+- **`linear`**: Straight lines between keyframes
+- **`bezier`**: Smooth curves with automatic control points
+- **`cubic`**: Cubic spline interpolation
+- **`ease_in`**: Slow start, fast finish
+- **`ease_out`**: Fast start, slow finish
+- **`ease_in_out`**: Slow start and finish, fast middle
+- **`constant`**: Hold value until next keyframe (step function)
+
+## 9. Implementation Considerations
+
+### 9.1 Performance
+- **Tick Rate**: 60-120 Hz for smooth physics - configurable, default to 60
+- **Vector Math**: Efficient 2D vector operations
+- **Keyframe Caching**: Pre-calculate interpolation curves
+- **Vector Pooling**: Reuse vector objects
+
+### 9.2 Physics Integration
+- **Verlet Integration**: Stable numerical integration for smooth motion
+- **Sub-pixel Accuracy**: Support fractional pixel positions
+- **Frame Rate Independence**: Motion consistent across different tick rates
+
+### 9.3 Vector Lifecycle
+- **Auto-cleanup**: Vectors with duration automatically remove themselves
+- **Persistent Vectors**: Vectors without duration remain until explicitly removed
+- **Update Semantics**: Calling `mouse_vectors()` with existing name updates that vector
+
+## 10. Use Cases
+
+### 10.1 Gaming Controls
+```python
+# WASD movement with physics
+mouse_vectors("forward", a=(100, 0))                   # W key pressed
+mouse_vectors("forward", a=(0, 0))                     # W key released
+mouse_vectors("strafe", a=(0, 50))                     # A key pressed
+
+# Mouse look with momentum
+mouse_vectors("look", v=mouse_delta)                   # Direct from mouse input
+mouse_vectors("smoothing", a=(-velocity * 0.1))       # Friction/smoothing
+```
+
+### 10.2 UI Navigation
+```python
+# Smooth scrolling
+mouse_vectors("scroll", v=(0, -200), duration=1000,
+              v_interpolation="ease_out")
+
+# Magnetic attraction to UI elements
+mouse_vectors("magnet", a=direction_to_button * strength)
+```
+
+## 11. Advanced Features
+
+### 11.1 Unnamed Vectors
+```python
+# Temporary unnamed vectors (auto-generated names)
+mouse_vectors(a=(50, 0), duration=200)                # Quick boost
+mouse_vectors(v=(0, 30), duration=1000)               # Temporary drift
+```
+
+### 11.2 Vector Constraints
+```python
+# Future: Speed limiting, boundary constraints
+mouse_vectors("capped", v=(100, 0), max_speed=50)
+mouse_vectors("bounded", a=(50, 0), bounds=screen_rect)
+```
+
+## 12. Testing Requirements
+
+### 12.1 Physics Validation
+- Vector addition correctness
+- Keyframe interpolation accuracy
+- Frame rate independence
+- Numerical stability
+
+### 12.2 Performance Testing
+- High vector count scenarios
+- Complex keyframe animations
+- Memory usage optimization
+- CPU usage profiling

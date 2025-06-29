@@ -9,8 +9,6 @@ mod.apps.celeste = "os: windows\nand app.exe: /Celeste.exe/i"
 ctx.matches = "os: windows\napp: celeste"
 ctx_game.matches = f"{ctx.matches}\nmode: user.game"
 
-jump_primary_ms = 300
-
 def release_down():
     if actions.user.game_key_is_held("down"):
         actions.user.game_key_release("down")
@@ -62,7 +60,7 @@ def dash_demo_backward():
     dash_demo()
 
 def jump_primary():
-    actions.user.game_key_hold("c", jump_primary_ms)
+    actions.user.game_key_hold("c", 300)
 
 def use_move_mode():
     global parrot_config

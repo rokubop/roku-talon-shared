@@ -1,8 +1,8 @@
 # Manifest builder
 
-A tool to generate `manifest.json` files for target folders.
+A tool to generate `manifest.json` files for folders defined in `manifest_targets.txt`.
 
-This allows you to generate a `manifest.json` file for your talon package to define all necessary metadata, including automatic parsing of all the actions, modes, tags, lists, and other talon entities the package "contributes" and "depends" on.
+- automatic parses talons actions, modes, tags, lists, and other talon entities the package contributes and depends on.
 
 # Usage
 

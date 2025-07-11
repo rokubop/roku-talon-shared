@@ -23,6 +23,22 @@ mouse boost down: user.mouse_vectors("boost", "a=(0, 200); duration=500")
 # Brake/slow down
 mouse brake: user.mouse_vectors("brake", "a=(-50, 0); duration=800")
 
+# Target-based movement (displacement)
+mouse target right: user.mouse_vectors("target", "d=(100, 0); duration=1500")
+mouse target left: user.mouse_vectors("target", "d=(-100, 0); duration=1500")
+mouse target up: user.mouse_vectors("target", "d=(0, -100); duration=1500")
+mouse target down: user.mouse_vectors("target", "d=(0, 100); duration=1500")
+
+# Larger displacement movements
+mouse jump right: user.mouse_vectors("jump", "d=(200, 0); duration=1000")
+mouse jump left: user.mouse_vectors("jump", "d=(-200, 0); duration=1000")
+mouse jump up: user.mouse_vectors("jump", "d=(0, -200); duration=1000")
+mouse jump down: user.mouse_vectors("jump", "d=(0, 200); duration=1000")
+
+# Animated displacement
+mouse slide right: user.mouse_vectors("slide", "d=(150, 0); d_keyframes=[0.0, 0.8, 1.0]; d_interpolation=ease_out; duration=2000")
+mouse slide left: user.mouse_vectors("slide", "d=(-150, 0); d_keyframes=[0.0, 0.8, 1.0]; d_interpolation=ease_out; duration=2000")
+
 # Wobble effect
 mouse wobble:
     user.mouse_vectors("wobble", "a=(0, 30); a_keyframes=[1.0, -1.0, 1.0, -1.0]; duration=1000; a_interpolation=linear; duration=2000")

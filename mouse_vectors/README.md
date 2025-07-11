@@ -7,9 +7,34 @@ A physics-based mouse motion system using the intuitive concept of **force vecto
 - **Physics-Based Motion**: True velocity and acceleration vectors with realistic physics integration
 - **Named Vectors**: Create, update, and manage multiple named motion vectors
 - **Additive Combination**: All active vectors sum together each frame for complex motion
+- **Target-Based Movement**: Displacement vectors for precise positioning
 - **Keyframe Animation**: Animate vector properties over time with multiple interpolation types
 - **Subpixel Accuracy**: Maintains fractional pixel positions for smooth motion
 - **Voice Control**: Full Talon voice command integration
+
+## Vector Types
+
+The system supports three fundamental vector types, each with different physics behaviors:
+
+### Velocity Vectors (`v`)
+Continuous motion at a constant rate. Multiple velocity vectors sum together additively.
+- **Use case**: Constant movement, base motion, steady drift
+- **Physics**: Additive combination
+- **Example**: `mouse_vectors("drift", v=(30, 0))` # Move right at 30 px/s
+
+### Acceleration Vectors (`a`)
+Apply forces that change velocity over time. Multiple acceleration vectors sum together.
+- **Use case**: Thrust, braking, forces, dynamic motion
+- **Physics**: Integrated into velocity, then into position
+- **Example**: `mouse_vectors("thrust", a=(100, 0), duration=1000)` # Accelerate right
+
+### Displacement Vectors (`d`)
+Target-based movement that aims for a specific relative position.
+- **Use case**: Precise positioning, "move to target" behavior
+- **Physics**: Independent targeting (non-additive)
+- **Example**: `mouse_vectors("target", d=(100, 50), duration=2000)` # Move to offset position
+
+> **Note**: Displacement vectors override their own velocity to reach their target, making them fundamentally different from velocity/acceleration vectors which combine additively.
 
 ## Quick Start
 
@@ -39,6 +64,7 @@ def mouse_vectors(name: str = None, **properties) -> dict:
 
 - **`v`**: `(x, y)` - Velocity vector in pixels/second
 - **`a`**: `(x, y)` - Acceleration vector in pixels/second²
+- **`d`**: `(x, y)` - Displacement vector in pixels (target-based movement)
 - **`duration`**: `float` - How long vector exists in milliseconds
 - **`enabled`**: `bool` - Whether vector affects movement
 - **`direction`**: `(x, y)` - Unit vector for direction-based movement
@@ -48,6 +74,11 @@ def mouse_vectors(name: str = None, **properties) -> dict:
 ### Animation Properties
 
 - **`a_keyframes`**: `list` - Acceleration multipliers over time
+- **`a_interpolation`**: `str` - Interpolation type for acceleration
+- **`v_keyframes`**: `list` - Velocity multipliers over time
+- **`v_interpolation`**: `str` - Interpolation type for velocity
+- **`d_keyframes`**: `list` - Displacement multipliers over time
+- **`d_interpolation`**: `str` - Interpolation type for displacement
 - **`a_interpolation`**: `str` - Interpolation type ("linear", "ease_in_out", etc.)
 - **`v_keyframes`**: `list` - Velocity multipliers over time
 - **`v_interpolation`**: `str` - Velocity interpolation type
@@ -81,6 +112,26 @@ mouse_vectors("brake", a=(-30, 0))                     # Apply opposing force
 # Alternative syntax for intuitive control
 mouse_vectors("move", direction=(1, 0), speed=50)      # Move right at 50 px/s
 mouse_vectors("boost", direction=(0, 1), acceleration=100, duration=500)  # Boost down
+```
+
+### Target-Based Movement (Displacement)
+
+```python
+# Move to a specific target position relative to current location
+mouse_vectors("target", d=(100, 50), duration=2000)    # Move 100px right, 50px down over 2s
+mouse_vectors("quick_move", d=(200, 0))                 # Move 200px right at default speed
+
+# Animated displacement with keyframes
+mouse_vectors("growing_target", d=(150, 100),
+              d_keyframes=[0.0, 0.5, 1.0],             # Start slow, accelerate, then reach target
+              d_interpolation="ease_in_out",
+              duration=3000)
+
+# Displacement with variable target size
+mouse_vectors("shrinking_target", d=(300, 0),
+              d_keyframes=[1.2, 1.0, 0.8, 1.0],        # Overshoot then settle
+              d_interpolation="bezier",
+              duration=2500)
 ```
 
 ### Advanced Animation
@@ -129,13 +180,29 @@ mouse_vectors_list()         # Get list of all active vector names
 The system includes comprehensive voice control via Talon:
 
 ```
-mouse move right          # Basic velocity movement
-mouse thrust right        # Acceleration-based movement
+# Velocity-based movement
+mouse move right          # Basic velocity movement (continuous)
+mouse move left/up/down   # Velocity in other directions
+
+# Acceleration-based movement
+mouse thrust right        # Acceleration-based movement (builds up speed)
 mouse boost right         # Temporary acceleration burst
+mouse brake               # Apply opposing force to slow down
+
+# Target-based movement (displacement)
+mouse target right        # Move to target position (precise)
+mouse jump right          # Larger displacement movement
+mouse slide right         # Animated displacement with easing
+
+# Special effects
 mouse wobble             # Oscillating motion effect
 mouse pulse              # Pulsing acceleration
+mouse orbit              # Circular motion pattern
+
+# Control commands
 mouse stop               # Stop all movement
-mouse state              # Print current system state
+mouse pause              # Disable all vectors without removing
+mouse remove <name>      # Remove specific named vector
 ```
 
 ## Interpolation Types

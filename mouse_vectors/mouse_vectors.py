@@ -86,10 +86,11 @@ InterpolationType = Literal["linear", "bezier", "cubic", "ease_in", "ease_out", 
 
 @dataclass
 class Vector:
-    """Represents a single motion vector with velocity, acceleration, and animation"""
+    """Represents a single motion vector with velocity, acceleration, displacement, and animation"""
     name: str
     v: Vector2D = (0.0, 0.0)  # Velocity in pixels/second
     a: Vector2D = (0.0, 0.0)  # Acceleration in pixels/second²
+    d: Vector2D = (0.0, 0.0)  # Displacement in pixels (target-based movement)
     enabled: bool = True
     duration: Optional[float] = None  # Duration in milliseconds
     time_remaining: Optional[float] = None
@@ -100,17 +101,63 @@ class Vector:
     a_interpolation: InterpolationType = "linear"
     v_keyframes: Optional[List[float]] = None
     v_interpolation: InterpolationType = "linear"
+    d_keyframes: Optional[List[float]] = None
+    d_interpolation: InterpolationType = "linear"
 
     # Internal state
     _base_v: Vector2D = field(init=False)
     _base_a: Vector2D = field(init=False)
+    _base_d: Vector2D = field(init=False)
+    _d_progress: float = field(init=False, default=0.0)  # Track displacement progress
+    _d_start_pos: Optional[Vector2D] = field(init=False, default=None)  # Starting position for displacement
 
     def __post_init__(self):
         """Initialize internal state after creation"""
         self._base_v = self.v
         self._base_a = self.a
+        self._base_d = self.d
         if self.duration is not None:
             self.time_remaining = self.duration
+        self._validate_arguments()
+
+    def _validate_arguments(self):
+        """Validate that vector arguments don't conflict with each other"""
+        # Check if we have any meaningful displacement
+        has_displacement = self.d != (0.0, 0.0) or self.d_keyframes is not None
+
+        # Check if we have meaningful velocity or acceleration
+        has_velocity = self.v != (0.0, 0.0) or self.v_keyframes is not None
+        has_acceleration = self.a != (0.0, 0.0) or self.a_keyframes is not None
+
+        # Check for conflicting combinations
+        conflicts = []
+
+        # Displacement should generally not be combined with velocity/acceleration
+        # unless the displacement is meant to be a cumulative target
+        if has_displacement and (has_velocity or has_acceleration):
+            # This is allowed but we should warn about potential confusion
+            pass  # For now, allow this combination as it might be useful
+
+        # Duration makes sense with displacement but less so with continuous velocity
+        if self.duration is not None:
+            if has_velocity and not has_displacement and not has_acceleration:
+                # Continuous velocity with duration might be intended as time-limited motion
+                pass  # Allow this - velocity for a specific duration
+
+        # Check for keyframe mismatches
+        if self.v_keyframes is not None and not has_velocity:
+            conflicts.append("v_keyframes specified but v is zero")
+
+        if self.a_keyframes is not None and not has_acceleration:
+            conflicts.append("a_keyframes specified but a is zero")
+
+        if self.d_keyframes is not None and not has_displacement:
+            conflicts.append("d_keyframes specified but d is zero")
+
+        # Report conflicts
+        if conflicts:
+            conflict_str = "; ".join(conflicts)
+            raise ValueError(f"Vector '{self.name}' has conflicting arguments: {conflict_str}")
 
 class InterpolationEngine:
     """Handles keyframe interpolation for vector animation"""
@@ -249,25 +296,41 @@ class MouseVectorsSystem:
             # Update properties
             for key, value in properties.items():
                 if hasattr(vector, key):
+                    old_value = getattr(vector, key)
                     setattr(vector, key, value)
             # Update base values for keyframe calculations
             if 'v' in properties:
                 vector._base_v = properties['v']
             if 'a' in properties:
                 vector._base_a = properties['a']
+            if 'd' in properties:
+                vector._base_d = properties['d']
+                # Reset displacement tracking when displacement changes
+                vector._d_start_pos = None
+                vector._d_progress = 0.0
         else:
             # Create new vector
             vector_props = {
                 'name': name,
                 'v': (0.0, 0.0),
                 'a': (0.0, 0.0),
+                'd': (0.0, 0.0),
                 'enabled': True,
                 **properties
             }
             vector = Vector(**vector_props)
             vector._base_v = vector.v
             vector._base_a = vector.a
+            vector._base_d = vector.d
             self.vectors[name] = vector
+
+        # Auto-remove vectors that are set to zero velocity/acceleration with no duration
+        if (vector.v == (0.0, 0.0) and vector.a == (0.0, 0.0) and vector.d == (0.0, 0.0) and
+            vector.duration is None and vector.v_keyframes is None and vector.a_keyframes is None and vector.d_keyframes is None):
+            del self.vectors[name]
+            if not self.vectors:
+                self._stop_physics()
+            return name
 
         # Start physics if not running
         self._ensure_physics_running()
@@ -362,6 +425,10 @@ class MouseVectorsSystem:
         for name, vector in self.vectors.items():
             if vector.duration is not None and vector.time_remaining is not None:
                 vector.time_remaining -= dt * 1000  # Convert to milliseconds
+
+                if vector.v_keyframes is not None:
+                    progress = 1.0 - (vector.time_remaining / vector.duration)
+
                 if vector.time_remaining <= 0:
                     vectors_to_remove.append(name)
                     continue
@@ -380,6 +447,68 @@ class MouseVectorsSystem:
                     multiplier = InterpolationEngine.interpolate(
                         vector.v_keyframes, progress, vector.v_interpolation)
                     vector.v = (vector._base_v[0] * multiplier, vector._base_v[1] * multiplier)
+
+                # Update displacement with keyframes
+                if vector.d_keyframes:
+                    multiplier = InterpolationEngine.interpolate(
+                        vector.d_keyframes, progress, vector.d_interpolation)
+                    vector.d = (vector._base_d[0] * multiplier, vector._base_d[1] * multiplier)
+
+            # Handle displacement vectors
+            if vector.d != (0.0, 0.0):
+                # Initialize starting position for displacement if not set
+                if vector._d_start_pos is None:
+                    current_pos = ctrl.mouse_pos()
+                    vector._d_start_pos = (float(current_pos[0]), float(current_pos[1]))
+
+                # Calculate target position
+                target_pos = (
+                    vector._d_start_pos[0] + vector.d[0],
+                    vector._d_start_pos[1] + vector.d[1]
+                )
+
+                # Get current position
+                current_pos = ctrl.mouse_pos()
+                current_pos_f = (float(current_pos[0]), float(current_pos[1]))
+
+                # Calculate remaining displacement
+                remaining_d = (
+                    target_pos[0] - current_pos_f[0],
+                    target_pos[1] - current_pos_f[1]
+                )
+
+                # Check if we've reached the target (within 1 pixel tolerance)
+                distance_to_target = math.sqrt(remaining_d[0]**2 + remaining_d[1]**2)
+                if distance_to_target < 1.0:
+                    # We've reached the target, remove this vector
+                    vectors_to_remove.append(name)
+                    continue
+
+                # Calculate velocity needed to reach target
+                # For displacement vectors, we override velocity to move toward target
+                if vector.duration is not None and vector.time_remaining is not None:
+                    # Use time-based movement
+                    time_remaining_sec = vector.time_remaining / 1000.0
+                    if time_remaining_sec > 0.01:  # Avoid division by near-zero
+                        vector.v = (
+                            remaining_d[0] / time_remaining_sec,
+                            remaining_d[1] / time_remaining_sec
+                        )
+                    else:
+                        # Very little time left, move directly
+                        vector.v = (remaining_d[0] / dt, remaining_d[1] / dt)
+                else:
+                    # Use default displacement speed
+                    displacement_speed = 1000.0  # pixels per second
+                    if distance_to_target > 0:
+                        normalized_d = (
+                            remaining_d[0] / distance_to_target,
+                            remaining_d[1] / distance_to_target
+                        )
+                        vector.v = (
+                            normalized_d[0] * displacement_speed,
+                            normalized_d[1] * displacement_speed
+                        )
 
         # Remove expired vectors
         for name in vectors_to_remove:
@@ -529,6 +658,7 @@ class Actions:
         name: str = None,
         v: Union[str | Tuple[float, float]] = None,
         a: Tuple[float, float] = None,
+        d: Tuple[float, float] = None,
         enabled: bool = None,
         duration: float = None,
         speed: float = None,
@@ -537,7 +667,9 @@ class Actions:
         a_keyframes: List[float] = None,
         a_interpolation: str = None,
         v_keyframes: List[float] = None,
-        v_interpolation: str = None
+        v_interpolation: str = None,
+        d_keyframes: List[float] = None,
+        d_interpolation: str = None
     ) -> dict:
         """
         Create, update, or query motion vectors for physics-based mouse movement.
@@ -546,6 +678,7 @@ class Actions:
             name: Vector name (None for auto-generated)
             v: Velocity vector (x, y) in pixels/second
             a: Acceleration vector (x, y) in pixels/second²
+            d: Displacement vector (x, y) in pixels - target-based movement
             enabled: Whether vector affects movement
             duration: How long vector exists in milliseconds
             speed: Magnitude for direction-based movement
@@ -555,6 +688,8 @@ class Actions:
             a_interpolation: Interpolation type for acceleration
             v_keyframes: Velocity multipliers over time
             v_interpolation: Interpolation type for velocity
+            d_keyframes: Displacement multipliers over time
+            d_interpolation: Interpolation type for displacement
 
         Returns:
             Dictionary with vector state or name
@@ -562,6 +697,7 @@ class Actions:
         Examples:
             actions.user.mouse_vectors("move", v=(50, 0))
             actions.user.mouse_vectors("boost", a=(100, 0), duration=1000)
+            actions.user.mouse_vectors("target", d=(100, 50), duration=2000)
             actions.user.mouse_vectors("pulse", a=(80, 0),
                                      a_keyframes=[0.0, 1.0, 0.0], duration=1000)
         """
@@ -589,6 +725,8 @@ class Actions:
                         v = _parse_tuple_string(value)
                     elif key == "a":
                         a = _parse_tuple_string(value)
+                    elif key == "d":
+                        d = _parse_tuple_string(value)
                     elif key == "duration":
                         duration = float(value)
                     elif key == "speed":
@@ -607,6 +745,10 @@ class Actions:
                         v_keyframes = _parse_list_string(value)
                     elif key == "v_interpolation":
                         v_interpolation = value
+                    elif key == "d_keyframes":
+                        d_keyframes = _parse_list_string(value)
+                    elif key == "d_interpolation":
+                        d_interpolation = value
             except Exception as e:
                 raise ValueError(f"Error parsing vector options: {e}")
 
@@ -614,6 +756,8 @@ class Actions:
             properties['v'] = v
         if a is not None:
             properties['a'] = a
+        if d is not None:
+            properties['d'] = d
         if enabled is not None:
             properties['enabled'] = enabled
         if duration is not None:
@@ -632,6 +776,10 @@ class Actions:
             properties['v_keyframes'] = v_keyframes
         if v_interpolation is not None:
             properties['v_interpolation'] = v_interpolation
+        if d_keyframes is not None:
+            properties['d_keyframes'] = d_keyframes
+        if d_interpolation is not None:
+            properties['d_interpolation'] = d_interpolation
 
         return mouse_vectors(name, **properties)
 

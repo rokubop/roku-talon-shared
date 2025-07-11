@@ -135,17 +135,21 @@ def on_guh(alt=False):
 
 def on_ah(alt=False):
     if get_number_state("ah", alt) == 0:
-        actions.user.game_mouse_move_continuous_left(2)
+        actions.user.mouse_vectors("main", v=(-100, 0))
+        # actions.user.game_mouse_move_continuous_left(2)
     else:
         actions.user.game_wasd_hold_a()
 
 def on_oh(alt=False):
     if get_number_state("oh", alt) == 0:
-        actions.user.game_mouse_move_continuous_right(2)
+        actions.user.mouse_vectors("main", v=(100, 0))
+        # actions.user.game_mouse_move_continuous_right(2)
     else:
         actions.user.game_wasd_hold_d()
 
 def on_ee(alt=False):
+    actions.user.mouse_vectors_stop()
+    # actions.user.mouse_vectors("main", v=(0, 0))
     if get_number_state("ee", alt) == 0:
         actions.user.game_stopper()
     else:
@@ -165,7 +169,20 @@ def on_hiss_stop(alt=False):
 
 def on_shush(alt=False):
     if get_number_state("shush", alt) == 0:
-        actions.user.game_mouse_move_continuous_right_10()
+        print("Active vectors:", actions.user.mouse_vectors_list())
+
+        # 3. Get main state and create boost
+        m = actions.user.mouse_vectors("main")
+        print("Main vector state:", m)
+        if m and m["v"] != (0, 0):
+            actions.user.mouse_vectors(
+                "main",
+                a=(m["v"][0] * 4, m["v"][1] * 4),
+                duration=300,
+            )
+        else:
+            print("ERROR: Main vector has wrong velocity:", m["v"])
+        # actions.user.game_mouse_move_continuous_right_10()
     else:
         actions.user.game_mouse_move_deg_right_90()
 

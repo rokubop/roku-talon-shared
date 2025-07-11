@@ -24,15 +24,15 @@ def on_mount():
 def on_unmount():
     actions.user.parrot_config_event_unregister(on_noise)
 
-def current_noise(**props):
+def current_noise(scale=1, **props):
     div, text, effect = actions.user.ui_elements(["div", "text", "effect"])
 
     effect(on_mount, on_unmount, [])
 
-    return div(gap=8, padding_left=12, **props)[
+    return div(gap=int(8 * scale), padding_left=12, **props, justify_content="center")[
         # text("Noise - command", font_size=12),
-        text("", id="noise", font_size=40, font_family="renogare"),
-        text("", id="command", font_size=24, font_family="roboto"),
+        text("", id="noise", font_size=int(40 * scale), font_family="renogare"),
+        text("", id="command", font_size=int(24 * scale), font_family="roboto"),
     ]
 
     # return div(padding=40, **props)[

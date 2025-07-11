@@ -33,12 +33,12 @@ def on_unmount():
     timestamps = []
     actions.user.parrot_config_event_unregister(on_noise)
 
-def apm(**props):
+def apm(scale=1, **props):
     div, text, effect = actions.user.ui_elements(["div", "text", "effect"])
 
     effect(on_mount, on_unmount, [])
 
-    return div(width=150, flex_direction="column", gap=8, padding_left=12, **props)[
-        text("0", id="apm", font_size=40, font_family="renogare"),
-        text("noise/min", font_size=24, font_family="roboto"),
+    return div(width=150 * scale, flex_direction="column", gap=int(8 * scale), padding_left=12, **props)[
+        text("0", id="apm", font_size=int(40 * scale), font_family="renogare"),
+        text("noise/min", font_size=int(24 * scale), font_family="roboto"),
     ]

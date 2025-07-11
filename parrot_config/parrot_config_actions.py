@@ -1,4 +1,4 @@
-from talon import Module
+from talon import Module, actions
 from .parrot_config import (
     parrot_config_cycle_mode,
     parrot_config_get_mode,
@@ -138,6 +138,39 @@ class Actions:
             acts.append(action)
 
         return (cmds, acts)
+
+    def parrot_config_format_display_dict(
+        parrot_config: dict[str, tuple[str, callable]] = None,
+        mode: str = None,
+    ) -> dict[str, callable]:
+        """
+        Format/prettify into dictionary of commands/action names
+        ```
+        display_dict = parrot_config_format_display(parrot_config)
+        ```
+        """
+        if not parrot_config:
+            parrot_config = actions.user.parrot_config()
+        if "default" in parrot_config:
+            if mode is None:
+                mode = actions.user.parrot_config_get_mode()
+            parrot_config = parrot_config.get(mode, parrot_config["default"])
+        display_dict = {}
+
+        for command, action_tuple in parrot_config.items():
+            if isinstance(action_tuple, tuple):
+                if len(action_tuple) == 0:
+                    continue
+                action = action_tuple[0]
+            else:
+                action = action_tuple
+
+            if action == "":
+                continue
+            command = command.split(":")[0]
+            display_dict[command] = action
+
+        return display_dict
 
     def parrot_config_event_register(on_noise: callable):
         """

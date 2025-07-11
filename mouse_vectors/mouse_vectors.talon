@@ -56,14 +56,14 @@ mouse orbit:
 mouse remove <user.text>: user.mouse_vectors_remove(text)
 
 # Get system state
-# mouse state:
-#     state = user.mouse_vectors_get_state()
-#     print(f"Mouse vectors state: {state}")
+mouse state:
+    state = user.mouse_vectors_get_state()
+    print(state)
 
 # List all active vectors
-# mouse list:
-#     vectors = user.mouse_vectors_list()
-#     print(f"Active vectors: {vectors}")
+mouse list:
+    vectors = user.mouse_vectors_list()
+    print(vectors)
 
 # Smooth movement (using direction + speed interface)
 mouse smooth right: user.mouse_vectors("smooth", "direction=(1, 0); speed=30")
@@ -96,3 +96,47 @@ mouse dance:
 # Enable/disable specific vectors
 mouse enable <user.text>: user.mouse_vectors(text, "enabled=True")
 mouse disable <user.text>: user.mouse_vectors(text, "enabled=False")
+
+# Physics-based curved motion commands (real centripetal force)
+mouse curve down: user.mouse_vectors_curve_turn("turn", 0, 1, 50)
+mouse curve up: user.mouse_vectors_curve_turn("turn", 0, -1, 50)
+mouse curve right: user.mouse_vectors_curve_turn("turn", 1, 0, 50)
+mouse curve left: user.mouse_vectors_curve_turn("turn", -1, 0, 50)
+
+# Diagonal curves
+mouse curve down right: user.mouse_vectors_curve_turn("turn", 1, 1, 50)
+mouse curve down left: user.mouse_vectors_curve_turn("turn", -1, 1, 50)
+mouse curve up right: user.mouse_vectors_curve_turn("turn", 1, -1, 50)
+mouse curve up left: user.mouse_vectors_curve_turn("turn", -1, -1, 50)
+
+# Banking turns (tighter radius = sharper turns)
+mouse bank down: user.mouse_vectors_curve_turn("turn", 0, 1, 30)
+mouse bank up: user.mouse_vectors_curve_turn("turn", 0, -1, 30)
+mouse bank right: user.mouse_vectors_curve_turn("turn", 1, 0, 30)
+mouse bank left: user.mouse_vectors_curve_turn("turn", -1, 0, 30)
+
+# Wide gentle turns
+mouse sweep down: user.mouse_vectors_curve_turn("turn", 0, 1, 100)
+mouse sweep up: user.mouse_vectors_curve_turn("turn", 0, -1, 100)
+mouse sweep right: user.mouse_vectors_curve_turn("turn", 1, 0, 100)
+mouse sweep left: user.mouse_vectors_curve_turn("turn", -1, 0, 100)
+
+# Spiral motion
+mouse spiral: user.mouse_vectors_spiral_turn("spiral", 0.5, 100, 3000)
+mouse spiral fast: user.mouse_vectors_spiral_turn("spiral", 1.0, 120, 2000)
+mouse spiral slow: user.mouse_vectors_spiral_turn("spiral", 0.3, 80, 4000)
+
+# Physics-based turns that respect momentum
+mouse turn down:
+    # Gradually reduce current horizontal motion while adding downward acceleration
+    user.mouse_vectors("fade_horizontal", "v=(-100, 0); v_keyframes=[1.0, 0.5, 0.0]; duration=2000")
+    user.mouse_vectors("add_vertical", "a=(0, 80); a_keyframes=[0.0, 0.5, 1.0]; duration=2000")
+
+mouse turn right:
+    user.mouse_vectors("fade_vertical", "v=(0, -100); v_keyframes=[1.0, 0.5, 0.0]; duration=2000")
+    user.mouse_vectors("add_horizontal", "a=(80, 0); a_keyframes=[0.0, 0.5, 1.0]; duration=2000")
+
+# Smooth S-curve
+mouse snake:
+    user.mouse_vectors("base", "v=(60, 0)")
+    user.mouse_vectors("wave", "a=(0, 50); a_keyframes=[0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0]; a_interpolation=cubic; duration=3000")

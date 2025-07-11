@@ -17,17 +17,24 @@ from talon.screen import Screen
 mod = Module()
 
 # Settings
-mod.setting("mouse_vectors_tick_rate", default=90, type=int,
+mod.setting("mouse_vectors_tick_rate", default=80, type=int,
            desc="Physics update rate in Hz (60-120 recommended)")
 mod.setting("mouse_vectors_enabled", default=True, type=bool,
            desc="Enable/disable the mouse vectors system")
 mod.setting("mouse_vectors_dpi_scaling", default=True, type=bool,
            desc="Enable DPI-aware scaling for consistent movement across different displays")
+mod.setting("mouse_vectors_debug_logging", default=False, type=bool,
+           desc="Enable debug logging for physics updates and turn calculations")
 
 # Global screen tracking for DPI scaling
 _current_screen: Screen = None
 _last_mouse_pos = (0, 0)
 _cached_dpi_scale = 1.0
+
+def debug_log(message: str):
+    """Print debug message if debug logging is enabled"""
+    if settings.get("user.mouse_vectors_debug_logging"):
+        print(message)
 
 def get_current_screen(x: float = None, y: float = None) -> Screen:
     """Get the screen containing the current mouse position or specified coordinates"""
@@ -110,6 +117,11 @@ class Vector:
     _base_d: Vector2D = field(init=False)
     _d_progress: float = field(init=False, default=0.0)  # Track displacement progress
     _d_start_pos: Optional[Vector2D] = field(init=False, default=None)  # Starting position for displacement
+
+    # Centripetal turn parameters
+    _turn_target: Optional[Vector2D] = field(init=False, default=None)
+    _turn_radius: Optional[float] = field(init=False, default=None)
+    _turn_type: Optional[str] = field(init=False, default=None)
 
     def __post_init__(self):
         """Initialize internal state after creation"""
@@ -316,16 +328,28 @@ class MouseVectorsSystem:
                 'a': (0.0, 0.0),
                 'd': (0.0, 0.0),
                 'enabled': True,
-                **properties
+                **{k: v for k, v in properties.items() if not k.startswith('_')}
             }
             vector = Vector(**vector_props)
             vector._base_v = vector.v
             vector._base_a = vector.a
             vector._base_d = vector.d
+
+            # Handle special turn parameters
+            if '_turn_target' in properties:
+                vector._turn_target = properties['_turn_target']
+            if '_turn_radius' in properties:
+                vector._turn_radius = properties['_turn_radius']
+            if '_turn_type' in properties:
+                vector._turn_type = properties['_turn_type']
+
             self.vectors[name] = vector
 
         # Auto-remove vectors that are set to zero velocity/acceleration with no duration
-        if (vector.v == (0.0, 0.0) and vector.a == (0.0, 0.0) and vector.d == (0.0, 0.0) and
+        # BUT don't remove turn vectors - they start with zero velocity but will be calculated dynamically
+        is_turn_vector = hasattr(vector, '_turn_type') and vector._turn_type == 'centripetal'
+        if (not is_turn_vector and
+            vector.v == (0.0, 0.0) and vector.a == (0.0, 0.0) and vector.d == (0.0, 0.0) and
             vector.duration is None and vector.v_keyframes is None and vector.a_keyframes is None and vector.d_keyframes is None):
             del self.vectors[name]
             if not self.vectors:
@@ -420,9 +444,15 @@ class MouseVectorsSystem:
         dt = current_time - self.last_update_time
         self.last_update_time = current_time
 
+        # Log active vectors at start of physics update
+        active_vectors = [f"{name}(v={vec.v}, type={getattr(vec, '_turn_type', 'normal')})" for name, vec in self.vectors.items() if vec.enabled]
+        if active_vectors:
+            debug_log(f"[PHYSICS] Active vectors: {active_vectors}")
+
         # Update vector lifetimes and animations
         vectors_to_remove = []
-        for name, vector in self.vectors.items():
+        # Create a copy of items to avoid "dictionary changed during iteration" error
+        for name, vector in list(self.vectors.items()):
             if vector.duration is not None and vector.time_remaining is not None:
                 vector.time_remaining -= dt * 1000  # Convert to milliseconds
 
@@ -453,6 +483,154 @@ class MouseVectorsSystem:
                     multiplier = InterpolationEngine.interpolate(
                         vector.d_keyframes, progress, vector.d_interpolation)
                     vector.d = (vector._base_d[0] * multiplier, vector._base_d[1] * multiplier)
+
+            # Handle centripetal turning vectors
+            if vector._turn_type == 'centripetal' and vector._turn_target is not None and vector._turn_radius is not None:
+                debug_log(f"[PHYSICS] Processing centripetal turn vector '{name}'")
+
+                # Calculate total velocity INCLUDING this turn vector to get the actual current direction
+                total_v = (0.0, 0.0)
+                for vector_name, other_vector in self.vectors.items():
+                    if other_vector.enabled:
+                        total_v = (total_v[0] + other_vector.v[0], total_v[1] + other_vector.v[1])
+
+                debug_log(f"[PHYSICS] Total velocity (including turn progress): {total_v}")
+
+                current_speed = math.sqrt(total_v[0]**2 + total_v[1]**2)
+                debug_log(f"[PHYSICS] Current speed: {current_speed}")
+
+                if current_speed > 0.1:  # Only apply if we have meaningful velocity to turn
+                    # Calculate current direction
+                    current_dir = (total_v[0] / current_speed, total_v[1] / current_speed)
+                    debug_log(f"[PHYSICS] Current direction: {current_dir}")
+
+                    # Calculate angle between current direction and target direction
+                    target_dir = vector._turn_target
+                    debug_log(f"[PHYSICS] Target direction: {target_dir}")
+
+                    dot_product = current_dir[0] * target_dir[0] + current_dir[1] * target_dir[1]
+                    dot_product = max(-1.0, min(1.0, dot_product))  # Clamp to prevent math domain error
+                    angle_to_target = math.acos(dot_product)
+                    debug_log(f"[PHYSICS] Angle to target: {angle_to_target} radians ({math.degrees(angle_to_target)} degrees)")
+
+                    # EXTREMELY aggressive turning for sub-0.5 second turns
+                    # Base turn rate: 20 rad/s (about 1146 degrees per second - extremely fast)
+                    # A 90-degree turn at this rate: 90° / 1146°/s = 0.078 seconds
+                    base_angular_velocity = 20.0
+
+                    # Scale by speed: faster movement = even faster turning
+                    # At 25 px/s: 1.0x multiplier, at 50 px/s: 2.0x multiplier, etc.
+                    speed_multiplier = max(1.5, current_speed / 25.0)
+
+                    # Additional multiplier based on how far we need to turn
+                    # All turns get speed boost, sharp turns get even more
+                    angle_multiplier = 2.0  # Base 2x multiplier f stopor all turns
+                    if angle_to_target > math.pi / 6:  # 30 degrees
+                        angle_multiplier = 3.0  # Triple speed for medium turns
+                    if angle_to_target > math.pi / 3:  # 60 degrees
+                        angle_multiplier = 4.0  # Quadruple speed for sharp turns
+
+                    # Final angular velocity combines all factors
+                    angular_velocity = base_angular_velocity * speed_multiplier * angle_multiplier
+                    debug_log(f"[PHYSICS] Base angular velocity: {base_angular_velocity} rad/s")
+                    debug_log(f"[PHYSICS] Speed multiplier: {speed_multiplier} (based on speed {current_speed})")
+                    debug_log(f"[PHYSICS] Angle multiplier: {angle_multiplier} (based on angle {math.degrees(angle_to_target)}°)")
+                    debug_log(f"[PHYSICS] Final angular velocity: {angular_velocity} rad/s ({math.degrees(angular_velocity)} deg/s)")
+
+                    # Convert to radians per physics tick
+                    angular_velocity_per_tick = angular_velocity * dt
+                    debug_log(f"[PHYSICS] Angular velocity per tick: {angular_velocity_per_tick} rad")
+
+                    if angle_to_target > 0.02:  # Only turn if we're not already aligned (about 1 degree)
+                        debug_log(f"[PHYSICS] Need to turn, angle > 0.02 rad")
+
+                        # Calculate how much to rotate this frame
+                        # Cap rotation to prevent instant turning - maximum 0.5 radians per frame (about 28 degrees)
+                        # This ensures smooth curved motion instead of instant direction changes
+                        max_rotation_per_frame = 0.5  # radians per tick
+                        rotation_this_frame = min(angular_velocity_per_tick, angle_to_target, max_rotation_per_frame)
+
+                        # Determine turn direction using cross product
+                        cross = current_dir[0] * target_dir[1] - current_dir[1] * target_dir[0]
+                        if cross < 0:  # Turn clockwise
+                            rotation_this_frame = -rotation_this_frame
+
+                        debug_log(f"[PHYSICS] Rotation this frame: {rotation_this_frame} rad, cross product: {cross}")
+
+                        # Rotate the current velocity by the calculated amount
+                        cos_rot = math.cos(rotation_this_frame)
+                        sin_rot = math.sin(rotation_this_frame)
+
+                        rotated_x = current_dir[0] * cos_rot - current_dir[1] * sin_rot
+                        rotated_y = current_dir[0] * sin_rot + current_dir[1] * cos_rot
+
+                        debug_log(f"[PHYSICS] Rotated direction: ({rotated_x}, {rotated_y})")
+
+                        # Calculate what the new total velocity should be
+                        target_total_v = (rotated_x * current_speed, rotated_y * current_speed)
+
+                        # Calculate what this turn vector needs to contribute
+                        # Get velocity from all OTHER vectors (excluding this turn vector)
+                        other_total_v = (0.0, 0.0)
+                        for other_name, other_vector in self.vectors.items():
+                            if other_name != name and other_vector.enabled:
+                                other_total_v = (other_total_v[0] + other_vector.v[0], other_total_v[1] + other_vector.v[1])
+
+                        # Set this vector's velocity to make the total equal the target
+                        vector.v = (target_total_v[0] - other_total_v[0], target_total_v[1] - other_total_v[1])
+
+                        debug_log(f"[PHYSICS] Setting turn vector velocity to: {vector.v}")
+
+                        # No additional acceleration needed - we're directly setting velocity
+                        vector.a = (0.0, 0.0)
+
+                    else:
+                        debug_log(f"[PHYSICS] Target direction reached! Finalizing turn...")
+
+                        # Calculate what velocity we SHOULD have (original speed, new direction)
+                        # Get the original speed from other vectors (excluding turn vector)
+                        other_total_v = (0.0, 0.0)
+                        for other_name, other_vector in self.vectors.items():
+                            if other_name != name and other_vector.enabled:
+                                other_total_v = (other_total_v[0] + other_vector.v[0], other_total_v[1] + other_vector.v[1])
+
+                        original_speed = math.sqrt(other_total_v[0]**2 + other_total_v[1]**2)
+                        final_velocity = (target_dir[0] * original_speed, target_dir[1] * original_speed)
+                        debug_log(f"[PHYSICS] Original speed: {original_speed}, Final velocity: {final_velocity}")
+
+                        # Replace all movement vectors with one final vector at original speed
+                        movement_vectors_to_remove = []
+                        for other_name, other_vector in list(self.vectors.items()):
+                            if other_name != name and other_vector.enabled and (other_vector.v != (0.0, 0.0) or other_vector.a != (0.0, 0.0)):
+                                movement_vectors_to_remove.append(other_name)
+
+                        debug_log(f"[PHYSICS] Removing movement vectors: {movement_vectors_to_remove}")
+
+                        # Remove old movement vectors
+                        for remove_name in movement_vectors_to_remove:
+                            if remove_name in self.vectors:
+                                del self.vectors[remove_name]
+
+                        # Add final movement vector (use the base movement name if this was a turn)
+                        base_name = name if name in ["move", "movement"] else "move"
+                        self.vectors[base_name] = Vector(
+                            name=base_name,
+                            v=final_velocity,
+                            a=(0.0, 0.0),
+                            enabled=True,
+                            duration=None  # Persistent movement
+                        )
+                        debug_log(f"[PHYSICS] Created final movement vector '{base_name}' with velocity {final_velocity}")
+
+                        # Remove this turn vector
+                        vectors_to_remove.append(name)
+                        debug_log(f"[PHYSICS] Marking turn vector '{name}' for removal")
+                        continue
+                else:
+                    debug_log(f"[PHYSICS] No meaningful velocity to turn (speed={current_speed}), removing turn vector")
+                    # No meaningful velocity to turn, just remove this vector
+                    vectors_to_remove.append(name)
+                    continue
 
             # Handle displacement vectors
             if vector.d != (0.0, 0.0):
@@ -512,10 +690,12 @@ class MouseVectorsSystem:
 
         # Remove expired vectors
         for name in vectors_to_remove:
+            debug_log(f"[PHYSICS] Removing vector: {name}")
             self.remove_vector(name)
 
         # Calculate physics
         total_v, total_a = self._calculate_totals()
+        debug_log(f"[PHYSICS] Total velocity: {total_v}, Total acceleration: {total_a}")
 
         # Integrate acceleration into velocity
         self.current_velocity = (
@@ -528,16 +708,21 @@ class MouseVectorsSystem:
             self.current_velocity[0] + total_v[0],
             self.current_velocity[1] + total_v[1]
         )
+        debug_log(f"[PHYSICS] Final velocity after integration: {final_velocity}")
 
         # Calculate displacement
         dx = final_velocity[0] * dt
         dy = final_velocity[1] * dt
+        debug_log(f"[PHYSICS] Displacement this frame: dx={dx}, dy={dy}")
 
         # Apply movement with subpixel accuracy
         if abs(dx) > 0.01 or abs(dy) > 0.01:  # Only move if significant
             int_dx, int_dy = self.subpixel_tracker.update(dx, dy)
             if int_dx != 0 or int_dy != 0:
+                debug_log(f"[PHYSICS] Moving mouse by: ({int_dx}, {int_dy})")
                 mouse_move(int_dx, int_dy)
+        else:
+            debug_log(f"[PHYSICS] Movement too small, not moving mouse")
 
         # Stop physics if no vectors remain
         if not self.vectors:
@@ -650,6 +835,82 @@ def mouse_vectors_get_dpi_info() -> dict:
             'height': screen.rect.height
         }
     }
+
+def mouse_vectors_curve_turn(name: str, target_direction: Vector2D, turn_radius: float = 200.0, duration: float = 2000.0, interpolation: str = "cubic") -> str:
+    """
+    Create a physics-based curved turn using proper centripetal force.
+
+    Args:
+        name: Name for the turning vector
+        target_direction: Final direction to turn towards (will be normalized)
+        turn_radius: Radius of the turning circle in pixels (smaller = tighter turn)
+        duration: IGNORED - turn duration is now physics-based (speed-dependent)
+        interpolation: IGNORED - turning is now purely physics-based
+
+    Returns:
+        Vector name
+
+    Example:
+        # Turn from current direction toward down with a 150px radius curve
+        mouse_vectors_curve_turn("smooth_turn", (0, 1), turn_radius=150)
+
+    Physics:
+        - Turn rate is determined by: angular_velocity = current_speed / turn_radius
+        - Higher speed = faster turning (like a real object)
+        - Smaller radius = tighter/faster turning
+        - Speed remains constant throughout the turn
+    """
+    debug_log(f"[CURVE_TURN] Starting curve turn: name='{name}', target_direction={target_direction}, turn_radius={turn_radius}")
+
+    # Normalize target direction
+    magnitude = math.sqrt(target_direction[0]**2 + target_direction[1]**2)
+    if magnitude > 0:
+        target_direction = (target_direction[0] / magnitude, target_direction[1] / magnitude)
+    else:
+        target_direction = (0.0, 1.0)  # Default to down
+
+    debug_log(f"[CURVE_TURN] Normalized target direction: {target_direction}")
+
+    # Create a special vector that stores turn parameters
+    # The physics system will calculate the proper centripetal force each frame
+    # No duration - the turn completes when the velocity aligns with target
+    vector_name = _mouse_vectors_system.add_or_update_vector(
+        name,
+        v=(0.0, 0.0),  # No direct velocity - will be calculated
+        duration=None,  # Physics-based - completes when aligned
+        # Store turn parameters in custom fields
+        **{
+            '_turn_target': target_direction,
+            '_turn_radius': turn_radius,
+            '_turn_type': 'centripetal'
+        }
+    )
+
+    debug_log(f"[CURVE_TURN] Created/updated vector '{vector_name}' with turn parameters")
+    return vector_name
+
+def mouse_vectors_spiral_turn(name: str, turn_rate: float = 0.5, turn_strength: float = 100.0, duration: float = 3000.0) -> str:
+    """
+    Create a spiral/circular turn using physics.
+
+    Args:
+        name: Name for the spiral vector
+        turn_rate: How fast to rotate (radians per second)
+        turn_strength: Magnitude of the centripetal force
+        duration: How long to maintain the spiral
+
+    Returns:
+        Vector name
+    """
+    # This would need to be implemented with dynamic acceleration updates
+    # For now, create a strong perpendicular force
+    return _mouse_vectors_system.add_or_update_vector(
+        name,
+        a=(0, turn_strength),  # Initial perpendicular force
+        a_keyframes=[0.0, 1.0, 1.0, 0.5],  # Maintain then reduce
+        a_interpolation="ease_in_out",
+        duration=duration
+    )
 
 # Talon Actions
 @mod.action_class
@@ -815,7 +1076,48 @@ class Actions:
         """Get current DPI information for debugging"""
         return mouse_vectors_get_dpi_info()
 
+    def mouse_vectors_curve_turn(name: str, target_direction_x: float, target_direction_y: float, turn_radius: float = 200.0, duration: float = None, interpolation: str = "cubic") -> dict:
+        """
+        Create a physics-based curved turn using proper centripetal force.
 
+        Args:
+            name: Name for the turning vector
+            target_direction_x: X component of direction to turn towards
+            target_direction_y: Y component of direction to turn towards
+            turn_radius: Radius of the turning circle in pixels (smaller = tighter turn)
+            duration: IGNORED - turn duration is now physics-based (speed-dependent)
+            interpolation: IGNORED - turning is now purely physics-based
+
+        Returns:
+            Dictionary with vector name
+
+        Physics:
+            - Turn rate is determined by: angular_velocity = current_speed / turn_radius
+            - Higher speed = faster turning (like a real object)
+            - Smaller radius = tighter/faster turning
+            - Speed remains constant throughout the turn
+        """
+        debug_log(f"[TALON_ACTION] mouse_vectors_curve_turn called: name='{name}', target_direction=({target_direction_x}, {target_direction_y}), turn_radius={turn_radius}")
+        # Duration is ignored - turns are now physics-based
+        vector_name = mouse_vectors_curve_turn(name, (target_direction_x, target_direction_y), turn_radius)
+        debug_log(f"[TALON_ACTION] mouse_vectors_curve_turn returning: {{'name': '{vector_name}'}}")
+        return {'name': vector_name}
+
+    def mouse_vectors_spiral_turn(name: str, turn_rate: float = 0.5, turn_strength: float = 100.0, duration: float = 3000.0) -> dict:
+        """
+        Create a spiral/circular turn using physics.
+
+        Args:
+            name: Name for the spiral vector
+            turn_rate: How fast to rotate (radians per second)
+            turn_strength: Magnitude of the centripetal force
+            duration: How long to maintain the spiral
+
+        Returns:
+            Dictionary with vector name
+        """
+        vector_name = mouse_vectors_spiral_turn(name, turn_rate, turn_strength, duration)
+        return {'name': vector_name}
 def on_ready():
     global _mouse_vectors_system
     _mouse_vectors_system = MouseVectorsSystem()

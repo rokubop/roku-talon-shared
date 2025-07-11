@@ -55,16 +55,6 @@ mouse orbit:
 # Remove specific vectors
 mouse remove <user.text>: user.mouse_vectors_remove(text)
 
-# Get system state
-mouse state:
-    state = user.mouse_vectors_get_state()
-    print(state)
-
-# List all active vectors
-mouse list:
-    vectors = user.mouse_vectors_list()
-    print(vectors)
-
 # Smooth movement (using direction + speed interface)
 mouse smooth right: user.mouse_vectors("smooth", "direction=(1, 0); speed=30")
 mouse smooth left: user.mouse_vectors("smooth", "direction=(-1, 0); speed=30")
@@ -96,6 +86,19 @@ mouse dance:
 # Enable/disable specific vectors
 mouse enable <user.text>: user.mouse_vectors(text, "enabled=True")
 mouse disable <user.text>: user.mouse_vectors(text, "enabled=False")
+
+# Debug commands
+mouse list:
+    print("Active vectors:")
+    user.mouse_vectors_list()
+
+mouse state:
+    print("System state:")
+    user.mouse_vectors_get_state()
+
+# Debug logging control
+mouse debug on: user.mouse_vectors_enable_debug_logging()
+mouse debug off: user.mouse_vectors_disable_debug_logging()
 
 # Physics-based curved motion commands (real centripetal force)
 mouse curve down: user.mouse_vectors_curve_turn("turn", 0, 1, 50)

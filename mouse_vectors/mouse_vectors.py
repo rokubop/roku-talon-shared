@@ -23,18 +23,39 @@ mod.setting("mouse_vectors_enabled", default=True, type=bool,
            desc="Enable/disable the mouse vectors system")
 mod.setting("mouse_vectors_dpi_scaling", default=True, type=bool,
            desc="Enable DPI-aware scaling for consistent movement across different displays")
-mod.setting("mouse_vectors_debug_logging", default=False, type=bool,
-           desc="Enable debug logging for physics updates and turn calculations")
 
 # Global screen tracking for DPI scaling
 _current_screen: Screen = None
 _last_mouse_pos = (0, 0)
 _cached_dpi_scale = 1.0
 
-def debug_log(message: str):
-    """Print debug message if debug logging is enabled"""
-    if settings.get("user.mouse_vectors_debug_logging"):
-        print(message)
+# Global debug logging state
+_debug_logging_enabled = False
+_last_throttled_log_time = {}
+
+def debug_log(message: str, throttle_key: str = None, throttle_ms: int = None):
+    """
+    Print debug message if debug logging is enabled
+
+    Args:
+        message: The debug message to print
+        throttle_key: Unique key for throttling (if None, no throttling)
+        throttle_ms: Minimum milliseconds between messages for this throttle_key
+    """
+    if not _debug_logging_enabled:
+        return
+
+    # Handle throttling for high-frequency messages
+    if throttle_key and throttle_ms:
+        current_time = time.perf_counter() * 1000  # Convert to milliseconds
+        last_time = _last_throttled_log_time.get(throttle_key, 0)
+
+        if current_time - last_time < throttle_ms:
+            return  # Skip this message due to throttling
+
+        _last_throttled_log_time[throttle_key] = current_time
+
+    print(message)
 
 def get_current_screen(x: float = None, y: float = None) -> Screen:
     """Get the screen containing the current mouse position or specified coordinates"""
@@ -444,10 +465,10 @@ class MouseVectorsSystem:
         dt = current_time - self.last_update_time
         self.last_update_time = current_time
 
-        # Log active vectors at start of physics update
+        # Log active vectors at start of physics update (throttled to once per 500ms)
         active_vectors = [f"{name}(v={vec.v}, type={getattr(vec, '_turn_type', 'normal')})" for name, vec in self.vectors.items() if vec.enabled]
         if active_vectors:
-            debug_log(f"[PHYSICS] Active vectors: {active_vectors}")
+            debug_log(f"[PHYSICS] Active vectors: {active_vectors}", "physics_active_vectors", 500)
 
         # Update vector lifetimes and animations
         vectors_to_remove = []
@@ -494,68 +515,72 @@ class MouseVectorsSystem:
                     if other_vector.enabled:
                         total_v = (total_v[0] + other_vector.v[0], total_v[1] + other_vector.v[1])
 
-                debug_log(f"[PHYSICS] Total velocity (including turn progress): {total_v}")
+                debug_log(f"[PHYSICS] Total velocity (including turn progress): {total_v}", "physics_turn_velocity", 200)
 
                 current_speed = math.sqrt(total_v[0]**2 + total_v[1]**2)
-                debug_log(f"[PHYSICS] Current speed: {current_speed}")
+                debug_log(f"[PHYSICS] Current speed: {current_speed}", "physics_turn_speed", 200)
 
                 if current_speed > 0.1:  # Only apply if we have meaningful velocity to turn
                     # Calculate current direction
                     current_dir = (total_v[0] / current_speed, total_v[1] / current_speed)
-                    debug_log(f"[PHYSICS] Current direction: {current_dir}")
+                    debug_log(f"[PHYSICS] Current direction: {current_dir}", "physics_turn_direction", 200)
 
                     # Calculate angle between current direction and target direction
                     target_dir = vector._turn_target
-                    debug_log(f"[PHYSICS] Target direction: {target_dir}")
+                    debug_log(f"[PHYSICS] Target direction: {target_dir}", "physics_turn_target", 200)
 
                     dot_product = current_dir[0] * target_dir[0] + current_dir[1] * target_dir[1]
                     dot_product = max(-1.0, min(1.0, dot_product))  # Clamp to prevent math domain error
                     angle_to_target = math.acos(dot_product)
-                    debug_log(f"[PHYSICS] Angle to target: {angle_to_target} radians ({math.degrees(angle_to_target)} degrees)")
+                    debug_log(f"[PHYSICS] Angle to target: {angle_to_target} radians ({math.degrees(angle_to_target)} degrees)", "physics_turn_angle", 200)
 
-                    # EXTREMELY aggressive turning for sub-0.5 second turns
-                    # Base turn rate: 20 rad/s (about 1146 degrees per second - extremely fast)
-                    # A 90-degree turn at this rate: 90° / 1146°/s = 0.078 seconds
-                    base_angular_velocity = 20.0
+                    # Visible turning - much slower for smooth visual motion
+                    # Base turn rate: 3 rad/s (about 172 degrees per second)
+                    # A 90-degree turn at this rate: 90° / 172°/s = 0.52 seconds (visible!)
+                    base_angular_velocity = 3.0
 
-                    # Scale by speed: faster movement = even faster turning
-                    # At 25 px/s: 1.0x multiplier, at 50 px/s: 2.0x multiplier, etc.
-                    speed_multiplier = max(1.5, current_speed / 25.0)
+                    # Scale by speed: faster movement = slightly faster turning
+                    # At 30 px/s: 1.0x multiplier, at 60 px/s: 2.0x multiplier, etc.
+                    speed_multiplier = max(1.0, current_speed / 30.0)
 
-                    # Additional multiplier based on how far we need to turn
-                    # All turns get speed boost, sharp turns get even more
-                    angle_multiplier = 2.0  # Base 2x multiplier f stopor all turns
-                    if angle_to_target > math.pi / 6:  # 30 degrees
-                        angle_multiplier = 3.0  # Triple speed for medium turns
-                    if angle_to_target > math.pi / 3:  # 60 degrees
-                        angle_multiplier = 4.0  # Quadruple speed for sharp turns
+                    # Small multiplier based on turn angle for responsiveness
+                    angle_multiplier = 1.0  # Base 1x multiplier for all turns
+                    if angle_to_target > math.pi / 4:  # 45 degrees
+                        angle_multiplier = 1.2  # 20% faster for medium turns
+                    if angle_to_target > math.pi / 2:  # 90 degrees
+                        angle_multiplier = 1.5  # 50% faster for sharp turns
 
-                    # Final angular velocity combines all factors
+                    # Final angular velocity combines all factors (in radians per second)
                     angular_velocity = base_angular_velocity * speed_multiplier * angle_multiplier
-                    debug_log(f"[PHYSICS] Base angular velocity: {base_angular_velocity} rad/s")
-                    debug_log(f"[PHYSICS] Speed multiplier: {speed_multiplier} (based on speed {current_speed})")
-                    debug_log(f"[PHYSICS] Angle multiplier: {angle_multiplier} (based on angle {math.degrees(angle_to_target)}°)")
-                    debug_log(f"[PHYSICS] Final angular velocity: {angular_velocity} rad/s ({math.degrees(angular_velocity)} deg/s)")
+                    debug_log(f"[PHYSICS] Base angular velocity: {base_angular_velocity} rad/s", "physics_turn_calc", 300)
+                    debug_log(f"[PHYSICS] Speed multiplier: {speed_multiplier} (based on speed {current_speed})", "physics_turn_calc", 300)
+                    debug_log(f"[PHYSICS] Angle multiplier: {angle_multiplier} (based on angle {math.degrees(angle_to_target)}°)", "physics_turn_calc", 300)
+                    debug_log(f"[PHYSICS] Final angular velocity: {angular_velocity} rad/s ({math.degrees(angular_velocity)} deg/s)", "physics_turn_calc", 300)
 
-                    # Convert to radians per physics tick
-                    angular_velocity_per_tick = angular_velocity * dt
-                    debug_log(f"[PHYSICS] Angular velocity per tick: {angular_velocity_per_tick} rad")
+                    # Convert to radians for THIS frame based on actual time elapsed (dt)
+                    # This makes turn speed independent of tick rate
+                    angular_velocity_this_frame = angular_velocity * dt
+                    debug_log(f"[PHYSICS] dt: {dt:.6f}s, Angular velocity this frame: {angular_velocity_this_frame:.6f} rad", "physics_turn_frame", 300)
 
                     if angle_to_target > 0.02:  # Only turn if we're not already aligned (about 1 degree)
                         debug_log(f"[PHYSICS] Need to turn, angle > 0.02 rad")
 
                         # Calculate how much to rotate this frame
-                        # Cap rotation to prevent instant turning - maximum 0.5 radians per frame (about 28 degrees)
-                        # This ensures smooth curved motion instead of instant direction changes
-                        max_rotation_per_frame = 0.5  # radians per tick
-                        rotation_this_frame = min(angular_velocity_per_tick, angle_to_target, max_rotation_per_frame)
+                        # Cap rotation to prevent overshoot and ensure smooth motion
+                        # Maximum rotation is either our target angular velocity or the remaining angle
+                        # Also cap at a reasonable maximum per frame to prevent visual artifacts
+                        max_rotation_per_frame = min(math.pi / 2, angular_velocity * dt * 2)  # Cap at 90 degrees or 2x target
+                        rotation_this_frame = min(angular_velocity_this_frame, angle_to_target, max_rotation_per_frame)
+
+                        debug_log(f"[PHYSICS] Max rotation per frame: {max_rotation_per_frame:.6f} rad", "physics_turn_rotation", 300)
+                        debug_log(f"[PHYSICS] Calculated rotation this frame: {rotation_this_frame:.6f} rad", "physics_turn_rotation", 300)
 
                         # Determine turn direction using cross product
                         cross = current_dir[0] * target_dir[1] - current_dir[1] * target_dir[0]
                         if cross < 0:  # Turn clockwise
                             rotation_this_frame = -rotation_this_frame
 
-                        debug_log(f"[PHYSICS] Rotation this frame: {rotation_this_frame} rad, cross product: {cross}")
+                        debug_log(f"[PHYSICS] Rotation this frame: {rotation_this_frame} rad, cross product: {cross}", "physics_turn_rotation", 300)
 
                         # Rotate the current velocity by the calculated amount
                         cos_rot = math.cos(rotation_this_frame)
@@ -564,7 +589,7 @@ class MouseVectorsSystem:
                         rotated_x = current_dir[0] * cos_rot - current_dir[1] * sin_rot
                         rotated_y = current_dir[0] * sin_rot + current_dir[1] * cos_rot
 
-                        debug_log(f"[PHYSICS] Rotated direction: ({rotated_x}, {rotated_y})")
+                        debug_log(f"[PHYSICS] Rotated direction: ({rotated_x}, {rotated_y})", "physics_turn_rotation", 300)
 
                         # Calculate what the new total velocity should be
                         target_total_v = (rotated_x * current_speed, rotated_y * current_speed)
@@ -579,7 +604,7 @@ class MouseVectorsSystem:
                         # Set this vector's velocity to make the total equal the target
                         vector.v = (target_total_v[0] - other_total_v[0], target_total_v[1] - other_total_v[1])
 
-                        debug_log(f"[PHYSICS] Setting turn vector velocity to: {vector.v}")
+                        debug_log(f"[PHYSICS] Setting turn vector velocity to: {vector.v}", "physics_turn_velocity_set", 300)
 
                         # No additional acceleration needed - we're directly setting velocity
                         vector.a = (0.0, 0.0)
@@ -695,7 +720,7 @@ class MouseVectorsSystem:
 
         # Calculate physics
         total_v, total_a = self._calculate_totals()
-        debug_log(f"[PHYSICS] Total velocity: {total_v}, Total acceleration: {total_a}")
+        debug_log(f"[PHYSICS] Total velocity: {total_v}, Total acceleration: {total_a}", "physics_totals", 500)
 
         # Integrate acceleration into velocity
         self.current_velocity = (
@@ -708,21 +733,21 @@ class MouseVectorsSystem:
             self.current_velocity[0] + total_v[0],
             self.current_velocity[1] + total_v[1]
         )
-        debug_log(f"[PHYSICS] Final velocity after integration: {final_velocity}")
+        debug_log(f"[PHYSICS] Final velocity after integration: {final_velocity}", "physics_final_velocity", 500)
 
         # Calculate displacement
         dx = final_velocity[0] * dt
         dy = final_velocity[1] * dt
-        debug_log(f"[PHYSICS] Displacement this frame: dx={dx}, dy={dy}")
+        debug_log(f"[PHYSICS] Displacement this frame: dx={dx}, dy={dy}", "physics_displacement", 500)
 
         # Apply movement with subpixel accuracy
         if abs(dx) > 0.01 or abs(dy) > 0.01:  # Only move if significant
             int_dx, int_dy = self.subpixel_tracker.update(dx, dy)
             if int_dx != 0 or int_dy != 0:
-                debug_log(f"[PHYSICS] Moving mouse by: ({int_dx}, {int_dy})")
+                debug_log(f"[PHYSICS] Moving mouse by: ({int_dx}, {int_dy})", "physics_mouse_move", 1000)
                 mouse_move(int_dx, int_dy)
         else:
-            debug_log(f"[PHYSICS] Movement too small, not moving mouse")
+            debug_log(f"[PHYSICS] Movement too small, not moving mouse", "physics_no_move", 2000)
 
         # Stop physics if no vectors remain
         if not self.vectors:
@@ -1118,6 +1143,18 @@ class Actions:
         """
         vector_name = mouse_vectors_spiral_turn(name, turn_rate, turn_strength, duration)
         return {'name': vector_name}
+
+    def mouse_vectors_enable_debug_logging():
+        """Enable debug logging for physics updates and turn calculations"""
+        global _debug_logging_enabled
+        _debug_logging_enabled = True
+        print("[DEBUG] Mouse vectors debug logging enabled")
+
+    def mouse_vectors_disable_debug_logging():
+        """Disable debug logging for physics updates and turn calculations"""
+        global _debug_logging_enabled
+        _debug_logging_enabled = False
+        print("[DEBUG] Mouse vectors debug logging disabled")
 def on_ready():
     global _mouse_vectors_system
     _mouse_vectors_system = MouseVectorsSystem()

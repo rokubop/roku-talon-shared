@@ -1,10 +1,15 @@
 # Basic movement commands
-mouse move right: user.mouse_vectors("move", "v=(50, 0)")
-mouse move left: user.mouse_vectors("move", "v=(-50, 0)")
-mouse move up: user.mouse_vectors("move", "v=(0, -50)")
-mouse move down: user.mouse_vectors("move", "v=(0, 50)")
+mouse move start right: user.mouse_vectors("move", "v=(50, 0)")
+mouse move start left: user.mouse_vectors("move", "v=(-50, 0)")
+mouse move start up: user.mouse_vectors("move", "v=(0, -50)")
+mouse move start down: user.mouse_vectors("move", "v=(0, 50)")
 
-# Stop movement
+mouse move right: user.mouse_vectors("move", "direction=(1, 0)")
+mouse move left: user.mouse_vectors("move", "direction=(-1, 0)")
+mouse move up: user.mouse_vectors("move", "direction=(0, -1)")
+mouse move down: user.mouse_vectors("move", "direction=(0, 1)")
+*
+#* Stop movement
 mouse stop: user.mouse_vectors_stop()
 mouse pause: user.mouse_vectors_disable()
 
@@ -159,3 +164,13 @@ mouse turbo:
 # Alternative: Direct speed boost using current direction
 mouse boost speed:
     user.mouse_vectors("speed_boost", "v=(100, 0); duration=1000")
+
+# Change direction of specific vectors while preserving their speed
+mouse change <user.text> direction up: user.mouse_vectors(text, "direction=(0, -1)")
+mouse change <user.text> direction down: user.mouse_vectors(text, "direction=(0, 1)")
+mouse change <user.text> direction left: user.mouse_vectors(text, "direction=(-1, 0)")
+mouse change <user.text> direction right: user.mouse_vectors(text, "direction=(1, 0)")
+mouse change <user.text> direction up left: user.mouse_vectors(text, "direction=(-0.707, -0.707)")
+mouse change <user.text> direction up right: user.mouse_vectors(text, "direction=(0.707, -0.707)")
+mouse change <user.text> direction down left: user.mouse_vectors(text, "direction=(-0.707, 0.707)")
+mouse change <user.text> direction down right: user.mouse_vectors(text, "direction=(0.707, 0.707)")

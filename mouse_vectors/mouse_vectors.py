@@ -317,6 +317,13 @@ class MouseVectorsSystem:
         if direction is not None and speed is not None:
             direction_normalized = self._normalize_vector(direction)
             properties['v'] = (direction_normalized[0] * speed, direction_normalized[1] * speed)
+        # Handle direction-only changes: preserve existing speed while changing direction
+        elif direction is not None and name in self.vectors:
+            existing_vector = self.vectors[name]
+            current_speed = math.sqrt(existing_vector.v[0]**2 + existing_vector.v[1]**2)
+            if current_speed > 0:  # Only change direction if there's existing velocity
+                direction_normalized = self._normalize_vector(direction)
+                properties['v'] = (direction_normalized[0] * current_speed, direction_normalized[1] * current_speed)
 
         # Convert direction+acceleration to acceleration vector
         if direction is not None and acceleration_magnitude is not None:
@@ -1027,6 +1034,54 @@ def mouse_vectors_multiply_speed(multiplier: float = 2.0) -> bool:
 
     return True
 
+def mouse_vectors_change_direction(direction: Vector2D) -> bool:
+    """
+    Change movement direction while preserving current speed.
+
+    Args:
+        direction: New direction vector (will be normalized)
+
+    Returns:
+        True if direction was changed, False if no movement
+    """
+    if not _mouse_vectors_system:
+        return False
+
+    # Calculate current total velocity and speed
+    total_v, _ = _mouse_vectors_system._calculate_totals()
+    current_speed = math.sqrt(total_v[0]**2 + total_v[1]**2)
+
+    if current_speed < 0.1:
+        debug_log(f"[CHANGE_DIR] No meaningful movement to redirect")
+        return False
+
+    # Normalize the new direction
+    direction_magnitude = math.sqrt(direction[0]**2 + direction[1]**2)
+    if direction_magnitude == 0:
+        debug_log(f"[CHANGE_DIR] Invalid direction vector")
+        return False
+
+    normalized_direction = (direction[0] / direction_magnitude, direction[1] / direction_magnitude)
+
+    # Calculate new velocity: same speed, new direction
+    new_velocity = (normalized_direction[0] * current_speed, normalized_direction[1] * current_speed)
+
+    debug_log(f"[CHANGE_DIR] Current velocity: {total_v}, speed: {current_speed}")
+    debug_log(f"[CHANGE_DIR] New direction: {normalized_direction}")
+    debug_log(f"[CHANGE_DIR] New velocity: {new_velocity}")
+
+    # Clear all vectors and create new movement vector
+    _mouse_vectors_system.vectors.clear()
+    _mouse_vectors_system.vectors["move"] = Vector(
+        name="move",
+        v=new_velocity,
+        a=(0.0, 0.0),
+        enabled=True,
+        duration=None
+    )
+
+    return True
+
 # Talon Actions
 @mod.action_class
 class Actions:
@@ -1269,6 +1324,7 @@ class Actions:
         global _debug_logging_enabled
         _debug_logging_enabled = False
         print("[DEBUG] Mouse vectors debug logging disabled")
+
 def on_ready():
     global _mouse_vectors_system
     _mouse_vectors_system = MouseVectorsSystem()

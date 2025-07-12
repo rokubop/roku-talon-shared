@@ -20,35 +20,35 @@ The system supports three fundamental vector types, each with different physics 
 Continuous motion at a constant rate. Multiple velocity vectors sum together additively.
 - **Use case**: Constant movement, base motion, steady drift
 - **Physics**: Additive combination
-- **Example**: `mouse_vectors("drift", v=(30, 0))` # Move right at 30 px/s
+- **Example**: `mouse_vector("drift", v=(30, 0))` # Move right at 30 px/s
 
 ### Acceleration Vectors (`a`)
 Apply forces that change velocity over time. Multiple acceleration vectors sum together.
 - **Use case**: Thrust, braking, forces, dynamic motion
 - **Physics**: Integrated into velocity, then into position
-- **Example**: `mouse_vectors("thrust", a=(100, 0), duration=1000)` # Accelerate right
+- **Example**: `mouse_vector("thrust", a=(100, 0), duration=1000)` # Accelerate right
 
 ### Displacement Vectors (`d`)
 Target-based movement that aims for a specific relative position.
 - **Use case**: Precise positioning, "move to target" behavior
 - **Physics**: Independent targeting (non-additive)
-- **Example**: `mouse_vectors("target", d=(100, 50), duration=2000)` # Move to offset position
+- **Example**: `mouse_vector("target", d=(100, 50), duration=2000)` # Move to offset position
 
 > **Note**: Displacement vectors override their own velocity to reach their target, making them fundamentally different from velocity/acceleration vectors which combine additively.
 
 ## Quick Start
 
 ```python
-from mouse_vectors import mouse_vectors
+from mouse_vector import mouse_vector
 
 # Basic movement - move right at 50 pixels/second
-mouse_vectors("move", v=(50, 0))
+mouse_vector("move", v=(50, 0))
 
 # Physics acceleration - accelerate right for 1 second
-mouse_vectors("thrust", a=(100, 0), duration=1000)
+mouse_vector("thrust", a=(100, 0), duration=1000)
 
 # Stop all movement
-mouse_vectors_stop()
+mouse_vector_stop()
 ```
 
 ## API Reference
@@ -56,7 +56,7 @@ mouse_vectors_stop()
 ### Core Function
 
 ```python
-def mouse_vectors(name: str = None, **properties) -> dict:
+def mouse_vector(name: str = None, **properties) -> dict:
     """Create, update, or query motion vectors"""
 ```
 
@@ -89,46 +89,46 @@ def mouse_vectors(name: str = None, **properties) -> dict:
 
 ```python
 # Create/update named vectors
-mouse_vectors("movement", v=(50, 0))                    # Move right at 50 px/s
-mouse_vectors("movement", v=(0, 50))                    # Update to move down
-mouse_vectors("movement", enabled=False)                # Stop movement
+mouse_vector("movement", v=(50, 0))                    # Move right at 50 px/s
+mouse_vector("movement", v=(0, 50))                    # Update to move down
+mouse_vector("movement", enabled=False)                # Stop movement
 
 # Query existing vectors
-current = mouse_vectors("movement")                     # Get current state
+current = mouse_vector("movement")                     # Get current state
 ```
 
 ### Physics-Based Control
 
 ```python
 # Apply acceleration forces
-mouse_vectors("thrust", a=(100, 0), duration=1000)     # Accelerate right for 1s
-mouse_vectors("turn", a=(0, 50), duration=500)         # Add downward force
-mouse_vectors("brake", a=(-30, 0))                     # Apply opposing force
+mouse_vector("thrust", a=(100, 0), duration=1000)     # Accelerate right for 1s
+mouse_vector("turn", a=(0, 50), duration=500)         # Add downward force
+mouse_vector("brake", a=(-30, 0))                     # Apply opposing force
 ```
 
 ### Direction + Speed Interface
 
 ```python
 # Alternative syntax for intuitive control
-mouse_vectors("move", direction=(1, 0), speed=50)      # Move right at 50 px/s
-mouse_vectors("boost", direction=(0, 1), acceleration=100, duration=500)  # Boost down
+mouse_vector("move", direction=(1, 0), speed=50)      # Move right at 50 px/s
+mouse_vector("boost", direction=(0, 1), acceleration=100, duration=500)  # Boost down
 ```
 
 ### Target-Based Movement (Displacement)
 
 ```python
 # Move to a specific target position relative to current location
-mouse_vectors("target", d=(100, 50), duration=2000)    # Move 100px right, 50px down over 2s
-mouse_vectors("quick_move", d=(200, 0))                 # Move 200px right at default speed
+mouse_vector("target", d=(100, 50), duration=2000)    # Move 100px right, 50px down over 2s
+mouse_vector("quick_move", d=(200, 0))                 # Move 200px right at default speed
 
 # Animated displacement with keyframes
-mouse_vectors("growing_target", d=(150, 100),
+mouse_vector("growing_target", d=(150, 100),
               d_keyframes=[0.0, 0.5, 1.0],             # Start slow, accelerate, then reach target
               d_interpolation="ease_in_out",
               duration=3000)
 
 # Displacement with variable target size
-mouse_vectors("shrinking_target", d=(300, 0),
+mouse_vector("shrinking_target", d=(300, 0),
               d_keyframes=[1.2, 1.0, 0.8, 1.0],        # Overshoot then settle
               d_interpolation="bezier",
               duration=2500)
@@ -138,13 +138,13 @@ mouse_vectors("shrinking_target", d=(300, 0),
 
 ```python
 # Variable acceleration over time
-mouse_vectors("gas", a=(150, 0),
+mouse_vector("gas", a=(150, 0),
               a_keyframes=[0.0, 1.0, 0.3],
               a_interpolation="ease_in_out",
               duration=2000)
 
 # Pulsing motion
-mouse_vectors("pulse", a=(80, 0),
+mouse_vector("pulse", a=(80, 0),
               a_keyframes=[0.0, 1.0, 0.0, 1.0, 0.0],
               a_interpolation="linear",
               duration=1000)
@@ -154,10 +154,10 @@ mouse_vectors("pulse", a=(80, 0),
 
 ```python
 # Base movement + temporary effects
-mouse_vectors("base", v=(30, 0))                       # Base rightward motion
-mouse_vectors("boost", a=(100, 0), duration=500)       # Temporary acceleration
-mouse_vectors("drift", v=(0, 10))                      # Perpendicular drift
-mouse_vectors("wobble", a=(0, 20),
+mouse_vector("base", v=(30, 0))                       # Base rightward motion
+mouse_vector("boost", a=(100, 0), duration=500)       # Temporary acceleration
+mouse_vector("drift", v=(0, 10))                      # Perpendicular drift
+mouse_vector("wobble", a=(0, 20),
               a_keyframes=[1.0, -1.0, 1.0, -1.0],
               duration=2000)                           # Oscillating force
 ```
@@ -166,13 +166,13 @@ mouse_vectors("wobble", a=(0, 20),
 
 ```python
 # State management
-mouse_vectors_get_state()    # Get complete system state
-mouse_vectors_stop()         # Remove all vectors (instant stop)
-mouse_vectors_disable()      # Disable all vectors without removing them
+mouse_vector_get_state()    # Get complete system state
+mouse_vector_stop()         # Remove all vectors (instant stop)
+mouse_vector_disable()      # Disable all vectors without removing them
 
 # Vector management
-mouse_vectors_remove(name)   # Remove specific named vector
-mouse_vectors_list()         # Get list of all active vector names
+mouse_vector_remove(name)   # Remove specific named vector
+mouse_vector_list()         # Get list of all active vector names
 ```
 
 ## Voice Commands
@@ -232,15 +232,15 @@ position += velocity * time_delta
 
 ## Settings
 
-- **`user.mouse_vectors_tick_rate`**: Physics update rate in Hz (default: 60)
-- **`user.mouse_vectors_enabled`**: Enable/disable the system (default: True)
+- **`user.mouse_vector_tick_rate`**: Physics update rate in Hz (default: 60)
+- **`user.mouse_vector_enabled`**: Enable/disable the system (default: True)
 
 ## Files
 
-- **`mouse_vectors.py`**: Core implementation
-- **`mouse_vectors.talon`**: Voice commands
-- **`mouse_vectors_test.py`**: Usage examples and tests
-- **`mouse_vectors.prd`**: Product requirements document
+- **`mouse_vector.py`**: Core implementation
+- **`mouse_vector.talon`**: Voice commands
+- **`mouse_vector_test.py`**: Usage examples and tests
+- **`mouse_vector.prd`**: Product requirements document
 
 ## Use Cases
 

@@ -95,13 +95,13 @@ def _validate_arguments(self):
 ### Basic Displacement
 ```python
 # Move 100px right, 50px down over 2 seconds
-mouse_vectors("target", d=(100, 50), duration=2000)
+mouse_vector("target", d=(100, 50), duration=2000)
 ```
 
 ### Animated Displacement
 ```python
 # Growing target with smooth easing
-mouse_vectors("slide", d=(200, 0),
+mouse_vector("slide", d=(200, 0),
               d_keyframes=[0.0, 0.5, 1.0],
               d_interpolation="ease_in_out",
               duration=3000)
@@ -116,7 +116,7 @@ mouse slide up        # Animated displacement with easing
 
 ### String Parsing (for .talon files)
 ```python
-mouse_vectors("complex", "d=(150, 100);duration=2000;d_keyframes=[0.0, 1.2, 1.0];d_interpolation=bezier")
+mouse_vector("complex", "d=(150, 100);duration=2000;d_keyframes=[0.0, 1.2, 1.0];d_interpolation=bezier")
 ```
 
 ## 🎯 Design Achievements

@@ -17,11 +17,11 @@ from talon.screen import Screen
 mod = Module()
 
 # Settings
-mod.setting("mouse_vectors_tick_rate", default=80, type=int,
+mod.setting("mouse_vector_tick_rate", default=80, type=int,
            desc="Physics update rate in Hz (60-120 recommended)")
-mod.setting("mouse_vectors_enabled", default=True, type=bool,
+mod.setting("mouse_vector_enabled", default=True, type=bool,
            desc="Enable/disable the mouse vectors system")
-mod.setting("mouse_vectors_dpi_scaling", default=True, type=bool,
+mod.setting("mouse_vector_dpi_scaling", default=True, type=bool,
            desc="Enable DPI-aware scaling for consistent movement across different displays")
 
 # Global screen tracking for DPI scaling
@@ -92,7 +92,7 @@ def mouse_move_windows(dx: int, dy: int):
 def mouse_move(dx: int, dy: int):
     """Move mouse with optional DPI scaling"""
     # Apply DPI scaling if enabled
-    if settings.get("user.mouse_vectors_dpi_scaling"):
+    if settings.get("user.mouse_vector_dpi_scaling"):
         # Use cached DPI scale to avoid repeated screen lookups
         dpi_scale = get_cached_dpi_scale()
         dx = int(dx * dpi_scale)
@@ -301,12 +301,15 @@ class MouseVectorsSystem:
         self.subpixel_tracker = SubpixelTracker()
         self.physics_job = None
         self.last_update_time = None
-        self.tick_interval_ms = 1000 // settings.get("user.mouse_vectors_tick_rate")
+        self.tick_interval_ms = 1000 // settings.get("user.mouse_vector_tick_rate")
 
     def add_or_update_vector(self, name: Optional[str] = None, **properties) -> str:
         """Add a new vector or update existing one"""
         if name is None:
-            name = f"unnamed_{uuid.uuid4().hex[:8]}"
+            if properties.get('duration') is not None:
+                name = f"temp_{uuid.uuid4().hex[:8]}"
+            else:
+                name = "main"
 
         # Handle alternative property names before creating vector
         direction = properties.pop('direction', None)
@@ -465,7 +468,7 @@ class MouseVectorsSystem:
 
     def _ensure_physics_running(self):
         """Start physics updates if not already running"""
-        if self.physics_job is None and settings.get("user.mouse_vectors_enabled"):
+        if self.physics_job is None and settings.get("user.mouse_vector_enabled"):
             self.last_update_time = time.perf_counter()
             self.physics_job = cron.interval(f"{self.tick_interval_ms}ms", self._physics_update)
 
@@ -478,7 +481,7 @@ class MouseVectorsSystem:
 
     def _physics_update(self):
         """Main physics update loop"""
-        if not settings.get("user.mouse_vectors_enabled"):
+        if not settings.get("user.mouse_vector_enabled"):
             return
 
         current_time = time.perf_counter()
@@ -813,60 +816,60 @@ def _parse_list_string(value: str) -> List[float]:
     return [float(part) for part in parts]
 
 # Global system instance
-_mouse_vectors_system = None
+_mouse_vector_system = None
 
 # Public API functions
-def mouse_vectors(name: Optional[str] = None, **properties) -> Optional[Dict]:
+def mouse_vector(name: Optional[str] = None, **properties) -> Optional[Dict]:
     """
     Create, update, or query motion vectors
 
     Examples:
-        mouse_vectors("move", v=(50, 0))                    # Move right at 50 px/s
-        mouse_vectors("thrust", a=(100, 0), duration=1000)  # Accelerate right for 1s
-        mouse_vectors("wobble", a=(0, 20),                  # Oscillating force
+        mouse_vector("move", v=(50, 0))                    # Move right at 50 px/s
+        mouse_vector("thrust", a=(100, 0), duration=1000)  # Accelerate right for 1s
+        mouse_vector("wobble", a=(0, 20),                  # Oscillating force
                      a_keyframes=[1.0, -1.0, 1.0, -1.0],
                      duration=2000)
 
         # Query existing vector
-        state = mouse_vectors("move")
+        state = mouse_vector("move")
     """
     if name is not None and not properties:
         # Query mode
-        return _mouse_vectors_system.get_vector(name)
+        return _mouse_vector_system.get_vector(name)
     else:
         # Create/update mode
-        vector_name = _mouse_vectors_system.add_or_update_vector(name, **properties)
+        vector_name = _mouse_vector_system.add_or_update_vector(name, **properties)
         return {'name': vector_name}
 
-def mouse_vectors_get_state() -> Dict:
+def mouse_vector_get_state() -> Dict:
     """Get complete system state including all vectors and resulting motion"""
-    return _mouse_vectors_system.get_state()
+    return _mouse_vector_system.get_state()
 
-def mouse_vectors_stop():
+def mouse_vector_stop():
     """Remove all vectors (instant stop)"""
-    _mouse_vectors_system.stop_all()
+    _mouse_vector_system.stop_all()
 
-def mouse_vectors_disable():
+def mouse_vector_disable():
     """Disable all vectors without removing them"""
-    _mouse_vectors_system.disable_all()
+    _mouse_vector_system.disable_all()
 
-def mouse_vectors_remove(name: str) -> bool:
+def mouse_vector_remove(name: str) -> bool:
     """Remove specific named vector"""
-    return _mouse_vectors_system.remove_vector(name)
+    return _mouse_vector_system.remove_vector(name)
 
-def mouse_vectors_list() -> List[str]:
+def mouse_vector_list() -> List[str]:
     """Get list of all active vector names"""
-    return _mouse_vectors_system.list_vectors()
+    return _mouse_vector_system.list_vectors()
 
-def mouse_vectors_enable_dpi_scaling():
+def mouse_vector_enable_dpi_scaling():
     """Enable DPI-aware scaling for consistent movement across displays"""
-    settings.set("user.mouse_vectors_dpi_scaling", True)
+    settings.set("user.mouse_vector_dpi_scaling", True)
 
-def mouse_vectors_disable_dpi_scaling():
+def mouse_vector_disable_dpi_scaling():
     """Disable DPI scaling for raw pixel movement"""
-    settings.set("user.mouse_vectors_dpi_scaling", False)
+    settings.set("user.mouse_vector_dpi_scaling", False)
 
-def mouse_vectors_get_dpi_info() -> dict:
+def mouse_vector_get_dpi_info() -> dict:
     """Get current DPI information"""
     current_pos = ctrl.mouse_pos()
     screen = get_current_screen(current_pos[0], current_pos[1])
@@ -881,7 +884,7 @@ def mouse_vectors_get_dpi_info() -> dict:
         }
     }
 
-def mouse_vectors_curve_turn(name: str, target_direction: Vector2D, turn_radius: float = 200.0, duration: float = 2000.0, interpolation: str = "cubic") -> str:
+def mouse_vector_curve_turn(name: str, target_direction: Vector2D, turn_radius: float = 200.0, duration: float = 2000.0, interpolation: str = "cubic") -> str:
     """
     Create a physics-based curved turn using proper centripetal force.
 
@@ -897,7 +900,7 @@ def mouse_vectors_curve_turn(name: str, target_direction: Vector2D, turn_radius:
 
     Example:
         # Turn from current direction toward down with a 150px radius curve
-        mouse_vectors_curve_turn("smooth_turn", (0, 1), turn_radius=150)
+        mouse_vector_curve_turn("smooth_turn", (0, 1), turn_radius=150)
 
     Physics:
         - Turn rate is determined by: angular_velocity = current_speed / turn_radius
@@ -919,7 +922,7 @@ def mouse_vectors_curve_turn(name: str, target_direction: Vector2D, turn_radius:
     # Create a special vector that stores turn parameters
     # The physics system will calculate the proper centripetal force each frame
     # No duration - the turn completes when the velocity aligns with target
-    vector_name = _mouse_vectors_system.add_or_update_vector(
+    vector_name = _mouse_vector_system.add_or_update_vector(
         name,
         v=(0.0, 0.0),  # No direct velocity - will be calculated
         duration=None,  # Physics-based - completes when aligned
@@ -934,7 +937,7 @@ def mouse_vectors_curve_turn(name: str, target_direction: Vector2D, turn_radius:
     debug_log(f"[CURVE_TURN] Created/updated vector '{vector_name}' with turn parameters")
     return vector_name
 
-def mouse_vectors_spiral_turn(name: str, turn_rate: float = 0.5, turn_strength: float = 100.0, duration: float = 3000.0) -> str:
+def mouse_vector_spiral_turn(name: str, turn_rate: float = 0.5, turn_strength: float = 100.0, duration: float = 3000.0) -> str:
     """
     Create a spiral/circular turn using physics.
 
@@ -949,7 +952,7 @@ def mouse_vectors_spiral_turn(name: str, turn_rate: float = 0.5, turn_strength: 
     """
     # This would need to be implemented with dynamic acceleration updates
     # For now, create a strong perpendicular force
-    return _mouse_vectors_system.add_or_update_vector(
+    return _mouse_vector_system.add_or_update_vector(
         name,
         a=(0, turn_strength),  # Initial perpendicular force
         a_keyframes=[0.0, 1.0, 1.0, 0.5],  # Maintain then reduce
@@ -957,7 +960,7 @@ def mouse_vectors_spiral_turn(name: str, turn_rate: float = 0.5, turn_strength: 
         duration=duration
     )
 
-def mouse_vectors_stop_turn() -> bool:
+def mouse_vector_stop_turn() -> bool:
     """
     Stop any active turn and continue moving in the current direction.
 
@@ -967,12 +970,12 @@ def mouse_vectors_stop_turn() -> bool:
     Returns:
         True if a turn was stopped, False if no turn was active
     """
-    if not _mouse_vectors_system:
+    if not _mouse_vector_system:
         return False
 
     # Check if there's an active turn vector
     turn_vector = None
-    for name, vector in _mouse_vectors_system.vectors.items():
+    for name, vector in _mouse_vector_system.vectors.items():
         if hasattr(vector, '_turn_type') and vector._turn_type == 'centripetal':
             turn_vector = vector
             break
@@ -983,18 +986,18 @@ def mouse_vectors_stop_turn() -> bool:
     debug_log("[STOP_TURN] Stopping turn and preserving current direction")
 
     # Calculate current total velocity
-    total_v, _ = _mouse_vectors_system._calculate_totals()
+    total_v, _ = _mouse_vector_system._calculate_totals()
     current_speed = math.sqrt(total_v[0]**2 + total_v[1]**2)
 
     debug_log(f"[STOP_TURN] Current total velocity: {total_v}, speed: {current_speed}")
 
     if current_speed > 0.1:
         # Clear all vectors
-        _mouse_vectors_system.vectors.clear()
-        _mouse_vectors_system.current_velocity = (0.0, 0.0)  # Reset accumulated velocity
+        _mouse_vector_system.vectors.clear()
+        _mouse_vector_system.current_velocity = (0.0, 0.0)  # Reset accumulated velocity
 
         # Create new movement vector in current direction
-        _mouse_vectors_system.vectors["move"] = Vector(
+        _mouse_vector_system.vectors["move"] = Vector(
             name="move",
             v=total_v,
             a=(0.0, 0.0),
@@ -1005,12 +1008,12 @@ def mouse_vectors_stop_turn() -> bool:
         debug_log(f"[STOP_TURN] Created new movement vector with velocity: {total_v}")
     else:
         # No meaningful velocity, just stop everything
-        _mouse_vectors_system.stop_all()
+        _mouse_vector_system.stop_all()
         debug_log("[STOP_TURN] No meaningful velocity, stopping all movement")
 
     return True
 
-def mouse_vectors_multiply_speed(multiplier: float = 2.0) -> bool:
+def mouse_vector_multiply_speed(multiplier: float = 2.0) -> bool:
     """
     Multiply the current movement speed by a factor.
 
@@ -1020,11 +1023,11 @@ def mouse_vectors_multiply_speed(multiplier: float = 2.0) -> bool:
     Returns:
         True if speed was changed, False if no movement
     """
-    if not _mouse_vectors_system:
+    if not _mouse_vector_system:
         return False
 
     # Calculate current total velocity
-    total_v, _ = _mouse_vectors_system._calculate_totals()
+    total_v, _ = _mouse_vector_system._calculate_totals()
     current_speed = math.sqrt(total_v[0]**2 + total_v[1]**2)
 
     if current_speed < 0.1:
@@ -1041,9 +1044,9 @@ def mouse_vectors_multiply_speed(multiplier: float = 2.0) -> bool:
     debug_log(f"[SPEED_MULTIPLY] New velocity: {new_velocity}, new speed: {new_speed}")
 
     # Clear all vectors and create new movement vector
-    _mouse_vectors_system.vectors.clear()
-    _mouse_vectors_system.current_velocity = (0.0, 0.0)  # Reset accumulated velocity
-    _mouse_vectors_system.vectors["move"] = Vector(
+    _mouse_vector_system.vectors.clear()
+    _mouse_vector_system.current_velocity = (0.0, 0.0)  # Reset accumulated velocity
+    _mouse_vector_system.vectors["move"] = Vector(
         name="move",
         v=new_velocity,
         a=(0.0, 0.0),
@@ -1053,7 +1056,7 @@ def mouse_vectors_multiply_speed(multiplier: float = 2.0) -> bool:
 
     return True
 
-def mouse_vectors_change_direction(direction: Vector2D) -> bool:
+def mouse_vector_change_direction(direction: Vector2D) -> bool:
     """
     Change movement direction while preserving current speed.
 
@@ -1063,11 +1066,11 @@ def mouse_vectors_change_direction(direction: Vector2D) -> bool:
     Returns:
         True if direction was changed, False if no movement
     """
-    if not _mouse_vectors_system:
+    if not _mouse_vector_system:
         return False
 
     # Calculate current total velocity and speed
-    total_v, _ = _mouse_vectors_system._calculate_totals()
+    total_v, _ = _mouse_vector_system._calculate_totals()
     current_speed = math.sqrt(total_v[0]**2 + total_v[1]**2)
 
     if current_speed < 0.1:
@@ -1090,9 +1093,9 @@ def mouse_vectors_change_direction(direction: Vector2D) -> bool:
     debug_log(f"[CHANGE_DIR] New velocity: {new_velocity}")
 
     # Clear all vectors and create new movement vector
-    _mouse_vectors_system.vectors.clear()
-    _mouse_vectors_system.current_velocity = (0.0, 0.0)  # Reset accumulated velocity
-    _mouse_vectors_system.vectors["move"] = Vector(
+    _mouse_vector_system.vectors.clear()
+    _mouse_vector_system.current_velocity = (0.0, 0.0)  # Reset accumulated velocity
+    _mouse_vector_system.vectors["move"] = Vector(
         name="move",
         v=new_velocity,
         a=(0.0, 0.0),
@@ -1105,7 +1108,7 @@ def mouse_vectors_change_direction(direction: Vector2D) -> bool:
 # Talon Actions
 @mod.action_class
 class Actions:
-    def mouse_vectors(
+    def mouse_vector(
         name: str = None,
         v: Union[str | Tuple[float, float]] = None,
         a: Tuple[float, float] = None,
@@ -1147,10 +1150,10 @@ class Actions:
             Dictionary with vector state or name
 
         Examples:
-            actions.user.mouse_vectors("move", v=(50, 0))
-            actions.user.mouse_vectors("boost", a=(100, 0), duration=1000)
-            actions.user.mouse_vectors("target", d=(100, 50), duration=2000)
-            actions.user.mouse_vectors("pulse", a=(80, 0),
+            actions.user.mouse_vector("move", v=(50, 0))
+            actions.user.mouse_vector("boost", a=(100, 0), duration=1000)
+            actions.user.mouse_vector("target", d=(100, 50), duration=2000)
+            actions.user.mouse_vector("pulse", a=(80, 0),
                                      a_keyframes=[0.0, 1.0, 0.0], duration=1000)
         """
         # Build properties dict from non-None arguments
@@ -1159,7 +1162,7 @@ class Actions:
         if isinstance(v, str):
             # if string, all the options are trying to be passed in a single string.
             # .talon files have to do this because they can't use tuples
-            # e.g. mouse move up: user.mouse_vectors("move", "v=(0, -50);a=(0, 0);duration=1000;a_keyframes=[0.0, 1.0, 0.0];v_keyframes=[1.0, 0.5, 1.0];a_interpolation=linear;v_interpolation=bezier")
+            # e.g. mouse move up: user.mouse_vector("move", "v=(0, -50);a=(0, 0);duration=1000;a_keyframes=[0.0, 1.0, 0.0];v_keyframes=[1.0, 0.5, 1.0];a_interpolation=linear;v_interpolation=bezier")
             try:
                 # Reset v to None so it doesn't get added as a string
                 original_v_string = v
@@ -1237,41 +1240,41 @@ class Actions:
         if d_interpolation is not None:
             properties['d_interpolation'] = d_interpolation
 
-        return mouse_vectors(name, **properties)
+        return mouse_vector(name, **properties)
 
-    def mouse_vectors_get_state() -> dict:
+    def mouse_vector_get_state() -> dict:
         """Get complete system state including all vectors and resulting motion"""
-        return mouse_vectors_get_state()
+        return mouse_vector_get_state()
 
-    def mouse_vectors_stop():
+    def mouse_vector_stop():
         """Remove all vectors (instant stop)"""
-        mouse_vectors_stop()
+        mouse_vector_stop()
 
-    def mouse_vectors_disable():
+    def mouse_vector_disable():
         """Disable all vectors without removing them"""
-        mouse_vectors_disable()
+        mouse_vector_disable()
 
-    def mouse_vectors_remove(name: str) -> bool:
+    def mouse_vector_remove(name: str) -> bool:
         """Remove specific named vector"""
-        return mouse_vectors_remove(name)
+        return mouse_vector_remove(name)
 
-    def mouse_vectors_list() -> list:
+    def mouse_vector_list() -> list:
         """Get list of all active vector names"""
-        return mouse_vectors_list()
+        return mouse_vector_list()
 
-    def mouse_vectors_enable_dpi_scaling():
+    def mouse_vector_enable_dpi_scaling():
         """Enable DPI-aware scaling for consistent movement across displays"""
-        mouse_vectors_enable_dpi_scaling()
+        mouse_vector_enable_dpi_scaling()
 
-    def mouse_vectors_disable_dpi_scaling():
+    def mouse_vector_disable_dpi_scaling():
         """Disable DPI scaling for raw pixel movement"""
-        mouse_vectors_disable_dpi_scaling()
+        mouse_vector_disable_dpi_scaling()
 
-    def mouse_vectors_get_dpi_info() -> dict:
+    def mouse_vector_get_dpi_info() -> dict:
         """Get current DPI information for debugging"""
-        return mouse_vectors_get_dpi_info()
+        return mouse_vector_get_dpi_info()
 
-    def mouse_vectors_curve_turn(name: str, target_direction_x: float, target_direction_y: float, turn_radius: float = 200.0, duration: float = None, interpolation: str = "cubic") -> dict:
+    def mouse_vector_curve_turn(name: str, target_direction_x: float, target_direction_y: float, turn_radius: float = 200.0, duration: float = None, interpolation: str = "cubic") -> dict:
         """
         Create a physics-based curved turn using proper centripetal force.
 
@@ -1292,13 +1295,13 @@ class Actions:
             - Smaller radius = tighter/faster turning
             - Speed remains constant throughout the turn
         """
-        debug_log(f"[TALON_ACTION] mouse_vectors_curve_turn called: name='{name}', target_direction=({target_direction_x}, {target_direction_y}), turn_radius={turn_radius}")
+        debug_log(f"[TALON_ACTION] mouse_vector_curve_turn called: name='{name}', target_direction=({target_direction_x}, {target_direction_y}), turn_radius={turn_radius}")
         # Duration is ignored - turns are now physics-based
-        vector_name = mouse_vectors_curve_turn(name, (target_direction_x, target_direction_y), turn_radius)
-        debug_log(f"[TALON_ACTION] mouse_vectors_curve_turn returning: {{'name': '{vector_name}'}}")
+        vector_name = mouse_vector_curve_turn(name, (target_direction_x, target_direction_y), turn_radius)
+        debug_log(f"[TALON_ACTION] mouse_vector_curve_turn returning: {{'name': '{vector_name}'}}")
         return {'name': vector_name}
 
-    def mouse_vectors_spiral_turn(name: str, turn_rate: float = 0.5, turn_strength: float = 100.0, duration: float = 3000.0) -> dict:
+    def mouse_vector_spiral_turn(name: str, turn_rate: float = 0.5, turn_strength: float = 100.0, duration: float = 3000.0) -> dict:
         """
         Create a spiral/circular turn using physics.
 
@@ -1311,10 +1314,10 @@ class Actions:
         Returns:
             Dictionary with vector name
         """
-        vector_name = mouse_vectors_spiral_turn(name, turn_rate, turn_strength, duration)
+        vector_name = mouse_vector_spiral_turn(name, turn_rate, turn_strength, duration)
         return {'name': vector_name}
 
-    def mouse_vectors_multiply_speed(multiplier: float = 2.0) -> bool:
+    def mouse_vector_multiply_speed(multiplier: float = 2.0) -> bool:
         """
         Multiply the current movement speed by a factor.
 
@@ -1324,9 +1327,9 @@ class Actions:
         Returns:
             True if speed was changed, False if no movement
         """
-        return mouse_vectors_multiply_speed(multiplier)
+        return mouse_vector_multiply_speed(multiplier)
 
-    def mouse_vectors_stop_turn() -> bool:
+    def mouse_vector_stop_turn() -> bool:
         """
         Stop any active turn and continue moving in the current direction.
 
@@ -1336,22 +1339,22 @@ class Actions:
         Returns:
             True if a turn was stopped, False if no turn was active
         """
-        return mouse_vectors_stop_turn()
+        return mouse_vector_stop_turn()
 
-    def mouse_vectors_enable_debug_logging():
+    def mouse_vector_enable_debug_logging():
         """Enable debug logging for physics updates and turn calculations"""
         global _debug_logging_enabled
         _debug_logging_enabled = True
         print("[DEBUG] Mouse vectors debug logging enabled")
 
-    def mouse_vectors_disable_debug_logging():
+    def mouse_vector_disable_debug_logging():
         """Disable debug logging for physics updates and turn calculations"""
         global _debug_logging_enabled
         _debug_logging_enabled = False
         print("[DEBUG] Mouse vectors debug logging disabled")
 
 def on_ready():
-    global _mouse_vectors_system
-    _mouse_vectors_system = MouseVectorsSystem()
+    global _mouse_vector_system
+    _mouse_vector_system = MouseVectorsSystem()
 
 app.register("ready", on_ready)

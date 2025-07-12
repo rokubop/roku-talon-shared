@@ -14,7 +14,7 @@ The mouse is controlled by multiple named vectors that combine using real physic
 
 ### 3.1 Core Function
 ```python
-def mouse_vectors(name: str = None, **properties) -> dict:
+def mouse_vector(name: str = None, **properties) -> dict:
     """Create, update, or query motion vectors"""
 ```
 
@@ -39,24 +39,24 @@ def mouse_vectors(name: str = None, **properties) -> dict:
 ### 4.1 Basic Movement
 ```python
 # Create/update named vectors
-mouse_vectors("movement", v=(50, 0))                    # Move right at 50 px/s
-mouse_vectors("movement", v=(0, 50))                    # Update to move down
-mouse_vectors("movement", enabled=False)                # Stop movement
+mouse_vector("movement", v=(50, 0))                    # Move right at 50 px/s
+mouse_vector("movement", v=(0, 50))                    # Update to move down
+mouse_vector("movement", enabled=False)                # Stop movement
 
 # Query existing vectors
-current = mouse_vectors("movement")                     # Get current state as a class
+current = mouse_vector("movement")                     # Get current state as a class
 ```
 
 ### 4.2 Physics-Based Control
 ```python
 # Apply acceleration forces
-mouse_vectors("thrust", a=(100, 0), duration=1000)     # Accelerate right for 1s
-mouse_vectors("turn", a=(0, 50), duration=500)         # Add downward force
-mouse_vectors("brake", a=(-30, 0))                     # Apply opposing force
+mouse_vector("thrust", a=(100, 0), duration=1000)     # Accelerate right for 1s
+mouse_vector("turn", a=(0, 50), duration=500)         # Add downward force
+mouse_vector("brake", a=(-30, 0))                     # Apply opposing force
 
 # Stop forces
-mouse_vectors("thrust", enabled=False)                 # Stop thrust
-mouse_vectors("turn", a=(0, 0))                       # Zero the turn force
+mouse_vector("thrust", enabled=False)                 # Stop thrust
+mouse_vector("turn", a=(0, 0))                       # Zero the turn force
 ```
 
 All vectors accumulate to a single state applied to the mouse on tick.
@@ -64,20 +64,20 @@ All vectors accumulate to a single state applied to the mouse on tick.
 ### 4.3 Direction + Speed Interface
 ```python
 # Alternative syntax for intuitive control
-mouse_vectors("move", direction=(1, 0), speed=50)      # Move right at 50 px/s
-mouse_vectors("boost", direction=(0, 1), acceleration=100, duration=500)  # Boost down
+mouse_vector("move", direction=(1, 0), speed=50)      # Move right at 50 px/s
+mouse_vector("boost", direction=(0, 1), acceleration=100, duration=500)  # Boost down
 ```
 
 ### 4.4 Advanced Animation
 ```python
 # Variable acceleration over time
-mouse_vectors("gas", a=(150, 0),
+mouse_vector("gas", a=(150, 0),
               a_keyframes=[0.0, 1.0, 0.3],
               a_interpolation="ease_in_out",
               duration=2000)
 
 # Pulsing motion
-mouse_vectors("pulse", a=(80, 0),
+mouse_vector("pulse", a=(80, 0),
               a_keyframes=[0.0, 1.0, 0.0, 1.0, 0.0],
               a_interpolation="linear",
               duration=1000)
@@ -86,10 +86,10 @@ mouse_vectors("pulse", a=(80, 0),
 ### 4.5 Multiple Vector Composition
 ```python
 # Base movement + temporary effects
-mouse_vectors("base", v=(30, 0))                       # Base rightward motion
-mouse_vectors("boost", a=(100, 0), duration=500)       # Temporary acceleration
-mouse_vectors("drift", v=(0, 10))                      # Perpendicular drift
-mouse_vectors("wobble", a=(0, 20),
+mouse_vector("base", v=(30, 0))                       # Base rightward motion
+mouse_vector("boost", a=(100, 0), duration=500)       # Temporary acceleration
+mouse_vector("drift", v=(0, 10))                      # Perpendicular drift
+mouse_vector("wobble", a=(0, 20),
               a_keyframes=[1.0, -1.0, 1.0, -1.0],
               duration=2000)                           # Oscillating force
 
@@ -112,38 +112,38 @@ position += velocity * time_delta
 ### 5.2 Realistic Motion Patterns
 ```python
 # Car-like acceleration
-mouse_vectors("engine", a=(80, 0))                     # Apply gas
-mouse_vectors("engine", a=(0, 0))                     # Release gas (coast)
-mouse_vectors("brake", a=(-50, 0), duration=1000)     # Apply brakes
+mouse_vector("engine", a=(80, 0))                     # Apply gas
+mouse_vector("engine", a=(0, 0))                     # Release gas (coast)
+mouse_vector("brake", a=(-50, 0), duration=1000)     # Apply brakes
 
 # Projectile motion
-mouse_vectors("launch", v=(100, -50))                  # Initial velocity
-mouse_vectors("gravity", a=(0, 30))                   # Constant downward force
+mouse_vector("launch", v=(100, -50))                  # Initial velocity
+mouse_vector("gravity", a=(0, 30))                   # Constant downward force
 
 # Orbital motion
-mouse_vectors("orbit", a=perpendicular_to_position)    # Centripetal force
+mouse_vector("orbit", a=perpendicular_to_position)    # Centripetal force
 ```
 
 ## 6. Control Functions
 
 ### 6.1 State Management
 ```python
-def mouse_vectors_get_state() -> dict:
+def mouse_vector_get_state() -> dict:
     """Get complete system state including all vectors and resulting motion"""
 
-def mouse_vectors_stop() -> None:
+def mouse_vector_stop() -> None:
     """Remove all vectors (instant stop)"""
 
-def mouse_vectors_disable() -> None:
+def mouse_vector_disable() -> None:
     """Disable all vectors without removing them"""
 ```
 
 ### 6.2 Vector Management
 ```python
-def mouse_vectors_remove(name: str) -> None:
+def mouse_vector_remove(name: str) -> None:
     """Remove specific named vector"""
 
-def mouse_vectors_list() -> list[str]:
+def mouse_vector_list() -> list[str]:
     """Get list of all active vector names"""
 ```
 
@@ -212,30 +212,30 @@ Keyframes are **multipliers** applied to the base vector value:
 ### 9.3 Vector Lifecycle
 - **Auto-cleanup**: Vectors with duration automatically remove themselves
 - **Persistent Vectors**: Vectors without duration remain until explicitly removed
-- **Update Semantics**: Calling `mouse_vectors()` with existing name updates that vector
+- **Update Semantics**: Calling `mouse_vector()` with existing name updates that vector
 
 ## 10. Use Cases
 
 ### 10.1 Gaming Controls
 ```python
 # WASD movement with physics
-mouse_vectors("forward", a=(100, 0))                   # W key pressed
-mouse_vectors("forward", a=(0, 0))                     # W key released
-mouse_vectors("strafe", a=(0, 50))                     # A key pressed
+mouse_vector("forward", a=(100, 0))                   # W key pressed
+mouse_vector("forward", a=(0, 0))                     # W key released
+mouse_vector("strafe", a=(0, 50))                     # A key pressed
 
 # Mouse look with momentum
-mouse_vectors("look", v=mouse_delta)                   # Direct from mouse input
-mouse_vectors("smoothing", a=(-velocity * 0.1))       # Friction/smoothing
+mouse_vector("look", v=mouse_delta)                   # Direct from mouse input
+mouse_vector("smoothing", a=(-velocity * 0.1))       # Friction/smoothing
 ```
 
 ### 10.2 UI Navigation
 ```python
 # Smooth scrolling
-mouse_vectors("scroll", v=(0, -200), duration=1000,
+mouse_vector("scroll", v=(0, -200), duration=1000,
               v_interpolation="ease_out")
 
 # Magnetic attraction to UI elements
-mouse_vectors("magnet", a=direction_to_button * strength)
+mouse_vector("magnet", a=direction_to_button * strength)
 ```
 
 ## 11. Advanced Features
@@ -243,15 +243,15 @@ mouse_vectors("magnet", a=direction_to_button * strength)
 ### 11.1 Unnamed Vectors
 ```python
 # Temporary unnamed vectors (auto-generated names)
-mouse_vectors(a=(50, 0), duration=200)                # Quick boost
-mouse_vectors(v=(0, 30), duration=1000)               # Temporary drift
+mouse_vector(a=(50, 0), duration=200)                # Quick boost
+mouse_vector(v=(0, 30), duration=1000)               # Temporary drift
 ```
 
 ### 11.2 Vector Constraints
 ```python
 # Future: Speed limiting, boundary constraints
-mouse_vectors("capped", v=(100, 0), max_speed=50)
-mouse_vectors("bounded", a=(50, 0), bounds=screen_rect)
+mouse_vector("capped", v=(100, 0), max_speed=50)
+mouse_vector("bounded", a=(50, 0), bounds=screen_rect)
 ```
 
 ## 12. Testing Requirements

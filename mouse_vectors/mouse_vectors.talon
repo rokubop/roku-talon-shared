@@ -97,12 +97,10 @@ mouse disable <user.text>: user.mouse_vector("name={text}; enabled=false")
 
 # Debug commands
 mouse list:
-    print("Active vectors:")
-    user.mouse_vector_list()
+    print(user.mouse_vector_list())
 
 mouse state:
-    print("System state:")
-    user.mouse_vector_get_state()
+    print(user.mouse_vector_get_state())
 
 # Debug logging control
 mouse debug on: user.mouse_vector_enable_debug_logging()
@@ -191,6 +189,7 @@ mouse scale quarter: user.mouse_vector_scale(0.25)
 mouse scale smooth double: user.mouse_vector_scale(2.0, 1000, "ease_out")
 mouse scale smooth half: user.mouse_vector_scale(0.5, 1000, "ease_out")
 mouse scale gradual triple: user.mouse_vector_scale(3.0, 2000, "linear")
+mouse scale zero: user.mouse_vector_scale(0.0, 2000, "linear")
 
 # Set exact speeds
 mouse speed to fifty: user.mouse_vector_scale_to(50)

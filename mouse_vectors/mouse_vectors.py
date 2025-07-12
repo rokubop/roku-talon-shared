@@ -1134,6 +1134,21 @@ def mouse_vector_scale(multiplier: float = 2.0, duration: float = None, interpol
         # Instant scaling (same as multiply_speed)
         return mouse_vector_multiply_speed(multiplier)
     else:
+        # Special case: scaling by zero stops all movement
+        if multiplier <= 0.0:
+            debug_log(f"[SCALE] Scaling by zero - stopping all movement")
+            _mouse_vector_system.vectors.clear()
+            _mouse_vector_system.current_velocity = (0.0, 0.0)
+            _mouse_vector_system.vectors["main"] = Vector(
+                name="main",
+                v=total_v,  # Start with current velocity
+                v_keyframes=[1.0, 0.0],  # Start at full velocity, end at zero
+                v_interpolation=interpolation,
+                duration=duration,
+                enabled=True
+            )
+            return True
+
         # Animated scaling using keyframes
         debug_log(f"[SCALE] Animating scale from 1.0 to {multiplier} over {duration}ms")
 
@@ -1175,6 +1190,27 @@ def mouse_vector_scale_to(target_speed: float, duration: float = None, interpola
     if current_speed < 0.1:
         debug_log(f"[SCALE_TO] No meaningful movement to scale")
         return False
+
+    # Special case: scaling to zero stops all movement
+    if target_speed <= 0.0:
+        debug_log(f"[SCALE_TO] Scaling to zero - stopping all movement")
+        if duration is None:
+            # Instant stop
+            _mouse_vector_system.vectors.clear()
+            _mouse_vector_system.current_velocity = (0.0, 0.0)
+        else:
+            # Animated stop - scale from current velocity to zero
+            _mouse_vector_system.vectors.clear()
+            _mouse_vector_system.current_velocity = (0.0, 0.0)
+            _mouse_vector_system.vectors["main"] = Vector(
+                name="main",
+                v=total_v,  # Start with current velocity
+                v_keyframes=[1.0, 0.0],  # Start at full velocity, end at zero
+                v_interpolation=interpolation,
+                duration=duration,
+                enabled=True
+            )
+        return True
 
     # Calculate current direction
     current_dir = (total_v[0] / current_speed, total_v[1] / current_speed)

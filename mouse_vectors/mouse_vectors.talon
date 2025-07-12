@@ -113,16 +113,18 @@ mouse curve up right: user.mouse_vectors_curve_turn("turn", 1, -1, 50)
 mouse curve up left: user.mouse_vectors_curve_turn("turn", -1, -1, 50)
 
 # Banking turns (tighter radius = sharper turns)
-mouse bank down: user.mouse_vectors_curve_turn("turn", 0, 1, 30)
-mouse bank up: user.mouse_vectors_curve_turn("turn", 0, -1, 30)
-mouse bank right: user.mouse_vectors_curve_turn("turn", 1, 0, 30)
-mouse bank left: user.mouse_vectors_curve_turn("turn", -1, 0, 30)
+mouse bank down: user.mouse_vectors_curve_turn("turn", 0, 1, 10)
+mouse bank up: user.mouse_vectors_curve_turn("turn", 0, -1, 10)
+mouse bank right: user.mouse_vectors_curve_turn("turn", 1, 0, 10)
+mouse bank left: user.mouse_vectors_curve_turn("turn", -1, 0, 10)
 
 # Wide gentle turns
-mouse sweep down: user.mouse_vectors_curve_turn("turn", 0, 1, 100)
-mouse sweep up: user.mouse_vectors_curve_turn("turn", 0, -1, 100)
-mouse sweep right: user.mouse_vectors_curve_turn("turn", 1, 0, 100)
-mouse sweep left: user.mouse_vectors_curve_turn("turn", -1, 0, 100)
+mouse sweep down: user.mouse_vectors_curve_turn("turn", 0, 1, 500)
+mouse sweep up: user.mouse_vectors_curve_turn("turn", 0, -1, 500)
+mouse sweep right: user.mouse_vectors_curve_turn("turn", 1, 0, 500)
+mouse sweep left: user.mouse_vectors_curve_turn("turn", -1, 0, 500)
+
+mouse turn stop: user.mouse_vectors_stop_turn()
 
 # Spiral motion
 mouse spiral: user.mouse_vectors_spiral_turn("spiral", 0.5, 100, 3000)

@@ -534,27 +534,23 @@ class MouseVectorsSystem:
                     angle_to_target = math.acos(dot_product)
                     debug_log(f"[PHYSICS] Angle to target: {angle_to_target} radians ({math.degrees(angle_to_target)} degrees)", "physics_turn_angle", 200)
 
-                    # Visible turning - much slower for smooth visual motion
-                    # Base turn rate: 3 rad/s (about 172 degrees per second)
-                    # A 90-degree turn at this rate: 90° / 172°/s = 0.52 seconds (visible!)
-                    base_angular_velocity = 3.0
+                    # Physics-based turning using actual turn radius
+                    # Formula: angular_velocity = speed / radius
+                    # Smaller radius = tighter/faster turns, larger radius = wider/slower turns
+                    turn_radius = vector._turn_radius
+                    base_angular_velocity = current_speed / turn_radius
 
-                    # Scale by speed: faster movement = slightly faster turning
-                    # At 30 px/s: 1.0x multiplier, at 60 px/s: 2.0x multiplier, etc.
-                    speed_multiplier = max(1.0, current_speed / 30.0)
+                    debug_log(f"[PHYSICS] Turn radius: {turn_radius} px", "physics_turn_calc", 300)
+                    debug_log(f"[PHYSICS] Physics-based angular velocity: {base_angular_velocity} rad/s ({math.degrees(base_angular_velocity)} deg/s)", "physics_turn_calc", 300)
 
-                    # Small multiplier based on turn angle for responsiveness
-                    angle_multiplier = 1.0  # Base 1x multiplier for all turns
-                    if angle_to_target > math.pi / 4:  # 45 degrees
-                        angle_multiplier = 1.2  # 20% faster for medium turns
-                    if angle_to_target > math.pi / 2:  # 90 degrees
-                        angle_multiplier = 1.5  # 50% faster for sharp turns
+                    # Optional: Add small multipliers for responsiveness (keeping physics realistic)
+                    responsiveness_multiplier = 1.0  # Can be adjusted for feel
+                    if angle_to_target > math.pi / 2:  # 90+ degrees
+                        responsiveness_multiplier = 1.2  # 20% faster for sharp turns
 
-                    # Final angular velocity combines all factors (in radians per second)
-                    angular_velocity = base_angular_velocity * speed_multiplier * angle_multiplier
-                    debug_log(f"[PHYSICS] Base angular velocity: {base_angular_velocity} rad/s", "physics_turn_calc", 300)
-                    debug_log(f"[PHYSICS] Speed multiplier: {speed_multiplier} (based on speed {current_speed})", "physics_turn_calc", 300)
-                    debug_log(f"[PHYSICS] Angle multiplier: {angle_multiplier} (based on angle {math.degrees(angle_to_target)}°)", "physics_turn_calc", 300)
+                    # Final angular velocity
+                    angular_velocity = base_angular_velocity * responsiveness_multiplier
+                    debug_log(f"[PHYSICS] Responsiveness multiplier: {responsiveness_multiplier} (based on angle {math.degrees(angle_to_target)}°)", "physics_turn_calc", 300)
                     debug_log(f"[PHYSICS] Final angular velocity: {angular_velocity} rad/s ({math.degrees(angular_velocity)} deg/s)", "physics_turn_calc", 300)
 
                     # Convert to radians for THIS frame based on actual time elapsed (dt)
@@ -937,6 +933,58 @@ def mouse_vectors_spiral_turn(name: str, turn_rate: float = 0.5, turn_strength: 
         duration=duration
     )
 
+def mouse_vectors_stop_turn() -> bool:
+    """
+    Stop any active turn and continue moving in the current direction.
+
+    This captures the current total velocity (movement + turn) and replaces
+    all vectors with a single movement vector in that direction.
+
+    Returns:
+        True if a turn was stopped, False if no turn was active
+    """
+    if not _mouse_vectors_system:
+        return False
+
+    # Check if there's an active turn vector
+    turn_vector = None
+    for name, vector in _mouse_vectors_system.vectors.items():
+        if hasattr(vector, '_turn_type') and vector._turn_type == 'centripetal':
+            turn_vector = vector
+            break
+
+    if not turn_vector:
+        return False  # No active turn
+
+    debug_log("[STOP_TURN] Stopping turn and preserving current direction")
+
+    # Calculate current total velocity
+    total_v, _ = _mouse_vectors_system._calculate_totals()
+    current_speed = math.sqrt(total_v[0]**2 + total_v[1]**2)
+
+    debug_log(f"[STOP_TURN] Current total velocity: {total_v}, speed: {current_speed}")
+
+    if current_speed > 0.1:
+        # Clear all vectors
+        _mouse_vectors_system.vectors.clear()
+
+        # Create new movement vector in current direction
+        _mouse_vectors_system.vectors["move"] = Vector(
+            name="move",
+            v=total_v,
+            a=(0.0, 0.0),
+            enabled=True,
+            duration=None
+        )
+
+        debug_log(f"[STOP_TURN] Created new movement vector with velocity: {total_v}")
+    else:
+        # No meaningful velocity, just stop everything
+        _mouse_vectors_system.stop_all()
+        debug_log("[STOP_TURN] No meaningful velocity, stopping all movement")
+
+    return True
+
 # Talon Actions
 @mod.action_class
 class Actions:
@@ -1143,6 +1191,18 @@ class Actions:
         """
         vector_name = mouse_vectors_spiral_turn(name, turn_rate, turn_strength, duration)
         return {'name': vector_name}
+
+    def mouse_vectors_stop_turn() -> bool:
+        """
+        Stop any active turn and continue moving in the current direction.
+
+        This captures the current total velocity (movement + turn) and replaces
+        all vectors with a single movement vector in that direction.
+
+        Returns:
+            True if a turn was stopped, False if no turn was active
+        """
+        return mouse_vectors_stop_turn()
 
     def mouse_vectors_enable_debug_logging():
         """Enable debug logging for physics updates and turn calculations"""

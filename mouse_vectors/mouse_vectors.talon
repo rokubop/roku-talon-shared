@@ -179,3 +179,47 @@ mouse change <user.text> direction up left: user.mouse_vector("name={text}; dire
 mouse change <user.text> direction up right: user.mouse_vector("name={text}; direction=(0.707, -0.707)")
 mouse change <user.text> direction down left: user.mouse_vector("name={text}; direction=(-0.707, 0.707)")
 mouse change <user.text> direction down right: user.mouse_vector("name={text}; direction=(0.707, 0.707)")
+
+# New generic scale and rotate utilities with timing control
+# Instant scaling
+mouse scale double: user.mouse_vector_scale(2.0)
+mouse scale triple: user.mouse_vector_scale(3.0)
+mouse scale half: user.mouse_vector_scale(0.5)
+mouse scale quarter: user.mouse_vector_scale(0.25)
+
+# Animated scaling over time
+mouse scale smooth double: user.mouse_vector_scale(2.0, 1000, "ease_out")
+mouse scale smooth half: user.mouse_vector_scale(0.5, 1000, "ease_out")
+mouse scale gradual triple: user.mouse_vector_scale(3.0, 2000, "linear")
+
+# Set exact speeds
+mouse speed to fifty: user.mouse_vector_scale_to(50)
+mouse speed to hundred: user.mouse_vector_scale_to(100)
+mouse speed to two hundred: user.mouse_vector_scale_to(200)
+
+# Animated speed changes
+mouse speed smooth to fifty: user.mouse_vector_scale_to(50, 1500, "ease_in_out")
+mouse speed smooth to hundred: user.mouse_vector_scale_to(100, 1500, "ease_in_out")
+
+# Instant rotation
+mouse rotate right: user.mouse_vector_rotate(45)
+mouse rotate left: user.mouse_vector_rotate(-45)
+mouse rotate around: user.mouse_vector_rotate(180)
+mouse rotate quarter: user.mouse_vector_rotate(90)
+
+# Animated rotation
+mouse rotate smooth right: user.mouse_vector_rotate(45, 800, "ease_in_out")
+mouse rotate smooth left: user.mouse_vector_rotate(-45, 800, "ease_in_out")
+mouse rotate smooth around: user.mouse_vector_rotate(180, 1200, "ease_in_out")
+
+# Absolute direction setting
+mouse face right: user.mouse_vector_rotate_to(0)
+mouse face down: user.mouse_vector_rotate_to(90)
+mouse face left: user.mouse_vector_rotate_to(180)
+mouse face up: user.mouse_vector_rotate_to(270)
+
+# Animated absolute direction
+mouse turn smooth right: user.mouse_vector_rotate_to(0, 1000, "ease_in_out")
+mouse turn smooth down: user.mouse_vector_rotate_to(90, 1000, "ease_in_out")
+mouse turn smooth left: user.mouse_vector_rotate_to(180, 1000, "ease_in_out")
+mouse turn smooth up: user.mouse_vector_rotate_to(270, 1000, "ease_in_out")

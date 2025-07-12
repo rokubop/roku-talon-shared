@@ -309,7 +309,7 @@ class MouseVectorsSystem:
             if properties.get('duration') is not None:
                 name = f"temp_{uuid.uuid4().hex[:8]}"
             else:
-                name = "main"
+                name = "main"  # Default vector name - user's primary movement
 
         # Handle alternative property names before creating vector
         direction = properties.pop('direction', None)
@@ -659,16 +659,15 @@ class MouseVectorsSystem:
                             if remove_name in self.vectors:
                                 del self.vectors[remove_name]
 
-                        # Add final movement vector (use the base movement name if this was a turn)
-                        base_name = name if name in ["move", "movement"] else "move"
-                        self.vectors[base_name] = Vector(
-                            name=base_name,
+                        # Replace with main movement vector - no auxiliary vectors needed
+                        self.vectors["main"] = Vector(
+                            name="main",
                             v=final_velocity,
                             a=(0.0, 0.0),
                             enabled=True,
                             duration=None  # Persistent movement
                         )
-                        debug_log(f"[PHYSICS] Created final movement vector '{base_name}' with velocity {final_velocity}")
+                        debug_log(f"[PHYSICS] Created main movement vector with velocity {final_velocity}")
 
                         # Remove this turn vector
                         vectors_to_remove.append(name)
@@ -996,16 +995,16 @@ def mouse_vector_stop_turn() -> bool:
         _mouse_vector_system.vectors.clear()
         _mouse_vector_system.current_velocity = (0.0, 0.0)  # Reset accumulated velocity
 
-        # Create new movement vector in current direction
-        _mouse_vector_system.vectors["move"] = Vector(
-            name="move",
+        # Create main movement vector in current direction
+        _mouse_vector_system.vectors["main"] = Vector(
+            name="main",
             v=total_v,
             a=(0.0, 0.0),
             enabled=True,
             duration=None
         )
 
-        debug_log(f"[STOP_TURN] Created new movement vector with velocity: {total_v}")
+        debug_log(f"[STOP_TURN] Created main movement vector with velocity: {total_v}")
     else:
         # No meaningful velocity, just stop everything
         _mouse_vector_system.stop_all()
@@ -1017,6 +1016,9 @@ def mouse_vector_multiply_speed(multiplier: float = 2.0) -> bool:
     """
     Multiply the current movement speed by a factor.
 
+    This function preserves all existing vectors and their names,
+    simply scaling their velocities by the multiplier.
+
     Args:
         multiplier: Factor to multiply speed by (2.0 = double speed)
 
@@ -1026,7 +1028,13 @@ def mouse_vector_multiply_speed(multiplier: float = 2.0) -> bool:
     if not _mouse_vector_system:
         return False
 
-    # Calculate current total velocity
+    # Check if there are any enabled vectors
+    enabled_vectors = [v for v in _mouse_vector_system.vectors.values() if v.enabled]
+    if not enabled_vectors:
+        debug_log(f"[SPEED_MULTIPLY] No enabled vectors to multiply")
+        return False
+
+    # Calculate current total velocity for logging
     total_v, _ = _mouse_vector_system._calculate_totals()
     current_speed = math.sqrt(total_v[0]**2 + total_v[1]**2)
 
@@ -1035,30 +1043,22 @@ def mouse_vector_multiply_speed(multiplier: float = 2.0) -> bool:
         return False
 
     debug_log(f"[SPEED_MULTIPLY] Current velocity: {total_v}, speed: {current_speed}")
-    debug_log(f"[SPEED_MULTIPLY] Multiplying speed by {multiplier}x")
+    debug_log(f"[SPEED_MULTIPLY] Multiplying speed by {multiplier}x for {len(enabled_vectors)} vectors")
 
-    # Calculate new velocity
-    new_velocity = (total_v[0] * multiplier, total_v[1] * multiplier)
-    new_speed = current_speed * multiplier
-
-    debug_log(f"[SPEED_MULTIPLY] New velocity: {new_velocity}, new speed: {new_speed}")
-
-    # Clear all vectors and create new movement vector
-    _mouse_vector_system.vectors.clear()
-    _mouse_vector_system.current_velocity = (0.0, 0.0)  # Reset accumulated velocity
-    _mouse_vector_system.vectors["move"] = Vector(
-        name="move",
-        v=new_velocity,
-        a=(0.0, 0.0),
-        enabled=True,
-        duration=None
-    )
+    # Multiply velocity of all enabled vectors
+    for vector in enabled_vectors:
+        old_velocity = vector.v
+        vector.v = (vector.v[0] * multiplier, vector.v[1] * multiplier)
+        debug_log(f"[SPEED_MULTIPLY] Vector '{vector.name}': {old_velocity} -> {vector.v}")
 
     return True
 
 def mouse_vector_change_direction(direction: Vector2D) -> bool:
     """
     Change movement direction while preserving current speed.
+
+    This function preserves all existing vectors and their names,
+    changing their direction while maintaining their relative speeds.
 
     Args:
         direction: New direction vector (will be normalized)
@@ -1067,6 +1067,12 @@ def mouse_vector_change_direction(direction: Vector2D) -> bool:
         True if direction was changed, False if no movement
     """
     if not _mouse_vector_system:
+        return False
+
+    # Check if there are any enabled vectors
+    enabled_vectors = [v for v in _mouse_vector_system.vectors.values() if v.enabled]
+    if not enabled_vectors:
+        debug_log(f"[CHANGE_DIR] No enabled vectors to redirect")
         return False
 
     # Calculate current total velocity and speed
@@ -1085,23 +1091,229 @@ def mouse_vector_change_direction(direction: Vector2D) -> bool:
 
     normalized_direction = (direction[0] / direction_magnitude, direction[1] / direction_magnitude)
 
-    # Calculate new velocity: same speed, new direction
-    new_velocity = (normalized_direction[0] * current_speed, normalized_direction[1] * current_speed)
-
     debug_log(f"[CHANGE_DIR] Current velocity: {total_v}, speed: {current_speed}")
     debug_log(f"[CHANGE_DIR] New direction: {normalized_direction}")
-    debug_log(f"[CHANGE_DIR] New velocity: {new_velocity}")
+    debug_log(f"[CHANGE_DIR] Redirecting {len(enabled_vectors)} vectors")
 
-    # Clear all vectors and create new movement vector
-    _mouse_vector_system.vectors.clear()
-    _mouse_vector_system.current_velocity = (0.0, 0.0)  # Reset accumulated velocity
-    _mouse_vector_system.vectors["move"] = Vector(
-        name="move",
-        v=new_velocity,
-        a=(0.0, 0.0),
-        enabled=True,
-        duration=None
+    # Change direction of all enabled vectors while preserving their individual speeds
+    for vector in enabled_vectors:
+        # Calculate this vector's current speed
+        vector_speed = math.sqrt(vector.v[0]**2 + vector.v[1]**2)
+        if vector_speed > 0.1:  # Only redirect vectors with meaningful speed
+            old_velocity = vector.v
+            # Apply the new direction with this vector's speed
+            vector.v = (normalized_direction[0] * vector_speed, normalized_direction[1] * vector_speed)
+            debug_log(f"[CHANGE_DIR] Vector '{vector.name}': {old_velocity} -> {vector.v}")
+
+    return True
+
+def mouse_vector_scale(multiplier: float = 2.0, duration: float = None, interpolation: str = "linear") -> bool:
+    """
+    Scale current movement speed by a multiplier.
+
+    Args:
+        multiplier: Factor to multiply speed by (2.0 = double speed)
+        duration: Time in milliseconds to complete the scaling (None = instant)
+        interpolation: How to animate the scaling ("linear", "ease_in", "ease_out", "ease_in_out")
+
+    Returns:
+        True if speed was changed, False if no movement
+    """
+    if not _mouse_vector_system:
+        return False
+
+    # Calculate current total velocity
+    total_v, _ = _mouse_vector_system._calculate_totals()
+    current_speed = math.sqrt(total_v[0]**2 + total_v[1]**2)
+
+    if current_speed < 0.1:
+        debug_log(f"[SCALE] No meaningful movement to scale")
+        return False
+
+    if duration is None:
+        # Instant scaling (same as multiply_speed)
+        return mouse_vector_multiply_speed(multiplier)
+    else:
+        # Animated scaling using keyframes
+        debug_log(f"[SCALE] Animating scale from 1.0 to {multiplier} over {duration}ms")
+
+        # Clear all vectors and create animated scaling vector
+        _mouse_vector_system.vectors.clear()
+        _mouse_vector_system.current_velocity = (0.0, 0.0)
+
+        # Create scaling vector with keyframes from current speed to target speed
+        target_velocity = (total_v[0] * multiplier, total_v[1] * multiplier)
+        _mouse_vector_system.vectors["main"] = Vector(
+            name="main",
+            v=target_velocity,
+            v_keyframes=[1.0/multiplier, 1.0],  # Start at reduced scale, end at full scale
+            v_interpolation=interpolation,
+            duration=duration,
+            enabled=True
+        )
+        return True
+
+def mouse_vector_scale_to(target_speed: float, duration: float = None, interpolation: str = "linear") -> bool:
+    """
+    Set movement speed to an exact value while preserving direction.
+
+    Args:
+        target_speed: Target speed in pixels/second
+        duration: Time in milliseconds to reach target speed (None = instant)
+        interpolation: How to animate the change ("linear", "ease_in", "ease_out", "ease_in_out")
+
+    Returns:
+        True if speed was changed, False if no movement
+    """
+    if not _mouse_vector_system:
+        return False
+
+    # Calculate current total velocity
+    total_v, _ = _mouse_vector_system._calculate_totals()
+    current_speed = math.sqrt(total_v[0]**2 + total_v[1]**2)
+
+    if current_speed < 0.1:
+        debug_log(f"[SCALE_TO] No meaningful movement to scale")
+        return False
+
+    # Calculate current direction
+    current_dir = (total_v[0] / current_speed, total_v[1] / current_speed)
+    target_velocity = (current_dir[0] * target_speed, current_dir[1] * target_speed)
+
+    debug_log(f"[SCALE_TO] Current speed: {current_speed}, target speed: {target_speed}")
+    debug_log(f"[SCALE_TO] Current velocity: {total_v}, target velocity: {target_velocity}")
+
+    if duration is None:
+        # Instant change
+        _mouse_vector_system.vectors.clear()
+        _mouse_vector_system.current_velocity = (0.0, 0.0)
+        _mouse_vector_system.vectors["main"] = Vector(
+            name="main",
+            v=target_velocity,
+            a=(0.0, 0.0),
+            enabled=True,
+            duration=None
+        )
+    else:
+        # Animated change using keyframes
+        scale_factor = target_speed / current_speed
+        debug_log(f"[SCALE_TO] Animating scale factor: {scale_factor} over {duration}ms")
+
+        _mouse_vector_system.vectors.clear()
+        _mouse_vector_system.current_velocity = (0.0, 0.0)
+        _mouse_vector_system.vectors["main"] = Vector(
+            name="main",
+            v=target_velocity,
+            v_keyframes=[1.0/scale_factor, 1.0],  # Start at current scale, end at target scale
+            v_interpolation=interpolation,
+            duration=duration,
+            enabled=True
+        )
+
+    return True
+
+def mouse_vector_rotate(angle_degrees: float, duration: float = None, interpolation: str = "linear") -> bool:
+    """
+    Rotate current movement direction by a relative angle.
+
+    Args:
+        angle_degrees: Angle to rotate by in degrees (positive = clockwise)
+        duration: Time in milliseconds to complete rotation (None = instant)
+        interpolation: How to animate the rotation ("linear", "ease_in", "ease_out", "ease_in_out")
+
+    Returns:
+        True if direction was changed, False if no movement
+    """
+    if not _mouse_vector_system:
+        return False
+
+    # Calculate current total velocity
+    total_v, _ = _mouse_vector_system._calculate_totals()
+    current_speed = math.sqrt(total_v[0]**2 + total_v[1]**2)
+
+    if current_speed < 0.1:
+        debug_log(f"[ROTATE] No meaningful movement to rotate")
+        return False
+
+    # Calculate current direction
+    current_dir = (total_v[0] / current_speed, total_v[1] / current_speed)
+
+    # Calculate target direction
+    angle_radians = math.radians(angle_degrees)
+    cos_angle = math.cos(angle_radians)
+    sin_angle = math.sin(angle_radians)
+
+    target_dir = (
+        current_dir[0] * cos_angle - current_dir[1] * sin_angle,
+        current_dir[0] * sin_angle + current_dir[1] * cos_angle
     )
+    target_velocity = (target_dir[0] * current_speed, target_dir[1] * current_speed)
+
+    debug_log(f"[ROTATE] Rotating by {angle_degrees}° from {current_dir} to {target_dir}")
+
+    if duration is None:
+        # Instant rotation
+        _mouse_vector_system.vectors.clear()
+        _mouse_vector_system.current_velocity = (0.0, 0.0)
+        _mouse_vector_system.vectors["main"] = Vector(
+            name="main",
+            v=target_velocity,
+            a=(0.0, 0.0),
+            enabled=True,
+            duration=None
+        )
+    else:
+        # Animated rotation using curve turn - use "turn" as the only auxiliary vector name
+        debug_log(f"[ROTATE] Using curve turn for animated rotation over {duration}ms")
+        return mouse_vector_curve_turn("turn", target_dir, turn_radius=200.0) is not None
+
+    return True
+
+def mouse_vector_rotate_to(angle_degrees: float, duration: float = None, interpolation: str = "linear") -> bool:
+    """
+    Set movement direction to an absolute angle while preserving speed.
+
+    Args:
+        angle_degrees: Target angle in degrees (0° = right, 90° = down, 180° = left, 270° = up)
+        duration: Time in milliseconds to reach target angle (None = instant)
+        interpolation: How to animate the rotation ("linear", "ease_in", "ease_out", "ease_in_out")
+
+    Returns:
+        True if direction was changed, False if no movement
+    """
+    if not _mouse_vector_system:
+        return False
+
+    # Calculate current total velocity
+    total_v, _ = _mouse_vector_system._calculate_totals()
+    current_speed = math.sqrt(total_v[0]**2 + total_v[1]**2)
+
+    if current_speed < 0.1:
+        debug_log(f"[ROTATE_TO] No meaningful movement to rotate")
+        return False
+
+    # Calculate target direction from angle
+    angle_radians = math.radians(angle_degrees)
+    target_dir = (math.cos(angle_radians), math.sin(angle_radians))
+    target_velocity = (target_dir[0] * current_speed, target_dir[1] * current_speed)
+
+    debug_log(f"[ROTATE_TO] Setting direction to {angle_degrees}° ({target_dir}), speed: {current_speed}")
+
+    if duration is None:
+        # Instant rotation
+        _mouse_vector_system.vectors.clear()
+        _mouse_vector_system.current_velocity = (0.0, 0.0)
+        _mouse_vector_system.vectors["main"] = Vector(
+            name="main",
+            v=target_velocity,
+            a=(0.0, 0.0),
+            enabled=True,
+            duration=None
+        )
+    else:
+        # Animated rotation using curve turn - use "turn" as the only auxiliary vector name
+        debug_log(f"[ROTATE_TO] Using curve turn for animated rotation to {angle_degrees}° over {duration}ms")
+        return mouse_vector_curve_turn("turn", target_dir, turn_radius=200.0) is not None
 
     return True
 
@@ -1361,6 +1573,62 @@ class Actions:
         global _debug_logging_enabled
         _debug_logging_enabled = False
         print("[DEBUG] Mouse vectors debug logging disabled")
+
+    def mouse_vector_scale(multiplier: float = 2.0, duration: float = None, interpolation: str = "linear") -> bool:
+        """
+        Scale current movement speed by a multiplier.
+
+        Args:
+            multiplier: Factor to multiply speed by (2.0 = double speed)
+            duration: Time in milliseconds to complete the scaling (None = instant)
+            interpolation: How to animate the scaling ("linear", "ease_in", "ease_out", "ease_in_out")
+
+        Returns:
+            True if speed was changed, False if no movement
+        """
+        return mouse_vector_scale(multiplier, duration, interpolation)
+
+    def mouse_vector_scale_to(target_speed: float, duration: float = None, interpolation: str = "linear") -> bool:
+        """
+        Set movement speed to an exact value while preserving direction.
+
+        Args:
+            target_speed: Target speed in pixels/second
+            duration: Time in milliseconds to reach target speed (None = instant)
+            interpolation: How to animate the change ("linear", "ease_in", "ease_out", "ease_in_out")
+
+        Returns:
+            True if speed was changed, False if no movement
+        """
+        return mouse_vector_scale_to(target_speed, duration, interpolation)
+
+    def mouse_vector_rotate(angle_degrees: float, duration: float = None, interpolation: str = "linear") -> bool:
+        """
+        Rotate current movement direction by a relative angle.
+
+        Args:
+            angle_degrees: Angle to rotate by in degrees (positive = clockwise)
+            duration: Time in milliseconds to complete rotation (None = instant)
+            interpolation: How to animate the rotation ("linear", "ease_in", "ease_out", "ease_in_out")
+
+        Returns:
+            True if direction was changed, False if no movement
+        """
+        return mouse_vector_rotate(angle_degrees, duration, interpolation)
+
+    def mouse_vector_rotate_to(angle_degrees: float, duration: float = None, interpolation: str = "linear") -> bool:
+        """
+        Set movement direction to an absolute angle while preserving speed.
+
+        Args:
+            angle_degrees: Target angle in degrees (0° = right, 90° = down, 180° = left, 270° = up)
+            duration: Time in milliseconds to reach target angle (None = instant)
+            interpolation: How to animate the rotation ("linear", "ease_in", "ease_out", "ease_in_out")
+
+        Returns:
+            True if direction was changed, False if no movement
+        """
+        return mouse_vector_rotate_to(angle_degrees, duration, interpolation)
 
 def on_ready():
     global _mouse_vector_system

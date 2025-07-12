@@ -985,6 +985,48 @@ def mouse_vectors_stop_turn() -> bool:
 
     return True
 
+def mouse_vectors_multiply_speed(multiplier: float = 2.0) -> bool:
+    """
+    Multiply the current movement speed by a factor.
+
+    Args:
+        multiplier: Factor to multiply speed by (2.0 = double speed)
+
+    Returns:
+        True if speed was changed, False if no movement
+    """
+    if not _mouse_vectors_system:
+        return False
+
+    # Calculate current total velocity
+    total_v, _ = _mouse_vectors_system._calculate_totals()
+    current_speed = math.sqrt(total_v[0]**2 + total_v[1]**2)
+
+    if current_speed < 0.1:
+        debug_log(f"[SPEED_MULTIPLY] No meaningful movement to multiply")
+        return False
+
+    debug_log(f"[SPEED_MULTIPLY] Current velocity: {total_v}, speed: {current_speed}")
+    debug_log(f"[SPEED_MULTIPLY] Multiplying speed by {multiplier}x")
+
+    # Calculate new velocity
+    new_velocity = (total_v[0] * multiplier, total_v[1] * multiplier)
+    new_speed = current_speed * multiplier
+
+    debug_log(f"[SPEED_MULTIPLY] New velocity: {new_velocity}, new speed: {new_speed}")
+
+    # Clear all vectors and create new movement vector
+    _mouse_vectors_system.vectors.clear()
+    _mouse_vectors_system.vectors["move"] = Vector(
+        name="move",
+        v=new_velocity,
+        a=(0.0, 0.0),
+        enabled=True,
+        duration=None
+    )
+
+    return True
+
 # Talon Actions
 @mod.action_class
 class Actions:
@@ -1191,6 +1233,18 @@ class Actions:
         """
         vector_name = mouse_vectors_spiral_turn(name, turn_rate, turn_strength, duration)
         return {'name': vector_name}
+
+    def mouse_vectors_multiply_speed(multiplier: float = 2.0) -> bool:
+        """
+        Multiply the current movement speed by a factor.
+
+        Args:
+            multiplier: Factor to multiply speed by (2.0 = double speed)
+
+        Returns:
+            True if speed was changed, False if no movement
+        """
+        return mouse_vectors_multiply_speed(multiplier)
 
     def mouse_vectors_stop_turn() -> bool:
         """

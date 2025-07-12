@@ -145,3 +145,17 @@ mouse turn right:
 mouse snake:
     user.mouse_vectors("base", "v=(60, 0)")
     user.mouse_vectors("wave", "a=(0, 50); a_keyframes=[0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0]; a_interpolation=cubic; duration=3000")
+
+# Speed control commands
+mouse speed double: user.mouse_vectors_multiply_speed(2.0)
+mouse speed triple: user.mouse_vectors_multiply_speed(3.0)
+mouse speed half: user.mouse_vectors_multiply_speed(0.5)
+mouse speed quarter: user.mouse_vectors_multiply_speed(0.25)
+
+# Alternative: Add velocity in current direction (temporary speed boost)
+mouse turbo:
+    user.mouse_vectors("turbo", "a=(150, 0); duration=800")
+
+# Alternative: Direct speed boost using current direction
+mouse boost speed:
+    user.mouse_vectors("speed_boost", "v=(100, 0); duration=1000")

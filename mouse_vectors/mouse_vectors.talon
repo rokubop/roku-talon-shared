@@ -28,6 +28,7 @@ mouse thrust up: user.mouse_vector("name=thrust; a=(0, -100); duration=1000")
 mouse thrust down: user.mouse_vector("name=thrust; a=(0, 100); duration=1000")
 
 # Boost commands (temporary acceleration)
+# mouse boost: user.mouse_vector_scale(
 mouse boost right: user.mouse_vector("name=boost; a=(200, 0); duration=500")
 mouse boost left: user.mouse_vector("name=boost; a=(-200, 0); duration=500")
 mouse boost up: user.mouse_vector("name=boost; a=(0, -200); duration=500")

@@ -1141,12 +1141,14 @@ def mouse_vector_scale(multiplier: float = 2.0, duration: float = None, interpol
             _mouse_vector_system.current_velocity = (0.0, 0.0)
             _mouse_vector_system.vectors["main"] = Vector(
                 name="main",
-                v=total_v,  # Start with current velocity
-                v_keyframes=[1.0, 0.0],  # Start at full velocity, end at zero
+                v=(0.0, 0.0),  # Target is zero velocity
+                v_keyframes=[1.0, 0.0],  # Start at full current velocity, end at zero
                 v_interpolation=interpolation,
                 duration=duration,
                 enabled=True
             )
+            # Set initial velocity to current velocity for proper animation
+            _mouse_vector_system.vectors["main"].v = total_v
             return True
 
         # Animated scaling using keyframes
@@ -1204,12 +1206,14 @@ def mouse_vector_scale_to(target_speed: float, duration: float = None, interpola
             _mouse_vector_system.current_velocity = (0.0, 0.0)
             _mouse_vector_system.vectors["main"] = Vector(
                 name="main",
-                v=total_v,  # Start with current velocity
-                v_keyframes=[1.0, 0.0],  # Start at full velocity, end at zero
+                v=(0.0, 0.0),  # Target is zero velocity
+                v_keyframes=[1.0, 0.0],  # Start at full current velocity, end at zero
                 v_interpolation=interpolation,
                 duration=duration,
                 enabled=True
             )
+            # Set initial velocity to current velocity for proper animation
+            _mouse_vector_system.vectors["main"].v = total_v
         return True
 
     # Calculate current direction

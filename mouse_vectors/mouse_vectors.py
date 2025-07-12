@@ -311,6 +311,7 @@ class MouseVectorsSystem:
         # Handle alternative property names before creating vector
         direction = properties.pop('direction', None)
         speed = properties.pop('speed', None)
+        default_speed = properties.pop('default_speed', None)
         acceleration_magnitude = properties.pop('acceleration', None)
 
         # Convert direction+speed to velocity
@@ -324,6 +325,13 @@ class MouseVectorsSystem:
             if current_speed > 0:  # Only change direction if there's existing velocity
                 direction_normalized = self._normalize_vector(direction)
                 properties['v'] = (direction_normalized[0] * current_speed, direction_normalized[1] * current_speed)
+            elif default_speed is not None:  # Use default speed if no current velocity
+                direction_normalized = self._normalize_vector(direction)
+                properties['v'] = (direction_normalized[0] * default_speed, direction_normalized[1] * default_speed)
+        # Handle direction with default_speed for new vectors
+        elif direction is not None and default_speed is not None:
+            direction_normalized = self._normalize_vector(direction)
+            properties['v'] = (direction_normalized[0] * default_speed, direction_normalized[1] * default_speed)
 
         # Convert direction+acceleration to acceleration vector
         if direction is not None and acceleration_magnitude is not None:
@@ -384,6 +392,13 @@ class MouseVectorsSystem:
                 self._stop_physics()
             return name
 
+        # Reset accumulated velocity when vectors change to prevent acceleration accumulation
+        # This fixes the issue where acceleration from previous commands continues to affect new movements
+        # Only reset if we're adding/updating vectors with explicit velocity (not pure acceleration)
+        has_explicit_velocity = 'v' in properties or 'speed' in properties or 'direction' in properties
+        if has_explicit_velocity:
+            self.current_velocity = (0.0, 0.0)
+
         # Start physics if not running
         self._ensure_physics_running()
 
@@ -412,6 +427,8 @@ class MouseVectorsSystem:
         """Remove a specific vector"""
         if name in self.vectors:
             del self.vectors[name]
+            # Reset accumulated velocity when vectors are removed to prevent acceleration accumulation
+            self.current_velocity = (0.0, 0.0)
             if not self.vectors:
                 self._stop_physics()
             return True
@@ -974,6 +991,7 @@ def mouse_vectors_stop_turn() -> bool:
     if current_speed > 0.1:
         # Clear all vectors
         _mouse_vectors_system.vectors.clear()
+        _mouse_vectors_system.current_velocity = (0.0, 0.0)  # Reset accumulated velocity
 
         # Create new movement vector in current direction
         _mouse_vectors_system.vectors["move"] = Vector(
@@ -1024,6 +1042,7 @@ def mouse_vectors_multiply_speed(multiplier: float = 2.0) -> bool:
 
     # Clear all vectors and create new movement vector
     _mouse_vectors_system.vectors.clear()
+    _mouse_vectors_system.current_velocity = (0.0, 0.0)  # Reset accumulated velocity
     _mouse_vectors_system.vectors["move"] = Vector(
         name="move",
         v=new_velocity,
@@ -1072,6 +1091,7 @@ def mouse_vectors_change_direction(direction: Vector2D) -> bool:
 
     # Clear all vectors and create new movement vector
     _mouse_vectors_system.vectors.clear()
+    _mouse_vectors_system.current_velocity = (0.0, 0.0)  # Reset accumulated velocity
     _mouse_vectors_system.vectors["move"] = Vector(
         name="move",
         v=new_velocity,
@@ -1093,6 +1113,7 @@ class Actions:
         enabled: bool = None,
         duration: float = None,
         speed: float = None,
+        default_speed: float = None,
         direction: Tuple[float, float] = None,
         acceleration: float = None,
         a_keyframes: List[float] = None,
@@ -1162,6 +1183,8 @@ class Actions:
                         duration = float(value)
                     elif key == "speed":
                         speed = float(value)
+                    elif key == "default_speed":
+                        default_speed = float(value)
                     elif key == "acceleration":
                         acceleration = float(value)
                     elif key == "enabled":
@@ -1195,6 +1218,8 @@ class Actions:
             properties['duration'] = duration
         if speed is not None:
             properties['speed'] = speed
+        if default_speed is not None:
+            properties['default_speed'] = default_speed
         if direction is not None:
             properties['direction'] = direction
         if acceleration is not None:

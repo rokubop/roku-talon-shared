@@ -4,14 +4,16 @@ mouse move start left: user.mouse_vectors("move", "v=(-50, 0)")
 mouse move start up: user.mouse_vectors("move", "v=(0, -50)")
 mouse move start down: user.mouse_vectors("move", "v=(0, 50)")
 
-mouse move right: user.mouse_vectors("move", "direction=(1, 0)")
-mouse move left: user.mouse_vectors("move", "direction=(-1, 0)")
-mouse move up: user.mouse_vectors("move", "direction=(0, -1)")
-mouse move down: user.mouse_vectors("move", "direction=(0, 1)")
-*
+mouse move right: user.mouse_vectors("move", "direction=(1, 0); default_speed=50")
+mouse move left: user.mouse_vectors("move", "direction=(-1, 0); default_speed=50")
+mouse move up: user.mouse_vectors("move", "direction=(0, -1); default_speed=50")
+mouse move down: user.mouse_vectors("move", "direction=(0, 1); default_speed=50")
+
 #* Stop movement
 mouse stop: user.mouse_vectors_stop()
 mouse pause: user.mouse_vectors_disable()
+
+mouse test: user.mouse_vectors("asdf", "v=(100, 0); duration=400;")
 
 # Acceleration-based movement
 mouse thrust right: user.mouse_vectors("thrust", "a=(100, 0); duration=1000")
@@ -79,8 +81,8 @@ mouse strafe stop: user.mouse_vectors("strafe", "a=(0, 0)")
 
 # Projectile motion
 mouse launch:
-    user.mouse_vectors("launch", "v=(120, -60)")
-    user.mouse_vectors("gravity", "a=(0, 40)")
+    user.mouse_vectors("launch", "v=(200, -200)")
+    user.mouse_vectors("gravity", "a=(0, 200)")
 
 # Complex multi-vector example
 mouse dance:
@@ -152,6 +154,8 @@ mouse snake:
     user.mouse_vectors("wave", "a=(0, 50); a_keyframes=[0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 0.0]; a_interpolation=cubic; duration=3000")
 
 # Speed control commands
+mouse speed up: user.mouse_vectors_multiply_speed(2)
+mouse speed down: user.mouse_vectors_multiply_speed(0.5)
 mouse speed double: user.mouse_vectors_multiply_speed(2.0)
 mouse speed triple: user.mouse_vectors_multiply_speed(3.0)
 mouse speed half: user.mouse_vectors_multiply_speed(0.5)

@@ -1109,8 +1109,8 @@ def mouse_vector_change_direction(direction: Vector2D) -> bool:
 @mod.action_class
 class Actions:
     def mouse_vector(
-        name: str = None,
-        v: Union[str | Tuple[float, float]] = None,
+        name_or_options: str = None,
+        v: Tuple[float, float] = None,
         a: Tuple[float, float] = None,
         d: Tuple[float, float] = None,
         enabled: bool = None,
@@ -1130,7 +1130,8 @@ class Actions:
         Create, update, or query motion vectors for physics-based mouse movement.
 
         Args:
-            name: Vector name (None for auto-generated)
+            name_or_options: Vector name (for query mode) or string of options
+                           (for Talon usage, e.g., "direction=(-1, 0); speed=50")
             v: Velocity vector (x, y) in pixels/second
             a: Acceleration vector (x, y) in pixels/second²
             d: Displacement vector (x, y) in pixels - target-based movement
@@ -1150,25 +1151,25 @@ class Actions:
             Dictionary with vector state or name
 
         Examples:
+            # Regular Python usage:
             actions.user.mouse_vector("move", v=(50, 0))
             actions.user.mouse_vector("boost", a=(100, 0), duration=1000)
-            actions.user.mouse_vector("target", d=(100, 50), duration=2000)
-            actions.user.mouse_vector("pulse", a=(80, 0),
-                                     a_keyframes=[0.0, 1.0, 0.0], duration=1000)
+
+            # Talon string usage:
+            actions.user.mouse_vector("direction=(-1, 0); speed=50")
+            actions.user.mouse_vector("name=boost; a=(100,0); duration=500")
+
+            # Query mode:
+            actions.user.mouse_vector("move")  # Returns state of "move" vector
         """
-        # Build properties dict from non-None arguments
-        properties = {}
+        # Initialize name and handle string options parsing
+        name = None
 
-        if isinstance(v, str):
-            # if string, all the options are trying to be passed in a single string.
-            # .talon files have to do this because they can't use tuples
-            # e.g. mouse move up: user.mouse_vector("move", "v=(0, -50);a=(0, 0);duration=1000;a_keyframes=[0.0, 1.0, 0.0];v_keyframes=[1.0, 0.5, 1.0];a_interpolation=linear;v_interpolation=bezier")
+        # Check if first parameter contains options (for Talon usage)
+        if name_or_options and "=" in name_or_options:
+            # Parse as options string for Talon
             try:
-                # Reset v to None so it doesn't get added as a string
-                original_v_string = v
-                v = None
-
-                options = original_v_string.split(";")
+                options = name_or_options.split(";")
                 for option in options:
                     if "=" not in option:
                         continue
@@ -1176,7 +1177,9 @@ class Actions:
                     key = key.strip()
                     value = value.strip()
 
-                    if key == "v":
+                    if key == "name":
+                        name = value
+                    elif key == "v":
                         v = _parse_tuple_string(value)
                     elif key == "a":
                         a = _parse_tuple_string(value)
@@ -1208,6 +1211,12 @@ class Actions:
                         d_interpolation = value
             except Exception as e:
                 raise ValueError(f"Error parsing vector options: {e}")
+        else:
+            # Treat as name (for query mode or regular Python usage)
+            name = name_or_options
+
+        # Build properties dict from non-None arguments
+        properties = {}
 
         if v is not None:
             properties['v'] = v

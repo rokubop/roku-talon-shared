@@ -70,6 +70,7 @@ def mouse_vector(name: str = None, **properties) -> dict:
 - **`direction`**: `(x, y)` - Unit vector for direction-based movement
 - **`speed`**: `float` - Magnitude for direction-based movement
 - **`acceleration`**: `float` - Magnitude for direction-based acceleration
+- **`max_speed`**: `float` - Maximum speed limit in pixels/second (caps velocity + acceleration)
 
 ### Animation Properties
 
@@ -248,3 +249,26 @@ position += velocity * time_delta
 - **UI Navigation**: Smooth scrolling and magnetic attraction
 - **Animation**: Complex motion patterns and effects
 - **Accessibility**: Voice-controlled mouse movement with natural physics
+
+## Speed-Capped Acceleration
+
+```python
+# Accelerate with speed limits using mouse_vector directly
+mouse_vector("capped", v=(0, 0), a=(100, 0), max_speed=200)           # Start at 0, accelerate, cap at 200 px/s
+mouse_vector("rocket", direction=(1, 0), acceleration=300, max_speed=500)  # High-acceleration rocket
+mouse_vector("gentle", direction=(0, -1), acceleration=60, max_speed=120)  # Gentle acceleration
+
+# Using string syntax for Talon commands
+user.mouse_vector("name=accel; direction=(1, 0); speed=0; a=(120, 0); max_speed=200")
+
+# Decelerate to zero using velocity keyframes
+mouse_vector("main", v_keyframes=[1.0, 0.0], v_interpolation="ease_out", duration=2000)
+mouse_vector("accel", v_keyframes=[1.0, 0.0], v_interpolation="ease_out", duration=1000)
+```
+
+The speed capping system ensures that:
+- **Velocity vectors** are clamped to `max_speed` each frame
+- **Acceleration vectors** are reduced when they would exceed `max_speed`
+- **Physics remain realistic** - direction is preserved, only magnitude is limited
+- **Multiple vectors** can have different speed limits independently
+- **Deceleration** uses velocity keyframes to smoothly reduce speed to zero

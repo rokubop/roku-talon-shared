@@ -77,9 +77,9 @@ mouse diagonal down right: user.mouse_vector("name=diag; direction=(1, 1); speed
 mouse diagonal down left: user.mouse_vector("name=diag; direction=(-1, 1); speed=50")
 
 # Gaming-style controls
-mouse strafe right: user.mouse_vector("name=strafe; a=(80, 0)")
-mouse strafe left: user.mouse_vector("name=strafe; a=(-80, 0)")
-mouse strafe stop: user.mouse_vector("name=strafe; a=(0, 0)")
+mouse strafe right: user.mouse_vector("name=strafe; a=(80, 0); max_speed=200")
+mouse strafe left: user.mouse_vector("name=strafe; a=(-80, 0); max_speed=50")
+mouse strafe stop: user.mouse_vector("name=strafe; a=(0, 0); max_speed=50")
 
 # Projectile motion
 mouse launch:
@@ -169,57 +169,49 @@ mouse turbo:
 mouse boost speed:
     user.mouse_vector("name=speed_boost; v=(100, 0); duration=1000")
 
-# Change direction of specific vectors while preserving their speed
-mouse change <user.text> direction up: user.mouse_vector("name={text}; direction=(0, -1)")
-mouse change <user.text> direction down: user.mouse_vector("name={text}; direction=(0, 1)")
-mouse change <user.text> direction left: user.mouse_vector("name={text}; direction=(-1, 0)")
-mouse change <user.text> direction right: user.mouse_vector("name={text}; direction=(1, 0)")
-mouse change <user.text> direction up left: user.mouse_vector("name={text}; direction=(-0.707, -0.707)")
-mouse change <user.text> direction up right: user.mouse_vector("name={text}; direction=(0.707, -0.707)")
-mouse change <user.text> direction down left: user.mouse_vector("name={text}; direction=(-0.707, 0.707)")
-mouse change <user.text> direction down right: user.mouse_vector("name={text}; direction=(0.707, 0.707)")
+# Speed-capped acceleration using mouse_vector directly
+mouse accelerate right: user.mouse_vector("name=accel; direction=(1, 0); speed=0; a=(120, 0); max_speed=200")
+mouse accelerate left: user.mouse_vector("name=accel; direction=(-1, 0); speed=0; a=(120, 0); max_speed=200")
+mouse accelerate up: user.mouse_vector("name=accel; direction=(0, -1); speed=0; a=(120, 0); max_speed=200")
+mouse accelerate down: user.mouse_vector("name=accel; direction=(0, 1); speed=0; a=(120, 0); max_speed=200")
 
-# New generic scale and rotate utilities with timing control
-# Instant scaling
-mouse scale double: user.mouse_vector_scale(2.0)
-mouse scale triple: user.mouse_vector_scale(3.0)
-mouse scale half: user.mouse_vector_scale(0.5)
-mouse scale quarter: user.mouse_vector_scale(0.25)
+# Fast acceleration with higher cap
+mouse accelerate fast right: user.mouse_vector("name=fast_accel; direction=(1, 0); speed=0; a=(200, 0); max_speed=350")
+mouse accelerate fast left: user.mouse_vector("name=fast_accel; direction=(-1, 0); speed=0; a=(200, 0); max_speed=350")
+mouse accelerate fast up: user.mouse_vector("name=fast_accel; direction=(0, -1); speed=0; a=(200, 0); max_speed=350")
+mouse accelerate fast down: user.mouse_vector("name=fast_accel; direction=(0, 1); speed=0; a=(200, 0); max_speed=350")
 
-# Animated scaling over time
-mouse scale smooth double: user.mouse_vector_scale(2.0, 1000, "ease_out")
-mouse scale smooth half: user.mouse_vector_scale(0.5, 1000, "ease_out")
-mouse scale gradual triple: user.mouse_vector_scale(3.0, 2000, "linear")
-mouse scale zero: user.mouse_vector_scale(0.0, 2000, "linear")
+# Gentle acceleration with low cap
+mouse accelerate gentle right: user.mouse_vector("name=gentle_accel; direction=(1, 0); speed=0; a=(60, 0); max_speed=120")
+mouse accelerate gentle left: user.mouse_vector("name=gentle_accel; direction=(-1, 0); speed=0; a=(60, 0); max_speed=120")
+mouse accelerate gentle up: user.mouse_vector("name=gentle_accel; direction=(0, -1); speed=0; a=(60, 0); max_speed=120")
+mouse accelerate gentle down: user.mouse_vector("name=gentle_accel; direction=(0, 1); speed=0; a=(60, 0); max_speed=120")
 
-# Set exact speeds
-mouse speed to fifty: user.mouse_vector_scale_to(50)
-mouse speed to hundred: user.mouse_vector_scale_to(100)
-mouse speed to two hundred: user.mouse_vector_scale_to(200)
+# Starting with initial speed and acceleration
+mouse accelerate boost right: user.mouse_vector("name=boost_accel; direction=(1, 0); speed=50; a=(100, 0); max_speed=250")
+mouse accelerate boost left: user.mouse_vector("name=boost_accel; direction=(-1, 0); speed=50; a=(100, 0); max_speed=250")
+mouse accelerate boost up: user.mouse_vector("name=boost_accel; direction=(0, -1); speed=50; a=(100, 0); max_speed=250")
+mouse accelerate boost down: user.mouse_vector("name=boost_accel; direction=(0, 1); speed=50; a=(100, 0); max_speed=250")
 
-# Animated speed changes
-mouse speed smooth to fifty: user.mouse_vector_scale_to(50, 1500, "ease_in_out")
-mouse speed smooth to hundred: user.mouse_vector_scale_to(100, 1500, "ease_in_out")
+# Deceleration using keyframes
+mouse decelerate: user.mouse_vector("name=main; v_keyframes=[1.0, 0.0]; v_interpolation=ease_out; duration=2000")
+mouse decelerate fast: user.mouse_vector("name=main; v_keyframes=[1.0, 0.0]; v_interpolation=ease_out; duration=1000")
+mouse decelerate slow: user.mouse_vector("name=main; v_keyframes=[1.0, 0.0]; v_interpolation=ease_out; duration=3000")
+mouse decelerate linear: user.mouse_vector("name=main; v_keyframes=[1.0, 0.0]; v_interpolation=linear; duration=2000")
 
-# Instant rotation
-mouse rotate right: user.mouse_vector_rotate(45)
-mouse rotate left: user.mouse_vector_rotate(-45)
-mouse rotate around: user.mouse_vector_rotate(180)
-mouse rotate quarter: user.mouse_vector_rotate(90)
+# Decelerate specific vectors
+mouse decelerate <user.text>: user.mouse_vector("name={text}; v_keyframes=[1.0, 0.0]; v_interpolation=ease_out; duration=2000")
+mouse decelerate <user.text> fast: user.mouse_vector("name={text}; v_keyframes=[1.0, 0.0]; v_interpolation=ease_out; duration=1000")
+mouse decelerate <user.text> slow: user.mouse_vector("name={text}; v_keyframes=[1.0, 0.0]; v_interpolation=ease_out; duration=3000")
 
-# Animated rotation
-mouse rotate smooth right: user.mouse_vector_rotate(45, 800, "ease_in_out")
-mouse rotate smooth left: user.mouse_vector_rotate(-45, 800, "ease_in_out")
-mouse rotate smooth around: user.mouse_vector_rotate(180, 1200, "ease_in_out")
+# Manual speed-capped vectors using string syntax
+mouse manual cap right: user.mouse_vector("name=manual; direction=(1, 0); speed=30; a=(80, 0); max_speed=150")
+mouse manual cap left: user.mouse_vector("name=manual; direction=(-1, 0); speed=30; a=(80, 0); max_speed=150")
+mouse manual cap up: user.mouse_vector("name=manual; direction=(0, -1); speed=30; a=(80, 0); max_speed=150")
+mouse manual cap down: user.mouse_vector("name=manual; direction=(0, 1); speed=30; a=(80, 0); max_speed=150")
 
-# Absolute direction setting
-mouse face right: user.mouse_vector_rotate_to(0)
-mouse face down: user.mouse_vector_rotate_to(90)
-mouse face left: user.mouse_vector_rotate_to(180)
-mouse face up: user.mouse_vector_rotate_to(270)
-
-# Animated absolute direction
-mouse turn smooth right: user.mouse_vector_rotate_to(0, 1000, "ease_in_out")
-mouse turn smooth down: user.mouse_vector_rotate_to(90, 1000, "ease_in_out")
-mouse turn smooth left: user.mouse_vector_rotate_to(180, 1000, "ease_in_out")
-mouse turn smooth up: user.mouse_vector_rotate_to(270, 1000, "ease_in_out")
+# High-performance capped acceleration
+mouse rocket right: user.mouse_vector("name=rocket; direction=(1, 0); speed=0; a=(300, 0); max_speed=500")
+mouse rocket left: user.mouse_vector("name=rocket; direction=(-1, 0); speed=0; a=(300, 0); max_speed=500")
+mouse rocket up: user.mouse_vector("name=rocket; direction=(0, -1); speed=0; a=(300, 0); max_speed=500")
+mouse rocket down: user.mouse_vector("name=rocket; direction=(0, 1); speed=0; a=(300, 0); max_speed=500")

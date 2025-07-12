@@ -123,6 +123,7 @@ class Vector:
     duration: Optional[float] = None  # Duration in milliseconds
     time_remaining: Optional[float] = None
     created_at: float = field(default_factory=time.perf_counter)
+    max_speed: Optional[float] = None  # Maximum speed limit in pixels/second
 
     # Animation properties
     a_keyframes: Optional[List[float]] = None
@@ -742,9 +743,7 @@ class MouseVectorsSystem:
 
         # Calculate physics
         total_v, total_a = self._calculate_totals()
-        debug_log(f"[PHYSICS] Total velocity: {total_v}, Total acceleration: {total_a}", "physics_totals", 500)
-
-        # Integrate acceleration into velocity
+        debug_log(f"[PHYSICS] Total velocity: {total_v}, Total acceleration: {total_a}", "physics_totals", 500)        # Integrate acceleration into velocity
         self.current_velocity = (
             self.current_velocity[0] + total_a[0] * dt,
             self.current_velocity[1] + total_a[1] * dt
@@ -755,6 +754,37 @@ class MouseVectorsSystem:
             self.current_velocity[0] + total_v[0],
             self.current_velocity[1] + total_v[1]
         )
+
+        # Apply speed capping to the final accumulated velocity
+        # Check if any vectors have max_speed set and apply the most restrictive limit
+        min_max_speed = None
+        capping_vector_name = None
+        for vector in self.vectors.values():
+            if vector.enabled and vector.max_speed is not None:
+                if min_max_speed is None or vector.max_speed < min_max_speed:
+                    min_max_speed = vector.max_speed
+                    capping_vector_name = vector.name
+
+        if min_max_speed is not None:
+            # Calculate current total speed
+            current_total_speed = math.sqrt(final_velocity[0]**2 + final_velocity[1]**2)
+            
+            if current_total_speed > min_max_speed:
+                # Cap the total velocity while preserving direction
+                if current_total_speed > 0:
+                    scale_factor = min_max_speed / current_total_speed
+                    final_velocity = (final_velocity[0] * scale_factor, final_velocity[1] * scale_factor)
+                    
+                    # Also scale back the accumulated velocity to prevent continued acceleration
+                    self.current_velocity = (
+                        self.current_velocity[0] * scale_factor,
+                        self.current_velocity[1] * scale_factor
+                    )
+                    
+                    debug_log(f"[PHYSICS] Total speed capped by vector '{capping_vector_name}': {current_total_speed:.1f} -> {min_max_speed:.1f}")
+
+        # Recalculate after speed capping (no longer needed since we're capping the final result)
+        # total_v, total_a = self._calculate_totals()
         debug_log(f"[PHYSICS] Final velocity after integration: {final_velocity}", "physics_final_velocity", 500)
 
         # Calculate displacement
@@ -1371,6 +1401,7 @@ class Actions:
         default_speed: float = None,
         direction: Tuple[float, float] = None,
         acceleration: float = None,
+        max_speed: float = None,
         a_keyframes: List[float] = None,
         a_interpolation: str = None,
         v_keyframes: List[float] = None,
@@ -1392,6 +1423,7 @@ class Actions:
             speed: Magnitude for direction-based movement
             direction: Unit vector for direction-based movement
             acceleration: Magnitude for direction-based acceleration
+            max_speed: Maximum speed limit in pixels/second (caps velocity + acceleration)
             a_keyframes: Acceleration multipliers over time
             a_interpolation: Interpolation type for acceleration
             v_keyframes: Velocity multipliers over time
@@ -1445,6 +1477,8 @@ class Actions:
                         default_speed = float(value)
                     elif key == "acceleration":
                         acceleration = float(value)
+                    elif key == "max_speed":
+                        max_speed = float(value)
                     elif key == "enabled":
                         enabled = value.lower() in ('true', '1', 'yes', 'on')
                     elif key == "direction":
@@ -1488,6 +1522,8 @@ class Actions:
             properties['direction'] = direction
         if acceleration is not None:
             properties['acceleration'] = acceleration
+        if max_speed is not None:
+            properties['max_speed'] = max_speed
         if a_keyframes is not None:
             properties['a_keyframes'] = a_keyframes
         if a_interpolation is not None:

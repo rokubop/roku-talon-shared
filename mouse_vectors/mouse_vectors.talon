@@ -28,7 +28,16 @@ mouse thrust up: user.mouse_vector("name=thrust; a=(0, -100); duration=1000")
 mouse thrust down: user.mouse_vector("name=thrust; a=(0, 100); duration=1000")
 
 # Boost commands (temporary acceleration)
-# mouse boost: user.mouse_vector_scale(
+# mouse setup: user.mouse_vector_settings({
+#     "default_speed": 50,
+#     "default_acceleration": 100, stop
+#     "default_duration": 1000,
+#     "default_interpolation": "ease_in_out"
+# })
+mouse move: user.mouse_vector("v=(100, 100); duration=1000; v_interpolation=ease_out")
+mouse scale: user.mouse_vector_scale(2)
+mouse rotate: user.mouse_vector_rotate(180)
+
 mouse boost right: user.mouse_vector("name=boost; a=(200, 0); duration=500")
 mouse boost left: user.mouse_vector("name=boost; a=(-200, 0); duration=500")
 mouse boost up: user.mouse_vector("name=boost; a=(0, -200); duration=500")

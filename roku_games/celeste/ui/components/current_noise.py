@@ -29,7 +29,7 @@ def current_noise(scale=1, **props):
 
     effect(on_mount, on_unmount, [])
 
-    return div(gap=int(8 * scale), padding_left=12, **props, justify_content="center")[
+    return div(gap=int(10 * scale), padding_left=12, **props, justify_content="center")[
         # text("Noise - command", font_size=12),
         text("", id="noise", font_size=int(40 * scale), font_family="renogare"),
         text("", id="command", font_size=int(24 * scale), font_family="roboto"),

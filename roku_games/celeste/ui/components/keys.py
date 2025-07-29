@@ -3,7 +3,9 @@ from ..colors import BG_PRIMARY, ACTIVE_1, ACTIVE_2
 
 key_style = {
     "padding": 8,
-    "background_color": f"{BG_PRIMARY}88",
+    # "border_width": 1,
+    # "border_color": "FFFFFF",
+    # "background_color": f"{BG_PRIMARY}88",
     "flex_direction": "row",
     "justify_content": "center",
     "align_items": "center",
@@ -22,6 +24,14 @@ foot_key_style = {
     },
 }
 
+foot_key_style_2 = {
+    **foot_key_style,
+    "height": 121,
+    "width": 80,
+    "border_radius": 8,
+    "background_color": f"{BG_PRIMARY}AA",
+}
+
 def key(key_name, text_content):
     div, text = actions.user.ui_elements(["div", "text"])
 
@@ -33,12 +43,39 @@ def foot_key(key_name, text_content):
     div, text = actions.user.ui_elements(["div", "text"])
 
     if isinstance(text_content, list):
-        return div(foot_key_style, flex_direction="column", id=key_name, gap=8)[
-            text(text_content[0], font_family="roboto", stroke_width=3),
-            text(text_content[1], font_size=12, font_family="roboto", stroke_width=3)
-        ]
+        if len(text_content) == 2:
+            return div(foot_key_style, flex_direction="column", id=key_name, gap=8)[
+                text(text_content[0], font_family="roboto", stroke_width=3),
+                text(text_content[1], font_size=12, font_family="roboto", stroke_width=3)
+            ]
+        else:
+            return div(foot_key_style, flex_direction="column", id=key_name, gap=8)[
+                text(text_content[0], font_family="roboto", stroke_width=3),
+                text(text_content[1], font_family="roboto", stroke_width=3),
+                text(text_content[2], font_size=12, font_family="roboto", stroke_width=3)
+            ]
 
     return div(foot_key_style, id=key_name)[
+        text(text_content, font_family="roboto", stroke_width=3)
+    ]
+
+def foot_key_2(key_name, text_content):
+    div, text = actions.user.ui_elements(["div", "text"])
+
+    if isinstance(text_content, list):
+        if len(text_content) == 2:
+            return div(foot_key_style_2, flex_direction="column", id=key_name, gap=8)[
+                text(text_content[0], font_family="roboto", stroke_width=3),
+                text(text_content[1], font_size=12, font_family="roboto", stroke_width=3)
+            ]
+        else:
+            return div(foot_key_style_2, flex_direction="column", id=key_name, gap=8)[
+                text(text_content[0], font_family="roboto", stroke_width=3),
+                text(text_content[1], font_family="roboto", stroke_width=3),
+                text(text_content[2], font_size=12, font_family="roboto", stroke_width=3)
+            ]
+
+    return div(foot_key_style_2,  justify_content="center", id=key_name)[
         text(text_content, font_family="roboto", stroke_width=3)
     ]
 
@@ -85,6 +122,37 @@ def keys(**props):
                 foot_key("foot_left", ["grab", "foot 1"]),
                 foot_key("foot_center", ["side b noises", "foot 2"]),
                 foot_key("foot_right", ["jump 2", "foot 3"]),
+            ]
+        ],
+    ]
+
+def keys_2(**props):
+    div, effect, text = actions.user.ui_elements(["div", "effect", "text"])
+
+    effect(on_mount, on_unmount, [])
+
+    return div(flex_direction="row", **props)[
+        div(flex_direction="row", justify_content="space_evenly", margin_right=10)[
+            foot_key_2("foot_left", ["grab", "foot 1"]),
+            foot_key_2("foot_center", ["side b", "noises", "foot 2"]),
+            foot_key_2("foot_right", ["jump 2", "foot 3"]),
+        ],
+        div(flex_direction="column")[
+            div(flex_direction="row")[
+                blank_key(), key_svg("up", "arrow_up"), blank_key()
+            ],
+            div(flex_direction="row")[
+                key_svg("left", "arrow_left"), key_svg("down", "arrow_down"), key_svg("right", "arrow_right")
+            ]
+        ],
+        div(flex_direction="column")[
+            div(flex_direction="row")[
+                key("c", "jump"),
+                key("p", "jump 2"),
+            ],
+            div(flex_direction="row", justify_content="space_evenly")[
+                key("x", "dash"),
+                key("t", "demo"),
             ]
         ],
     ]

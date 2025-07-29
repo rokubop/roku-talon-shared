@@ -3,14 +3,12 @@ Mouse Vectors System
 A physics-based mouse motion system using force vectors that combine additively.
 Each vector represents velocity or acceleration that sums together for realistic motion.
 """
-
 import math
 import platform
 import time
 import uuid
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple, Union, Callable, Literal, Any
-
 from talon import Module, actions, ctrl, cron, settings, ui, app
 from talon.screen import Screen
 
@@ -768,19 +766,19 @@ class MouseVectorsSystem:
         if min_max_speed is not None:
             # Calculate current total speed
             current_total_speed = math.sqrt(final_velocity[0]**2 + final_velocity[1]**2)
-            
+
             if current_total_speed > min_max_speed:
                 # Cap the total velocity while preserving direction
                 if current_total_speed > 0:
                     scale_factor = min_max_speed / current_total_speed
                     final_velocity = (final_velocity[0] * scale_factor, final_velocity[1] * scale_factor)
-                    
+
                     # Also scale back the accumulated velocity to prevent continued acceleration
                     self.current_velocity = (
                         self.current_velocity[0] * scale_factor,
                         self.current_velocity[1] * scale_factor
                     )
-                    
+
                     debug_log(f"[PHYSICS] Total speed capped by vector '{capping_vector_name}': {current_total_speed:.1f} -> {min_max_speed:.1f}")
 
         # Recalculate after speed capping (no longer needed since we're capping the final result)

@@ -1,6 +1,6 @@
 from talon import actions
 from .colors import BG_PRIMARY
-from .components.keys import keys
+from .components.keys import keys, keys_2
 from .components.current_noise import current_noise
 from .components.commands import show_commands, hide_commands
 from .components.history_log import show_history_log, hide_history_log
@@ -15,17 +15,19 @@ DEFAULT_ALIGNMENT = "custom"
 def vertical_layout():
     div = actions.user.ui_elements(["div"])
 
+    bg_color = f"{BG_PRIMARY}88"
+
     return div(gap=2)[
-        keys(),
+        keys(background_color=bg_color),
         div(flex_direction="row", gap=1, flex=1, justify_content="space_between")[
             current_noise(
                 flex=1,
                 padding=8,
-                background_color=f"{BG_PRIMARY}67",
+                background_color=bg_color,
             ),
             apm(
                 padding=8,
-                background_color=f"{BG_PRIMARY}67",
+                background_color=bg_color,
             ),
         ]
     ]
@@ -55,18 +57,38 @@ def horizontal_layout_2():
     div = actions.user.ui_elements(["div"])
 
     return div(flex_direction="row", gap=30)[
-        keys(),
-        div(flex_direction="row", align_items="center", width=900, justify_content="space_between")[
+        div(flex_direction="column", width=210, justify_content="space_between")[
             current_noise(
                 flex=1,
                 padding=8,
                 background_color=f"{BG_PRIMARY}67",
-                scale=1.5,
+                scale=1.2,
             ),
             apm(
                 padding=8,
                 background_color=f"{BG_PRIMARY}67",
-                scale=1,
+                scale=0.5,
+            )
+        ],
+        keys(),
+    ]
+
+def horizontal_layout_3():
+    div = actions.user.ui_elements(["div"])
+
+    return div(flex_direction="row", gap=30)[
+        keys_2(),
+        div(flex_direction="row", width=460, justify_content="space_between", align_items="center")[
+            current_noise(
+                flex=1,
+                padding=8,
+                # background_color=f"{BG_PRIMARY}67",
+                scale=1.2,
+            ),
+            apm(
+                padding=8,
+                # background_color=f"{BG_PRIMARY}67",
+                scale=1.2,
             )
         ],
     ]
@@ -118,9 +140,16 @@ def layout():
     })
 
     # For OBS second screen
-    return screen(screen_index)[
+    # return screen(screen_index)[
+    #     div(margin_top=100, margin_left=50)[
+    #         horizontal_layout_3()
+    #     ],
+    # ]
+
+    # Overlay directly on game
+    return screen(1)[
         div(margin_top=100, margin_left=50)[
-            horizontal_layout_2()
+            vertical_layout()
         ],
     ]
 

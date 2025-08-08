@@ -1,5 +1,9 @@
 # Changelog
 
+## Aug 2025
+
+- Merge 2025 branch, general updates across the board.
+
 ## Dec 2024
 - Move ui_elements to its own repo talon-ui-elements
 - Update all code based on new ui_elements architecture
@@ -85,4 +89,5 @@ roku_games
 - Added celeste UI variations
 
 ## Sat Jul 20, 2024
+
 - Add button to ui_elements

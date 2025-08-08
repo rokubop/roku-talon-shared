@@ -146,7 +146,7 @@ def layout():
     #     ],
     # ]
 
-    # Overlay directly on game
+    # Overlay directly on game but on second screen
     return screen(1)[
         div(margin_top=100, margin_left=50)[
             vertical_layout()

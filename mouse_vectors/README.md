@@ -1,4 +1,4 @@
-# Mouse Vectors System
+# Mouse Vectors System (WIP)
 
 A physics-based mouse motion system using the intuitive concept of **force vectors**. Like arrows in Blender's transform gizmo, each vector represents a velocity or acceleration that combines additively to create realistic mouse movement.
 

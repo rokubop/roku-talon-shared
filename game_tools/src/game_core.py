@@ -1,4 +1,5 @@
 from talon import Module, Context, actions, cron, ctrl, clip, settings
+import time
 from .game_events import (
     event_on_game_mode,
     event_on_key,
@@ -22,9 +23,15 @@ _held_keys = set()
 _held_mouse_buttons = set()
 _immune_stop_keys = set()
 _key_up_pending_jobs = {}
+# Key repeat delay management - prevents rapid key presses after release
+_key_release_times = {}              # key -> time.perf_counter_ns() when key was released
+_key_pending_presses = {}            # key -> pending press action waiting for delay
+_game_key_repeat_delay_enabled = True  # cached flag for whether repeat delay is active
 _camera_speed = None
 _camera_snap_angle = None
-_game_key_repeat_wait = 16.0
+_game_key_repeat_wait_ms = 16.0      # milliseconds
+_game_key_repeat_wait_s = 0.016      # seconds for actions.sleep()
+_game_key_repeat_wait_ns = 16_000_000  # nanoseconds for perf_counter comparison
 
 DIR_MODE_CAM_CONTINUOUS = "continuous"
 DIR_MODE_CAM_SNAP = "snap"
@@ -47,6 +54,36 @@ arrow_to_wasd = {
 
 def no_op():
     pass
+
+def _is_key_in_repeat_delay(key: str) -> bool:
+    if not _game_key_repeat_delay_enabled:
+        return False
+    if key not in _key_release_times:
+        return False
+
+    elapsed_ns = time.perf_counter_ns() - _key_release_times[key]
+    return elapsed_ns < _game_key_repeat_wait_ns
+
+def _schedule_pending_key_press(key: str, press_action):
+    global _key_pending_presses
+    _key_pending_presses[key] = press_action
+
+    if key in _key_release_times:
+        delay_remaining_ns = _game_key_repeat_wait_ns - (time.perf_counter_ns() - _key_release_times[key])
+        delay_remaining_ms = max(1, delay_remaining_ns // 1_000_000)  # Convert to ms, minimum 1ms
+        cron.after(f"{delay_remaining_ms}ms", lambda: _execute_pending_key_press(key))
+
+def _execute_pending_key_press(key: str):
+    global _key_pending_presses
+
+    if key in _key_pending_presses:
+        press_action = _key_pending_presses[key]
+        del _key_pending_presses[key]
+        press_action()
+
+def _record_key_release_time(key: str):
+    global _key_release_times
+    _key_release_times[key] = time.perf_counter_ns()
 
 def queue_action(action, number):
     """Queue an action with optional modifier number"""
@@ -264,6 +301,10 @@ def stopper():
             if key not in _immune_stop_keys:
                 game_key_release(key)
 
+    global _key_pending_presses, _key_release_times
+    _key_pending_presses.clear()
+    _key_release_times.clear()
+
 def mouse_reset_center_y():
     """Reset the mouse to the center of the screen."""
 
@@ -321,6 +362,7 @@ def game_key_release(key):
             actions.key(f"{key}:up")
             event_on_key.fire_release(key)
             _held_keys.remove(key)
+            _record_key_release_time(key)
         if key in _immune_stop_keys:
             _immune_stop_keys.remove(key)
     except Exception as e:
@@ -328,12 +370,27 @@ def game_key_release(key):
 
 def game_key_down(key: str):
     """Hold a key down"""
+    if _is_key_in_repeat_delay(key):
+        _schedule_pending_key_press(key, lambda: _game_key_down_immediate(key))
+        return
+
+    _game_key_down_immediate(key)
+
+def _game_key_down_immediate(key: str):
     actions.key(f"{key}:down")
     event_on_key.fire_hold(key)
     _held_keys.add(key)
 
 def game_key(key: str):
     """Press a game key"""
+    if _is_key_in_repeat_delay(key):
+        _schedule_pending_key_press(key, lambda: _game_key_immediate(key))
+        return
+
+    _game_key_immediate(key)
+
+def _game_key_immediate(key: str):
+    """Immediately execute key press without repeat delay checks"""
     actions.key(key)
     event_on_key.fire_press(key)
     if _key_up_pending_jobs.get(key):
@@ -345,18 +402,28 @@ def game_key(key: str):
 def game_key_hold(key: str, hold: int = None, retrigger: bool = True, release_on_stop: bool = True):
     """Hold a game key"""
     global _key_up_pending_jobs
+
+    if _is_key_in_repeat_delay(key):
+        _schedule_pending_key_press(key, lambda: _game_key_hold_immediate(key, hold, retrigger, release_on_stop))
+        return
+
+    _game_key_hold_immediate(key, hold, retrigger, release_on_stop)
+
+def _game_key_hold_immediate(key: str, hold: int = None, retrigger: bool = True, release_on_stop: bool = True):
+    """Immediately execute key hold without repeat delay checks"""
+    global _key_up_pending_jobs
     if release_on_stop == False:
         _immune_stop_keys.add(key)
 
     if not hold:
-        game_key_down(key)
+        _game_key_down_immediate(key)
         return
 
     if retrigger and key in _held_keys:
         game_key_release(key)
-        actions.sleep(_game_key_repeat_wait)
+        actions.sleep(_game_key_repeat_wait_s)
 
-    game_key_down(key)
+    _game_key_down_immediate(key)
     _key_up_pending_jobs[key] = cron.after(f"{hold}ms", lambda: game_key_release(key))
 
 def game_key_toggle(key: str):
@@ -364,7 +431,10 @@ def game_key_toggle(key: str):
     if key in _held_keys:
         game_key_release(key)
     else:
-        game_key_down(key)
+        if _is_key_in_repeat_delay(key):
+            _schedule_pending_key_press(key, lambda: _game_key_down_immediate(key))
+        else:
+            _game_key_down_immediate(key)
 
 def game_key_sequence(keys: str, delay_ms: int = 0):
     for key in keys.split(" "):
@@ -468,8 +538,11 @@ def game_gear_set(gear_num: int):
         camera_snap_dynamic_set_angle(angle)
 
 def set_globals():
-    global _game_key_repeat_wait
-    _game_key_repeat_wait = settings.get("user.game_key_repeat_wait") / 1000
+    global _game_key_repeat_wait_ms, _game_key_repeat_wait_s, _game_key_repeat_wait_ns, _game_key_repeat_delay_enabled
+    _game_key_repeat_wait_ms = settings.get("user.game_key_repeat_wait")  # Keep in milliseconds
+    _game_key_repeat_wait_s = _game_key_repeat_wait_ms / 1000  # Convert to seconds for actions.sleep
+    _game_key_repeat_wait_ns = int(_game_key_repeat_wait_ms * 1_000_000)  # Convert to nanoseconds for perf_counter
+    _game_key_repeat_delay_enabled = _game_key_repeat_wait_ms > 0
 
 @mod.action_class
 class Actions:

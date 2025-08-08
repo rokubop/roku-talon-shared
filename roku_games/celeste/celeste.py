@@ -44,7 +44,7 @@ def dash_demo():
     actions.user.game_key("t")
 
 def dash_backward():
-    actions.user.game_state_switch_horizontal(),
+    actions.user.game_state_switch_horizontal()
     dash_forward()
 
 def dash_backward_up():
@@ -60,6 +60,11 @@ def dash_demo_backward():
     dash_demo()
 
 def jump_primary():
+    actions.user.game_key_hold("c", 300)
+
+def jump_primary_backward():
+    actions.user.game_state_switch_horizontal()
+    actions.user.game_dir_hold_last_horizontal()
     actions.user.game_key_hold("c", 300)
 
 def use_move_mode():
@@ -95,8 +100,13 @@ def pause_jump_pause():
     actions.user.game_key("p") # second jump bound to "p"
     actions.user.game_key("escape")
 
+# def test():
+#     actions.user.game_key_hold("c", 200)
+#     cron.after("208ms", lambda: actions.user.game_key_hold("c", 200))
+
 default_config = {
     "sh:th_90":   ("jump 1", jump_primary),
+    # "sh:th_90":   ("jump 1", test),
     "sh_stop":    ("", lambda: None),
     "ss":         ("jump 2", lambda: actions.user.game_key_hold("p")),
     "ss_stop":    ("", lambda: actions.user.game_key_release("p")),
@@ -112,6 +122,7 @@ default_config = {
     "tut <dash>": ("reverse <dash>"),
     "guh":        ("toggle down", lambda: actions.user.game_key_toggle("down")),
     "tut tut":    ("exit mode", actions.user.game_mode_disable),
+    "tut sh":     ("jump b", jump_primary_backward),
     "tut pop":    ("dash b", dash_backward),
     "tut palate": ("dash b demo", dash_demo_backward),
     "tut t":      ("dash b up", dash_backward_up),

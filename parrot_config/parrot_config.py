@@ -129,7 +129,8 @@ def parse_modifiers(sound: str):
 
 class ParrotConfig():
     def __init__(self):
-        self.parrot_config_ref = None
+        self.parrot_config_user_ref = None
+        self.current_mode = None
         self.immediate_commands = {}
         self.delayed_commands = {}
         self.base_pairs = set()
@@ -140,13 +141,20 @@ class ParrotConfig():
         self.combo_window = "300ms"
         self.unique_combos = set()
 
-    def setup(self, parrot_config):
+    def setup_mode(self, mode):
+        if mode:
+            if mode == self.current_mode:
+                return
+            else:
+                parrot_config = self.parrot_config_user_ref[mode]
+        else:
+            parrot_config = self.parrot_config_user_ref
         if self.combo_job:
             cron.cancel(self.combo_job)
             self.combo_job = None
+        self.current_mode = mode
         self.combo_chain = ""
         self.pending_combo = None
-        self.parrot_config_ref = parrot_config
         commands = parrot_config.get("commands", {}) if "commands" in parrot_config else parrot_config
 
         categorized = categorize_commands(commands)
@@ -159,14 +167,23 @@ class ParrotConfig():
         combo_window = settings.get("user.parrot_config_combo_window", 300)
         self.combo_window = f"{combo_window}ms"
 
+    def setup(self, parrot_config):
+        self.parrot_config_user_ref = parrot_config
+        if "default" in parrot_config:
+            self.setup_mode("default")
+        else:
+            self.setup_mode(None)
+
     def _delayed_combo_execute(self):
         if self.combo_job:
             cron.cancel(self.combo_job)
             self.combo_job = None
         action = self.delayed_commands[self.pending_combo][1]
+        throttled = parrot_throttle_busy.get(self.pending_combo)
         executeActionOrLocationAction(action)
-        command = self.delayed_commands[self.pending_combo][0]
-        parrot_config_event_trigger(self.pending_combo, command)
+        if not throttled:
+            command = self.delayed_commands[self.pending_combo][0]
+            parrot_config_event_trigger(self.pending_combo, command)
         self.combo_chain = ""
         self.pending_combo = None
 
@@ -189,23 +206,21 @@ class ParrotConfig():
                 return
 
         if self.combo_job:
-            # print(f"canceling {self.combo_chain}")
             cron.cancel(self.combo_job)
             self.combo_job = None
 
         self.combo_chain = self.combo_chain + f" {noise}" if self.combo_chain else noise
-        # print(f"combo_chain: {self.combo_chain}")
 
         if self.combo_chain in self.delayed_commands:
-            # print(f"match for {self.combo_chain}")
             self.pending_combo = self.combo_chain
             self.combo_job = cron.after(self.combo_window, self._delayed_combo_execute)
         elif self.combo_chain in self.immediate_commands:
-            # print(f"match for {self.combo_chain}")
             action = self.immediate_commands[self.combo_chain][1]
+            throttled = parrot_throttle_busy.get(noise)
             executeActionOrLocationAction(action)
-            command = self.immediate_commands[self.combo_chain][0]
-            parrot_config_event_trigger(self.combo_chain, command)
+            if not throttled:
+                command = self.immediate_commands[self.combo_chain][0]
+                parrot_config_event_trigger(self.combo_chain, command)
 
             # if our combo ends in a continuous noise, we should force
             # a throttle so there is clear separation between the combo
@@ -219,18 +234,18 @@ class ParrotConfig():
             self.combo_chain = ""
             self.pending_combo = None
         elif noise in self.immediate_commands:
-            # print(f"no match for {self.combo_chain}")
             if self.pending_combo:
                 self._delayed_combo_execute()
                 actions.sleep("20ms")
             action = self.immediate_commands[noise][1]
+            throttled = parrot_throttle_busy.get(noise)
             executeActionOrLocationAction(action)
-            command = self.immediate_commands[noise][0]
-            parrot_config_event_trigger(noise, command)
+            if not throttled:
+                command = self.immediate_commands[noise][0]
+                parrot_config_event_trigger(noise, command)
             self.combo_chain = ""
             self.pending_combo = None
         else:
-            # print(f"no match for {self.combo_chain}")
             self.combo_job = cron.after(self.combo_window, self._delayed_potential_combo)
 
 # todo: try using the user's direct reference instead
@@ -243,14 +258,14 @@ def parrot_throttle_disable(id):
     global parrot_throttle_busy
     parrot_throttle_busy[id] = False
 
-def parrot_throttle(time_ms: int, id: str, command: callable):
+def parrot_throttle(time_ms: int, single_noise: str, command: callable):
     """Throttle the command once every time_ms"""
     global parrot_throttle_busy
-    if parrot_throttle_busy.get(id):
+    if parrot_throttle_busy.get(single_noise):
         return
-    parrot_throttle_busy[id] = True
+    parrot_throttle_busy[single_noise] = True
     command()
-    cron.after(f"{time_ms}ms", lambda: parrot_throttle_disable(id))
+    cron.after(f"{time_ms}ms", lambda: parrot_throttle_disable(single_noise))
 
 def parrot_debounce_disable(id):
     global parrot_debounce_busy
@@ -265,7 +280,7 @@ def parrot_debounce(time_ms: int, id: str, command: callable):
 
 def parrot_config_noise(sound: str):
     config = actions.user.parrot_config()
-    if parrot_config_saved.parrot_config_ref != config:
+    if parrot_config_saved.parrot_config_user_ref != config:
         print("init parrot config")
         parrot_config_saved.setup(config)
 
@@ -275,8 +290,40 @@ def parrot_config_event_register(on_noise: callable):
     event_subscribers.append(on_noise)
 
 def parrot_config_event_unregister(on_noise: callable):
-    event_subscribers.remove(on_noise)
+    try:
+        event_subscribers.remove(on_noise)
+    except ValueError:
+        # we may have lost the reference
+        # see if the callback looks like one of the subscribers
+        for subscriber in event_subscribers:
+            if subscriber.__name__ == on_noise.__name__:
+                event_subscribers.remove(subscriber)
+                break
 
 def parrot_config_event_trigger(noise: str, command: str):
     for on_noise_subscriber in event_subscribers:
         on_noise_subscriber(noise, command)
+
+def parrot_config_get_mode() -> str:
+    return parrot_config_saved.current_mode
+
+def parrot_config_set_mode(mode: str):
+    config = actions.user.parrot_config()
+    if mode in config:
+        # probably need to build a queue for this instead
+        cron.after("30ms", lambda: parrot_config_saved.setup_mode(mode))
+    else:
+        raise ValueError(f"Mode '{mode}' not found in parrot_config")
+
+def parrot_config_cycle_mode() -> str:
+    config = actions.user.parrot_config()
+    modes = list(config.keys())
+    current_mode = parrot_config_get_mode()
+    if current_mode in modes:
+        current_index = modes.index(current_mode)
+        next_index = (current_index + 1) % len(modes)
+        next_mode = modes[next_index]
+        parrot_config_set_mode(next_mode)
+        return next_mode
+    else:
+        raise ValueError(f"Mode '{current_mode}' not found in parrot_config")

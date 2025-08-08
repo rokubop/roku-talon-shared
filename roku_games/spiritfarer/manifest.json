@@ -1,12 +1,10 @@
 {
-  "name": "celeste",
+  "name": "spiritfarer",
   "description": "Auto-generated manifest.",
-  "version": "1.2.0",
+  "version": "0.1.0",
   "contributes": {},
   "depends": {
-    "modes": [
-      "user.game"
-    ],
+    "modes": ["user.game"],
     "actions": [
       "user.game_arrows_hold_down",
       "user.game_arrows_hold_down_horizontal",

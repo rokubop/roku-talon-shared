@@ -1,3 +1,330 @@
+from talon import  Module, actions, ui, app
+from itertools import islice
+from pathlib import Path
+import re
+import os
+
+mod = Module()
+alt_color = False
+
+BLUE = "42A5F5"
+
+def get_app_name(text: str, max_len=20) -> str:
+    pattern = re.compile(r"[A-Z][a-z]*|[a-z]+|\d")
+    return "_".join(
+        list(islice(pattern.findall(text.replace(".exe", "")), max_len))
+    ).lower()
+
+def get_app_context(active_app: ui.App) -> str:
+    if app.platform == "mac":
+        return f"app.bundle: {active_app.bundle}"
+    if app.platform == "windows":
+        exe_name = active_app.exe.split(os.path.sep)[-1]
+        return f"app.exe: /{exe_name}/i"
+    return f"app.name: {active_app.name}"
+
+def get_scan_game_folders():
+    scan_dirs = Path(__file__).parent.parent.parent / "roku_games"
+
+    for part in scan_dirs.parts:
+        if part == "talon":
+            break
+        scan_dirs = scan_dirs.relative_to(part)
+    return [str(scan_dirs), str(scan_dirs)]
+
+def game_settings_open():
+    USER_GAMES_DIR = Path(__file__).parent.parent / "game_settings.py"
+    actions.user.edit_text_file(USER_GAMES_DIR)
+    actions.sleep("500ms")
+    actions.edit.file_end()
+
+def target_dir_open():
+    print("open target dir")
+    USER_GAMES_DIR = Path(__file__).parent.parent.parent / "roku_games"
+    # os.system(f"open {USER_GAMES_DIR}")
+
+    if app.platform == "windows":
+        os.system(f"explorer {USER_GAMES_DIR}")
+    elif app.platform == "mac":
+        os.system(f"open {USER_GAMES_DIR}")
+    else:
+        os.system(f"xdg-open {USER_GAMES_DIR}")
+
+
+def get_games(new_game):
+    USER_GAMES_DIR = Path(__file__).parent.parent.parent / "roku_games"
+    games = {}
+    for x in USER_GAMES_DIR.iterdir():
+        if x.is_dir():
+            games[x.name] = {
+                "name": x.name,
+                "new": x.name == new_game
+            }
+
+    games[new_game] = {
+        "name": new_game,
+        "new": True
+    }
+
+    return games
+
+def checkbox(selected):
+    svg, rect, polyline = actions.user.ui_elements_svg(["svg", "rect", "polyline"])
+
+    if selected:
+        return svg(size=20)[
+            rect(x=3, y=3, width=18, height=18, rx=2, ry=2, stroke=BLUE),
+            polyline(points="20 6 9 17 4 12", stroke_width=3, stroke=BLUE),
+        ]
+    return svg(size=20)[
+        rect(x=3, y=3, width=18, height=18, rx=2, ry=2),
+    ]
+
+def game_row(game_name, selected, on_toggle):
+    global alt_color
+    div, text, button = actions.user.ui_elements(["div", "text", "button"])
+
+    bg = "222222" if alt_color else "333333"
+    alt_color = not alt_color
+
+    return div(flex_direction="row", align_items="center", border_color="555555", gap=4, padding=2, background_color=bg)[
+        div(margin_right=8)[
+            button(margin=0, padding=0, on_click=on_toggle)[
+                checkbox(selected),
+            ],
+        ],
+        div(flex=1)[
+            text(game_name),
+        ],
+        button(flex_direction="row", align_items="center", gap=4, border_radius=2, on_click=game_settings_open)[
+            text("Edit", color=BLUE),
+        ],
+        button(flex_direction="row", align_items="center", gap=4, border_radius=2, on_click=target_dir_open)[
+            text("Open", color=BLUE),
+        ],
+    ]
+
+def folder_row(game_name, is_new,):
+    global alt_color
+    div, text, icon = actions.user.ui_elements(["div", "text", "icon"])
+
+    # bg = "222222" if alt_color else "333333"
+    # bg = "222222"
+    color = "FFCC00" if is_new else "FFFFFF"
+    alt_color = not alt_color
+
+    return div(flex_direction="row", align_items="center", border_color="555555", gap=4, padding=2)[
+        div(margin_right=4)[
+            icon("folder", size=20, color=color),
+        ],
+        div(flex=1)[
+            text(game_name, color=color),
+        ],
+    ]
+
+def scan_games_dir_row(dir):
+    global alt_color
+    div, text, button = actions.user.ui_elements(["div", "text", "button"])
+
+    bg = "222222" if alt_color else "333333"
+    alt_color = not alt_color
+
+    return div(flex_direction="row", align_items="center", border_color="555555", gap=4, padding=2, background_color=bg)[
+        text(dir, flex=1, padding_left=8),
+        button(flex_direction="row", align_items="center", gap=4, border_radius=2, on_click=game_settings_open)[
+            text("Edit", color=BLUE),
+        ],
+        button(flex_direction="row", align_items="center", gap=4, border_radius=2, on_click=target_dir_open)[
+            text("Open", color=BLUE),
+        ],
+    ]
+
+parrot_map = {
+    "ah": "key hold - A (WASD)",
+    "oh": "key hold - D (WASD)",
+    "guh": "key hold - S (WASD)",
+    "eh": "key hold - W (WASD)",
+    "pop": "mouse click - LMB",
+    "cluck": "mouse click - RMB",
+    "ee": "stop",
+    "mm": "key press - F",
+    "shush": "key press - shift",
+    "hiss": "key press - E",
+    "tut": "key press - escape",
+    "tut pop": "mouse hold - LMB",
+    "tut cluck": "mouse hold - RMB",
+    "tut mm": "key hold - F",
+    "tut shush": "key hold - shift",
+    "tut hiss": "key hold - E",
+    "tut tut": "exit game mode",
+}
+
+def commands_parrot():
+    table, th, td, tr, text = actions.user.ui_elements(["table", "th", "td", "tr", "text"])
+    button, style = actions.user.ui_elements(["button", "style"])
+
+    style({
+        "td": {
+            "padding": 2,
+        },
+    })
+
+    return table()[
+        *[tr()[
+            td(justify_content="center")[
+                text(key, font_size=18),
+            ],
+            td(justify_content="center")[
+                button(border_width=1, padding=8)[
+                    text(value)
+                ],
+            ],
+        ] for key, value in parrot_map.items()],
+    ]
+
+def game_setup_ui(props):
+    screen, window, div, text = actions.user.ui_elements(["screen", "window", "div", "text"])
+    button, icon, input_text, state = actions.user.ui_elements(["button", "icon", "input_text", "state"])
+
+    games, set_games = state.use("games")
+    new_game_name, set_new_game_name = state.use("new_game_name", props["app_name"])
+
+    def on_game_name_change(e):
+        set_new_game_name(e.value)
+        new_games = games.copy()
+        for game in games.values():
+            if game["new"]:
+                new_games.pop(game["name"])
+                new_games[e.value] = {
+                    "name": e.value,
+                    "new": True
+                }
+                break
+        set_games(new_games)
+
+    def on_toggle(game):
+        def fn(e):
+            set_games({
+                **games,
+                game: not games[game]
+            })
+        return fn
+
+    return screen(justify_content="center", align_items="center")[
+        window(title="Game Setup", border_radius=8, min_width=1100)[
+            div(padding=16, gap=16, overflow_y="auto", height=750)[
+                # text("Step 1 of 3", font_size=20),
+                # div(flex_direction="column", margin_top=16)[
+                div(flex_direction="row", gap=16, align_items="center")[
+                    text('New app name', font_size=18),
+                    input_text(id="game_name", autofocus=True, on_change=on_game_name_change, font_size=20, border_radius=4, background_color="444444", value=props["app_name"]),
+                ],
+
+                commands_parrot(),
+                # ],
+                # div(gap=16, margin_top=16)[
+                #     text("The following code will be used to define the app", font_size=18),
+                #     div(background_color="111111", border_radius=4)[
+                #         div(flex_direction="row", justify_content="space_between")[
+                #             div(gap=12, padding=16)[
+                #                 div(flex_direction="row")[
+                #                     text('mod.apps.', font_family="consolas", color="CCCCCC"),
+                #                     text(new_game_name, font_family="consolas", color="FFCC00"),
+                #                     text(' = r"""', font_family="consolas", color="CCCCCC"),
+                #                 ],
+                #                 text(f'os: {props["os"]}', font_family="consolas", color="CCCCCC"),
+                #                 text(f'and {props["app_context"]}', font_family="consolas", color="CCCCCC"),
+                #                 text('"""', font_family="consolas", color="CCCCCC"),
+                #             ],
+                #             div()[
+                #                 button(padding=8)[icon("copy", color="CCCCCC")]
+                #             ]
+                #         ],
+                #     ],
+                # ],
+                # div(flex_direction="column", gap=12, margin_top=16)[
+                #     div(flex_direction="row", align_items="center", gap=16)[
+                #         text("Your Talon games folder", font_size=18),
+                #         button(on_click=game_settings_open)[
+                #             text("Change", color=BLUE),
+                #         ],
+                #         button(on_click=target_dir_open)[
+                #             text("Open", color=BLUE),
+                #         ],
+                #     ],
+                #     text('This is where the new game folder will be created', font_size=14),
+                #     div(background_color="111111", border_radius=4, flex_direction="row")[
+                #         text(props["target_dir"], font_family="consolas", color="CCCCCC", padding=16),
+                #         button(padding=8)[icon("copy", color="CCCCCC")]
+                #     ],
+                #     div(border_width=1, padding=8, background_color="222222")[
+                #         folder_row(props["target_dir_shorthand"], False),
+                #         div(flex_direction="row")[
+                #             div(width=1, margin_top=4, margin_bottom=4, margin_left=8, margin_right=8, background_color="666666"),
+                #             div(flex_direction="column")[
+                #                 *[folder_row(game_name, data["new"]) for game_name, data in sorted(games.items())],
+                #             ]
+                #         ],
+                #     ],
+                # ]
+            ],
+                # div(flex_direction="column", padding=16)[
+                #     text("Scan folders for games & templates", font_size=20, margin_bottom=16),
+                #     div(border_width=1)[
+                #         *[scan_games_dir_row(scan_dir) for scan_dir in props["scan_dirs"]],
+                #     ],
+                # ],
+                # div(flex_direction="column", padding=16)[
+                #     text("Copy from existing game", font_size=20, margin_bottom=16),
+                #     div(border_width=1)[
+                #         *[game_row(game, selected, on_toggle(game)) for game, selected in games.items()],
+                #     ],
+                # ],
+            div(flex_direction="row", justify_content="flex_end", gap=16, padding=16)[
+                button("Cancel",
+                    font_weight="normal",
+                    on_click=actions.user.ui_elements_hide_all,
+                    border_width=1,
+                    border_radius=4,
+                    padding=12,
+                    padding_left=24,
+                    padding_right=24
+                ),
+                button("Continue",
+                    on_click=actions.user.ui_elements_hide_all,
+                    background_color=BLUE if any(game for game in games.values()) else "444444",
+                    border_radius=4,
+                    padding=12,
+                    padding_left=24,
+                    padding_right=24
+                )
+            ]
+        ]
+    ]
+
+@mod.action_class
+class Actions:
+    def game_setup():
+        """Setup a new game"""
+        active_app = ui.active_app()
+        app_name = get_app_name(active_app.name)
+        games = get_games(app_name)
+
+        actions.user.ui_elements_toggle(
+            game_setup_ui,
+            props={
+                "app_name": app_name,
+                "app_context": get_app_context(active_app),
+                "os": app.platform,
+                "scan_dirs": get_scan_game_folders(),
+                "target_dir": Path(__file__).parent.parent.parent / "roku_games",
+                "target_dir_shorthand": "roku_games",
+            },
+            initial_state={
+                "games": games
+            })
+
+
 # from talon import Module, actions, ui, cron, settings
 # from talon.screen import Screen
 # from talon.canvas import Canvas

@@ -44,6 +44,16 @@ class MouseMoveCallbackEvent:
     dy: float
     type: Literal["start", "tick", "stop"]
 
+class MouseInfo:
+    def __init__(self):
+        self.last_unit_vector = _last_unit_vector
+        self.last_cardinal_dir = unit_vector_to_cardinal_dir()
+        self.continuous_active = _mouse_continuous_start_ts
+        self.is_moving = bool(_mouse_job)
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
 easing_types = {
     "linear": lambda x: x,
     "ease_in_out": lambda x: math.sin(x * math.pi / 2),
@@ -74,6 +84,17 @@ def mouse_move_smooth_queue(fn: callable):
     """Add to movement _mouse_movement_queue, executed after next mouse_stop."""
     global _mouse_movement_queue
     _mouse_movement_queue.append(fn)
+
+def unit_vector_to_cardinal_dir():
+    if not _last_unit_vector:
+        return None
+    x = _last_unit_vector.x
+    y = _last_unit_vector.y
+    if x == 0 and y == 0:
+        return None
+    if abs(x) > abs(y):
+        return "right" if x > 0 else "left"
+    return "down" if y > 0 else "up"
 
 CurveTypes = Literal["linear", "ease_in_out", "ease_in", "ease_out"]
 
@@ -505,10 +526,7 @@ class Actions:
 
     def mouse_move_info():
         """Get mouse movement info"""
-        return {
-            "last_unit_vector": _last_unit_vector,
-            "continuous_active": _mouse_continuous_start_ts,
-        }
+        return MouseInfo()
 
     def mouse_move_event_register(on_event: callable):
         """

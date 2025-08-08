@@ -40,7 +40,15 @@ class GameEvent:
         self.subscribers.append(callback)
 
     def unregister(self, callback):
-        self.subscribers.remove(callback)
+        try:
+            self.subscribers.remove(callback)
+        except ValueError:
+            # we may have lost the reference
+            # see if the callback looks like one of the subscribers
+            for subscriber in self.subscribers:
+                if subscriber.__name__ == callback.__name__:
+                    self.subscribers.remove(subscriber)
+                    break
 
     def unregister_all(self):
         self.subscribers = []

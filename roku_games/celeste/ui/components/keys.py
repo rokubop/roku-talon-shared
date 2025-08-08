@@ -1,61 +1,158 @@
 from talon import actions
+from ..colors import BG_PRIMARY, ACTIVE_1, ACTIVE_2
 
 key_style = {
     "padding": 8,
-    "background_color": "333333",
+    # "border_width": 1,
+    # "border_color": "FFFFFF",
+    # "background_color": f"{BG_PRIMARY}88",
     "flex_direction": "row",
     "justify_content": "center",
     "align_items": "center",
     "margin": 1,
-    "width": 60,
+    "min_width": 60,
     "height": 60,
-    "opacity": 0.5,
+    "highlight_style": {
+        "background_color": ACTIVE_1,
+    },
 }
 
-def key(key_name, text_content, width=30):
+foot_key_style = {
+    **key_style,
+    "highlight_style": {
+        "background_color": ACTIVE_2,
+    },
+}
+
+foot_key_style_2 = {
+    **foot_key_style,
+    "height": 121,
+    "width": 80,
+    "border_radius": 8,
+    "background_color": f"{BG_PRIMARY}AA",
+}
+
+def key(key_name, text_content):
     div, text = actions.user.ui_elements(["div", "text"])
 
-    return div(key_style, id=key_name, width=width, background_color="333333")[
-        text(text_content)
+    return div(key_style, id=key_name)[
+        text(text_content, font_family="roboto", stroke_width=3)
+    ]
+
+def foot_key(key_name, text_content):
+    div, text = actions.user.ui_elements(["div", "text"])
+
+    if isinstance(text_content, list):
+        if len(text_content) == 2:
+            return div(foot_key_style, flex_direction="column", id=key_name, gap=8)[
+                text(text_content[0], font_family="roboto", stroke_width=3),
+                text(text_content[1], font_size=12, font_family="roboto", stroke_width=3)
+            ]
+        else:
+            return div(foot_key_style, flex_direction="column", id=key_name, gap=8)[
+                text(text_content[0], font_family="roboto", stroke_width=3),
+                text(text_content[1], font_family="roboto", stroke_width=3),
+                text(text_content[2], font_size=12, font_family="roboto", stroke_width=3)
+            ]
+
+    return div(foot_key_style, id=key_name)[
+        text(text_content, font_family="roboto", stroke_width=3)
+    ]
+
+def foot_key_2(key_name, text_content):
+    div, text = actions.user.ui_elements(["div", "text"])
+
+    if isinstance(text_content, list):
+        if len(text_content) == 2:
+            return div(foot_key_style_2, flex_direction="column", id=key_name, gap=8)[
+                text(text_content[0], font_family="roboto", stroke_width=3),
+                text(text_content[1], font_size=12, font_family="roboto", stroke_width=3)
+            ]
+        else:
+            return div(foot_key_style_2, flex_direction="column", id=key_name, gap=8)[
+                text(text_content[0], font_family="roboto", stroke_width=3),
+                text(text_content[1], font_family="roboto", stroke_width=3),
+                text(text_content[2], font_size=12, font_family="roboto", stroke_width=3)
+            ]
+
+    return div(foot_key_style_2,  justify_content="center", id=key_name)[
+        text(text_content, font_family="roboto", stroke_width=3)
+    ]
+
+def key_svg(key_name, icon_name):
+    div, icon = actions.user.ui_elements(["div", "icon"])
+
+    return div(key_style, id=key_name)[
+        icon(icon_name, fill="FFFFFF", stroke="000000", stroke_width=3, size=30)
     ]
 
 def blank_key():
-    div, text = actions.user.ui_elements(["div", "text"])
+    div = actions.user.ui_elements(["div"])
 
-    return div(key_style)[text(" ")]
+    return div(key_style, opacity=0.5)
 
-def keys():
-    active_window, div = actions.user.ui_elements(["active_window", "div"])
+def on_mount():
+    actions.user.game_ui_register_live_keys()
 
-    return active_window(justify_content="flex_end", highlight_color="FFFFFF55")[
-        div(flex_direction="row", margin_bottom=20, margin_left=20, opacity=0.5)[
-            div(flex_direction="column")[
-                div(flex_direction="row")[
-                    blank_key(), key("up", "↑", 60), blank_key()
-                ],
-                div(flex_direction="row")[
-                    key("left", "←", 60), key("down", "↓", 60), key("right", "→", 60)
-                ]
+def on_unmount():
+    actions.user.game_ui_unregister_live_keys()
+
+def keys(**props):
+    div, effect = actions.user.ui_elements(["div", "effect"])
+
+    effect(on_mount, on_unmount, [])
+
+    return div(flex_direction="row", **props)[
+        div(flex_direction="column")[
+            div(flex_direction="row")[
+                blank_key(), key_svg("up", "arrow_up"), blank_key()
             ],
-            div()[
-                div(flex_direction="row")[
-                    key("c", "jump", 60),
-                    key("p", "jump 2", 60),
-                    key("foot_left", "foot1: grab", 60),
-                ],
-                div(flex_direction="row")[
-                    key("x", "dash", 60),
-                    key("t", "demo", 60),
-                    key("foot_center", "foot2: move", 60)
-                ]
+            div(flex_direction="row")[
+                key_svg("left", "arrow_left"), key_svg("down", "arrow_down"), key_svg("right", "arrow_right")
+            ]
+        ],
+        div()[
+            div(flex_direction="row")[
+                key("c", "jump"),
+                key("p", "jump 2"),
+                key("x", "dash"),
+                key("t", "demo"),
             ],
+            div(flex_direction="row", justify_content="space_evenly")[
+                foot_key("foot_left", ["grab", "foot 1"]),
+                foot_key("foot_center", ["side b noises", "foot 2"]),
+                foot_key("foot_right", ["jump 2", "foot 3"]),
+            ]
         ],
     ]
 
-def show_keys():
-    actions.user.ui_elements_show(keys)
-    actions.user.game_ui_register_live_keys()
+def keys_2(**props):
+    div, effect, text = actions.user.ui_elements(["div", "effect", "text"])
 
-def hide_keys():
-    actions.user.game_ui_unregister_live_keys()
-    actions.user.ui_elements_hide(keys)
+    effect(on_mount, on_unmount, [])
+
+    return div(flex_direction="row", **props)[
+        div(flex_direction="row", justify_content="space_evenly", margin_right=10)[
+            foot_key_2("foot_left", ["grab", "foot 1"]),
+            foot_key_2("foot_center", ["side b", "noises", "foot 2"]),
+            foot_key_2("foot_right", ["jump 2", "foot 3"]),
+        ],
+        div(flex_direction="column")[
+            div(flex_direction="row")[
+                blank_key(), key_svg("up", "arrow_up"), blank_key()
+            ],
+            div(flex_direction="row")[
+                key_svg("left", "arrow_left"), key_svg("down", "arrow_down"), key_svg("right", "arrow_right")
+            ]
+        ],
+        div(flex_direction="column")[
+            div(flex_direction="row")[
+                key("c", "jump"),
+                key("p", "jump 2"),
+            ],
+            div(flex_direction="row", justify_content="space_evenly")[
+                key("x", "dash"),
+                key("t", "demo"),
+            ]
+        ],
+    ]

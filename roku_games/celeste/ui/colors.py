@@ -1,0 +1,3 @@
+BG_PRIMARY = "#222222"
+ACTIVE_1 = "#0d7cbd"
+ACTIVE_2 = "#a73064"

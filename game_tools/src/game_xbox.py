@@ -68,6 +68,14 @@ dir_to_xy = {
     "forward": (0, 1),
 }
 
+xy_to_dir = {
+    (0, 1): "up",
+    (0, -1): "down",
+    (-1, 0): "left",
+    (1, 0): "right",
+    (0, 0): None,
+}
+
 xbox_trigger_map = {
     "lt": LEFT_TRIGGER,
     "rt": RIGHT_TRIGGER,
@@ -106,6 +114,12 @@ xbox_button_map = {
     "xbox": "guide",
     **xbox_trigger_map,
 }
+
+def parse_button(button: str):
+    button = button.lower()
+    if button in xbox_button_map:
+        return xbox_button_map[button]
+    return button
 
 def xbox_left_analog_hold_dir(dir: str | tuple, power: float = None):
     """Hold a left analog direction"""
@@ -146,6 +160,7 @@ def xbox_right_analog_hold_dir(dir: str | tuple, power: float = None):
     else:
         xy_dir = dir_to_xy[dir]
 
+    print("right stick", xy_dir, power)
     actions.user.vgamepad_right_stick(xy_dir[0] * power, xy_dir[1] * power)
     if right_stick_dir != xy_dir:
         event_on_xbox.fire_right_stick_dir_change(xy_dir)
@@ -169,6 +184,18 @@ def xbox_set_gear(subject: str, gear: Union[str, int]):
     print("set gear", subject, gear)
     gear_state[subject].set_gear(gear)
     event_on_xbox.fire_trigger_gear_change(subject, gear_state[subject])
+    if subject == LEFT_STICK and left_stick_dir:
+        dir_str = xy_to_dir[left_stick_dir]
+        if dir_str:
+            xbox_left_analog_hold_dir(dir_str)
+    elif subject == RIGHT_STICK and right_stick_dir:
+        dir_str = xy_to_dir[right_stick_dir]
+        if dir_str:
+            xbox_right_analog_hold_dir(dir_str)
+    elif subject == LEFT_TRIGGER and LEFT_TRIGGER in held_buttons:
+        xbox_trigger_hold(LEFT_TRIGGER)
+    elif subject == RIGHT_TRIGGER and RIGHT_TRIGGER in held_buttons:
+        xbox_trigger_hold(RIGHT_TRIGGER)
 
 def xbox_button_press(button: str, hold: int = None):
     global button_hold_time
@@ -177,7 +204,7 @@ def xbox_button_press(button: str, hold: int = None):
 
 def xbox_button_hold(button: str, hold: int = None):
     global button_up_pending_jobs, held_buttons
-    button = xbox_button_map[button]
+    button = parse_button(button)
     if button in [LEFT_TRIGGER, RIGHT_TRIGGER]:
         # print("trigger hold", button, hold)
         xbox_trigger_hold(button, hold=hold)
@@ -195,7 +222,7 @@ def xbox_button_hold(button: str, hold: int = None):
 
 def xbox_button_release(button: str):
     global button_up_pending_jobs
-    button = xbox_button_map[button]
+    button = parse_button(button)
     if button in [LEFT_TRIGGER, RIGHT_TRIGGER]:
         xbox_trigger_release(button)
         return
@@ -207,7 +234,7 @@ def xbox_button_release(button: str):
         held_buttons.remove(button)
 
 def xbox_button_toggle(button: str):
-    button = xbox_button_map[button]
+    button = parse_button(button)
     if button in held_buttons:
         xbox_button_release(button)
     else:
@@ -229,6 +256,7 @@ def xbox_right_stick(x: float, y: float):
 
 def xbox_trigger_hold(button: str, power: float = None, hold: int = None):
     global button_up_pending_jobs, held_buttons
+    button = parse_button(button)
     # print("trigger hold", button, power, hold)
     power = power or gear_state[button].value
     # print("power", power)
@@ -244,6 +272,7 @@ def xbox_trigger_hold(button: str, power: float = None, hold: int = None):
 
 def xbox_trigger_release(button):
     global button_up_pending_jobs
+    button = parse_button(button)
     getattr(actions.user, f"vgamepad_{button}")(0)
     event_on_xbox.fire_button_release(button)
     button_up_pending_jobs[button] = None
@@ -272,12 +301,31 @@ def xbox_preferred_dir_mode_set(subject: str, type: str):
     preferred_dir_mode_action_type = type
     event_on_xbox.fire_preferred_dir_mode_change(subject, type)
 
+def xbox_state_held(subject_or_button: str = None):
+    if subject_or_button == "left_stick":
+        if left_stick_dir == (0, 0):
+            return None
+        return left_stick_dir
+    elif subject_or_button == "right_stick":
+        if right_stick_dir == (0, 0):
+            return None
+        return right_stick_dir
+    elif subject_or_button == "dpad":
+        return dpad_hold_dir
+    elif subject_or_button in held_buttons:
+        return True
+    return False
+
 def xbox_stop_all():
+    global dpad_hold_dir
     xbox_left_stick(0, 0)
     xbox_right_stick(0, 0)
     for button in list(held_buttons):
-        actions.user.vgamepad_button_release(button)
+        xbox_button_release(button)
     held_buttons.clear()
+    if dpad_hold_dir:
+        xbox_button_release(f"dpad_{dpad_hold_dir}")
+        dpad_hold_dir = None
 
 def xbox_stopper():
     """Perform general purpose stopper based on priority"""

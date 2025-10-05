@@ -2,15 +2,10 @@ from talon import actions
 from .colors import BG_PRIMARY
 from .components.keys import keys, keys_2
 from .components.current_noise import current_noise
-from .components.commands import show_commands, hide_commands
-from .components.history_log import show_history_log, hide_history_log
 from .components.apm import apm
 
-# DEFAULT_SCREEN_INDEX = 0
-DEFAULT_SCREEN_INDEX = 1
-DEFAULT_ALIGNMENT = "custom"
-# DEFAULT_ALIGNMENT = "horizontal"
-# DEFAULT_ALIGNMENT = "vertical"
+COMPACT_LAYOUT = False
+OVERLAY_DIRECTLY_ON_GAME_SCREEN = False
 
 def vertical_layout():
     div = actions.user.ui_elements(["div"])
@@ -78,16 +73,14 @@ def horizontal_layout_3():
 
     return div(flex_direction="row", gap=30)[
         keys_2(),
-        div(flex_direction="row", width=460, justify_content="space_between", align_items="center")[
+        div(flex_direction="row", width=600, justify_content="space_between", align_items="center")[
             current_noise(
                 flex=1,
                 padding=8,
-                # background_color=f"{BG_PRIMARY}67",
                 scale=1.2,
             ),
             apm(
                 padding=8,
-                # background_color=f"{BG_PRIMARY}67",
                 scale=1.2,
             )
         ],
@@ -107,11 +100,6 @@ def custom_layout():
                     scale=1,
                 ),
             ],
-            # apm(
-            #     padding=8,
-            #     background_color=f"{BG_PRIMARY}67",
-            #     scale=0.8,
-            # ),
             div(flex_direction="row", align_items="center", gap=60)[
                 keys(),
                 apm(
@@ -130,7 +118,6 @@ def layout():
     )
 
     screen_index = state.get("screen_index", 1)
-    alignment = state.get("alignment", DEFAULT_ALIGNMENT)
 
     style({
         "text": {
@@ -139,39 +126,31 @@ def layout():
         }
     })
 
-    # For OBS second screen
-    # return screen(screen_index)[
-    #     div(margin_top=100, margin_left=50)[
-    #         horizontal_layout_3()
-    #     ],
-    # ]
+    if not COMPACT_LAYOUT:
+        return screen(screen_index)[
+            div(margin_top=100, margin_left=50)[
+                horizontal_layout_3()
+            ],
+        ]
 
-    # Overlay directly on game but on second screen
+    if OVERLAY_DIRECTLY_ON_GAME_SCREEN:
+        return active_window()[
+            keys(position="absolute", top=50, right=300),
+            current_noise(position="absolute", top=120, left=25),
+        ]
+
     return screen(1)[
         div(margin_top=100, margin_left=50)[
             vertical_layout()
         ],
     ]
 
-    # For directly on the game screen
-    # return active_window()[
-    #     keys(position="absolute", top=50, right=300),
-    #     current_noise(position="absolute", top=120, left=25),
-    # ]
 
 def show_ui():
     actions.user.ui_elements_show(layout)
-    # show_commands()
-    # show_keys()
-    # show_current_noise()
-    # show_history_log()
 
 def hide_ui():
     actions.user.ui_elements_hide_all()
-    # hide_commands()
-    # hide_keys()
-    # hide_current_noise()
-    # hide_history_log()
 
 def refresh_ui():
     hide_ui()

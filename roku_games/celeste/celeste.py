@@ -96,7 +96,7 @@ def jump_pause():
 
 def pause_jump_pause():
     actions.user.game_key("escape")
-    actions.sleep("50ms")
+    actions.sleep("60ms")
     actions.user.game_key("p") # second jump bound to "p"
     actions.user.game_key("escape")
 
@@ -148,11 +148,11 @@ move_config = {
     "ee":         ("stop", actions.user.game_stopper),
     "guh":        ("down", actions.user.game_arrows_hold_down),
     "eh":         ("up", actions.user.game_arrows_hold_up),
-    "er":         ("r click", actions.user.game_mouse_click_right),
+    "er":         ("down", actions.user.game_arrows_hold_down),
     "t":          ("f-up", actions.user.game_arrows_hold_up_horizontal),
     "mm":         ("f-down", actions.user.game_arrows_hold_down_horizontal),
     "palate":     ("short up", lambda: actions.user.game_key_hold("up", 30)),
-    "pop":        ("short down", lambda: actions.user.game_key_hold("down", 30)),
+    "pop":        ("demo", lambda: actions.user.game_key("t")),
     "tut":        ("tab", lambda: actions.user.game_key("tab")),
     "tut t":      ("b-up", lambda: (
         actions.user.game_state_switch_horizontal(),

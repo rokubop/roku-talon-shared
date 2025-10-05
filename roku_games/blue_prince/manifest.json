@@ -1,0 +1,34 @@
+{
+  "name": "blue_prince",
+  "description": "Auto-generated manifest.",
+  "version": "0.1.1",
+  "contributes": {},
+  "depends": {
+    "modes": ["user.game"],
+    "actions": [
+      "user.game_key",
+      "user.game_key_hold",
+      "user.game_mode_disable",
+      "user.game_mouse_click_left",
+      "user.game_mouse_click_right",
+      "user.game_mouse_move_continuous_down_5",
+      "user.game_mouse_move_continuous_stop",
+      "user.game_mouse_move_continuous_up_5",
+      "user.game_mouse_move_deg_180",
+      "user.game_mouse_move_deg_left_90",
+      "user.game_mouse_move_deg_right_90",
+      "user.game_stopper",
+      "user.game_wasd_hold_a",
+      "user.game_wasd_hold_d",
+      "user.game_wasd_hold_s",
+      "user.game_wasd_hold_w",
+      "user.on_game_mode_disabled",
+      "user.on_game_mode_enabled",
+      "user.parrot_config",
+      "user.parrot_config_format_display",
+      "user.ui_elements",
+      "user.ui_elements_hide_all",
+      "user.ui_elements_show"
+    ]
+  }
+}

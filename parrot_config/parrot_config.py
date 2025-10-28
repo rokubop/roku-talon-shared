@@ -1,5 +1,6 @@
 from talon import Module, actions, cron, ui, ctrl, settings
 import re
+import inspect
 mod = Module()
 
 event_subscribers = []
@@ -41,16 +42,131 @@ def get_modified_action(noise, action):
         return (action[0], lambda: parrot_debounce(debounce_amount, base_noise, action[1]))
     return action
 
+def has_variables(noise_pattern: str) -> bool:
+    return '$' in noise_pattern
+
+def extract_variables(noise_pattern: str) -> list[str]:
+    variables = re.findall(r'\$([a-zA-Z_][a-zA-Z0-9_]*)', noise_pattern)
+    return variables
+
+def pattern_to_regex(noise_pattern: str) -> str:
+    escaped = re.escape(noise_pattern)
+    pattern = re.sub(r'\\\$[a-zA-Z_][a-zA-Z0-9_]*', r'(\\w+)', escaped)
+    return pattern
+
+def validate_variable_action(noise_pattern: str, action: tuple) -> bool:
+    if not isinstance(action, tuple) or len(action) < 2:
+        return False
+
+    variables = extract_variables(noise_pattern)
+    lambda_func = action[1]
+
+    if not callable(lambda_func):
+        return False
+
+    try:
+        sig = inspect.signature(lambda_func)
+        param_count = len(sig.parameters)
+        variable_count = len(variables)
+        return param_count == 0 or param_count == variable_count
+    except (ValueError, TypeError):
+        return True
+
+def match_variable_pattern(noise: str, pattern: str) -> dict[str, str] | None:
+    regex_pattern = pattern_to_regex(pattern)
+    match = re.match(f'^{regex_pattern}$', noise)
+
+    if not match:
+        return None
+
+    variables = extract_variables(pattern)
+    values = match.groups()
+
+    if len(variables) != len(values):
+        return None
+
+    return dict(zip(variables, values))
+
+def execute_variable_action(action: tuple, variables: dict[str, str]):
+    lambda_func = action[1]
+
+    try:
+        sig = inspect.signature(lambda_func)
+        param_count = len(sig.parameters)
+
+        if param_count == 0:
+            return lambda_func()
+        else:
+            var_values = list(variables.values())
+            return lambda_func(*var_values)
+    except (ValueError, TypeError):
+        return lambda_func()
+
+def process_command_categorization(noise, action, base_noise_map, combo_noise_set, immediate_commands, delayed_commands):
+    (_base_noise, _modifiers, location) = parse_modifiers(noise)
+    modified_action = get_modified_action(noise, action)
+    base = base_noise_map[noise]
+
+    if any(other_noise.startswith(f"{base} ") and other_noise != base for other_noise in combo_noise_set):
+        if location:
+            if not base in delayed_commands:
+                delayed_commands[base] = (action[0], {})
+            delayed_commands[base][1][location] = modified_action[1]
+        else:
+            delayed_commands[base] = modified_action
+    else:
+        if location:
+            if not base in immediate_commands:
+                immediate_commands[base] = (action[0], {})
+            immediate_commands[base][1][location] = modified_action[1]
+        else:
+            immediate_commands[base] = modified_action
+
+def process_variable_categorization(noise_pattern, action, variable_commands, combo_noise_set, immediate_variable_patterns, delayed_variable_patterns):
+    (_base_noise, _modifiers, location) = parse_modifiers(noise_pattern)
+    modified_action = get_modified_action(noise_pattern, action)
+    base_pattern = get_base_noise(noise_pattern)[0]
+
+    is_delayed = False
+    for other_pattern, _ in variable_commands:
+        other_base = get_base_noise(other_pattern)[0]
+        if other_base.startswith(f"{base_pattern} ") and other_base != base_pattern:
+            is_delayed = True
+            break
+
+    if not is_delayed:
+        for static_combo in combo_noise_set:
+            if static_combo.startswith(f"{base_pattern} ") and static_combo != base_pattern:
+                is_delayed = True
+                break
+
+    if is_delayed:
+        if location:
+            if not noise_pattern in delayed_variable_patterns:
+                delayed_variable_patterns[noise_pattern] = (action[0], {})
+            delayed_variable_patterns[noise_pattern][1][location] = modified_action[1]
+        else:
+            delayed_variable_patterns[noise_pattern] = modified_action
+    else:
+        if location:
+            if not noise_pattern in immediate_variable_patterns:
+                immediate_variable_patterns[noise_pattern] = (action[0], {})
+            immediate_variable_patterns[noise_pattern][1][location] = modified_action[1]
+        else:
+            immediate_variable_patterns[noise_pattern] = modified_action
+
 def categorize_commands(commands):
-    """Determine immediate vs delayed commands"""
     immediate_commands = {}
     delayed_commands = {}
+    immediate_variable_patterns = {}
+    delayed_variable_patterns = {}
     base_pairs = set()
     combo_noise_set = set()
     base_noise_set = set()
     unique_combos = set()
     base_noise_map = {}
     active_commands = []
+    variable_commands = []
 
     for noise, action in commands.items():
         if not noise or not isinstance(action, tuple) or len(action) < 2:
@@ -71,43 +187,38 @@ def categorize_commands(commands):
             print(e)
             continue
 
-        base_combo, base_noises = get_base_noise(noise)
+        if has_variables(noise):
+            if not validate_variable_action(noise, action):
+                print(f"Warning: Variable pattern '{noise}' has mismatched lambda signature")
+                continue
+            variable_commands.append((noise, action))
+        else:
+            base_combo, base_noises = get_base_noise(noise)
 
-        if "_stop" in noise and len(base_noises) == 1:
-            base_pairs.add(base_noises[0].replace("_stop", ""))
+            if "_stop" in noise and len(base_noises) == 1:
+                base_pairs.add(base_noises[0].replace("_stop", ""))
 
-        if len(base_noises) > 1:
-            unique_combos.add(base_combo)
+            if len(base_noises) > 1:
+                unique_combos.add(base_combo)
 
-        for base_noise in base_noises:
-            base_noise_set.add(base_noise)
+            for base_noise in base_noises:
+                base_noise_set.add(base_noise)
 
-        combo_noise_set.add(base_combo)
-        base_noise_map[noise] = base_combo
-        active_commands.append((noise, action))
+            combo_noise_set.add(base_combo)
+            base_noise_map[noise] = base_combo
+            active_commands.append((noise, action))
 
     for noise, action in active_commands:
-        (_base_noise, _modifiers, location) = parse_modifiers(noise)
-        modified_action = get_modified_action(noise, action)
-        base = base_noise_map[noise]
-        if any(other_noise.startswith(f"{base} ") and other_noise != base for other_noise in combo_noise_set):
-            if location:
-                if not base in delayed_commands:
-                    delayed_commands[base] = (action[0], {})
-                delayed_commands[base][1][location] = modified_action[1]
-            else:
-                delayed_commands[base] = modified_action
-        else:
-            if location:
-                if not base in immediate_commands:
-                    immediate_commands[base] = (action[0], {})
-                immediate_commands[base][1][location] = modified_action[1]
-            else:
-                immediate_commands[base] = modified_action
+        process_command_categorization(noise, action, base_noise_map, combo_noise_set, immediate_commands, delayed_commands)
+
+    for noise_pattern, action in variable_commands:
+        process_variable_categorization(noise_pattern, action, variable_commands, combo_noise_set, immediate_variable_patterns, delayed_variable_patterns)
 
     return {
         "immediate_commands": immediate_commands,
         "delayed_commands": delayed_commands,
+        "immediate_variable_patterns": immediate_variable_patterns,
+        "delayed_variable_patterns": delayed_variable_patterns,
         "base_noise_set": base_noise_set,
         "base_pairs": base_pairs,
         "unique_combos": unique_combos
@@ -133,6 +244,9 @@ class ParrotConfig():
         self.current_mode = None
         self.immediate_commands = {}
         self.delayed_commands = {}
+        self.immediate_variable_patterns = {}
+        self.delayed_variable_patterns = {}
+        self.has_variables = False
         self.base_pairs = set()
         self.combo_chain = ""
         self.combo_job = None
@@ -160,6 +274,9 @@ class ParrotConfig():
         categorized = categorize_commands(commands)
         self.immediate_commands = categorized["immediate_commands"]
         self.delayed_commands = categorized["delayed_commands"]
+        self.immediate_variable_patterns = categorized["immediate_variable_patterns"]
+        self.delayed_variable_patterns = categorized["delayed_variable_patterns"]
+        self.has_variables = bool(self.immediate_variable_patterns or self.delayed_variable_patterns)
         self.base_noises = categorized["base_noise_set"]
         self.base_pairs = categorized["base_pairs"]
         self.unique_combos = categorized["unique_combos"]
@@ -194,6 +311,64 @@ class ParrotConfig():
         self.combo_chain = ""
         self.pending_combo = None
 
+    def _try_variable_patterns(self, noise_chain: str, pattern_dict: dict) -> bool:
+        for pattern, action in pattern_dict.items():
+            variables = match_variable_pattern(noise_chain, pattern)
+            if variables is not None:
+                if isinstance(action[1], dict):
+                    executeActionOrLocationAction(action[1])
+                else:
+                    execute_variable_action(action, variables)
+
+                command = action[0]
+                parrot_config_event_trigger(pattern, command)
+                return True
+        return False
+
+    def _execute_delayed_command(self):
+        self.pending_combo = self.combo_chain
+        self.combo_job = cron.after(self.combo_window, self._delayed_combo_execute)
+
+    def _execute_immediate_command(self, noise: str):
+        action = self.immediate_commands[self.combo_chain][1]
+        throttled = parrot_throttle_busy.get(noise)
+        executeActionOrLocationAction(action)
+        if not throttled:
+            command = self.immediate_commands[self.combo_chain][0]
+            parrot_config_event_trigger(self.combo_chain, command)
+
+        # if our combo ends in a continuous noise, we should force
+        # a throttle so there is clear separation between the combo
+        # and a followup noise.
+        if self.combo_chain in self.unique_combos:
+            last_noise = self.combo_chain.split(' ')[-1]
+            if last_noise in self.base_pairs:
+                parrot_throttle(90, last_noise, lambda: None)
+                parrot_throttle(90, f"{last_noise}_stop", lambda: None)
+
+        self.combo_chain = ""
+        self.pending_combo = None
+
+    def _execute_immediate_variable_pattern(self):
+        self.combo_chain = ""
+        self.pending_combo = None
+
+    def _execute_single_immediate_command(self, noise: str):
+        if self.pending_combo:
+            self._delayed_combo_execute()
+            actions.sleep("20ms")
+        action = self.immediate_commands[noise][1]
+        throttled = parrot_throttle_busy.get(noise)
+        executeActionOrLocationAction(action)
+        if not throttled:
+            command = self.immediate_commands[noise][0]
+            parrot_config_event_trigger(noise, command)
+        self.combo_chain = ""
+        self.pending_combo = None
+
+    def _execute_potential_combo(self):
+        self.combo_job = cron.after(self.combo_window, self._delayed_potential_combo)
+
     def execute(self, noise: str):
         global parrot_debounce_busy
         if noise not in self.base_noises:
@@ -212,43 +387,18 @@ class ParrotConfig():
         self.combo_chain = self.combo_chain + f" {noise}" if self.combo_chain else noise
 
         if self.combo_chain in self.delayed_commands:
-            self.pending_combo = self.combo_chain
-            self.combo_job = cron.after(self.combo_window, self._delayed_combo_execute)
+            self._execute_delayed_command()
         elif self.combo_chain in self.immediate_commands:
-            action = self.immediate_commands[self.combo_chain][1]
-            throttled = parrot_throttle_busy.get(noise)
-            executeActionOrLocationAction(action)
-            if not throttled:
-                command = self.immediate_commands[self.combo_chain][0]
-                parrot_config_event_trigger(self.combo_chain, command)
-
-            # if our combo ends in a continuous noise, we should force
-            # a throttle so there is clear separation between the combo
-            # and a followup noise.
-            if self.combo_chain in self.unique_combos:
-                last_noise = self.combo_chain.split(' ')[-1]
-                if last_noise in self.base_pairs:
-                    parrot_throttle(90, last_noise, lambda: None)
-                    parrot_throttle(90, f"{last_noise}_stop", lambda: None)
-
-            self.combo_chain = ""
-            self.pending_combo = None
+            self._execute_immediate_command(noise)
+        elif self.has_variables and self._try_variable_patterns(self.combo_chain, self.delayed_variable_patterns):
+            self._execute_delayed_command()
+        elif self.has_variables and self._try_variable_patterns(self.combo_chain, self.immediate_variable_patterns):
+            self._execute_immediate_variable_pattern()
         elif noise in self.immediate_commands:
-            if self.pending_combo:
-                self._delayed_combo_execute()
-                actions.sleep("20ms")
-            action = self.immediate_commands[noise][1]
-            throttled = parrot_throttle_busy.get(noise)
-            executeActionOrLocationAction(action)
-            if not throttled:
-                command = self.immediate_commands[noise][0]
-                parrot_config_event_trigger(noise, command)
-            self.combo_chain = ""
-            self.pending_combo = None
+            self._execute_single_immediate_command(noise)
         else:
-            self.combo_job = cron.after(self.combo_window, self._delayed_potential_combo)
+            self._execute_potential_combo()
 
-# todo: try using the user's direct reference instead
 parrot_config_saved = ParrotConfig()
 
 parrot_throttle_busy = {}

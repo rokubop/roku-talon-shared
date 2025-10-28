@@ -4,7 +4,7 @@ from .components.keys import keys, keys_2
 from .components.current_noise import current_noise
 from .components.apm import apm
 
-COMPACT_LAYOUT = False
+COMPACT_LAYOUT = True
 OVERLAY_DIRECTLY_ON_GAME_SCREEN = False
 
 def vertical_layout():
@@ -86,6 +86,24 @@ def horizontal_layout_3():
         ],
     ]
 
+def horizontal_layout_4():
+    div = actions.user.ui_elements(["div"])
+
+    return div(flex_direction="row", gap=40)[
+        keys(),
+        div(flex_direction="row", width=650, justify_content="space_between", align_items="center")[
+            current_noise(
+                flex=1,
+                padding=8,
+                scale=1.2,
+            ),
+            apm(
+                padding=8,
+                scale=1.2,
+            )
+        ],
+    ]
+
 
 def custom_layout():
     div = actions.user.ui_elements(["div"])
@@ -125,6 +143,12 @@ def layout():
             "stroke_width": 4
         }
     })
+
+    return screen(screen_index)[
+        div(margin_top=100, margin_left=50)[
+            horizontal_layout_4()
+        ],
+    ]
 
     if not COMPACT_LAYOUT:
         return screen(screen_index)[

@@ -1,8 +1,15 @@
-from talon import Module, Context, actions, cron, ctrl
+from talon import Module, Context, actions
 from .ui.celeste_ui import show_ui, hide_ui
 from .ui.components.history_log import append_history_log
-import time
-from pynput import keyboard
+
+USE_OBS_INTEGRATION = True
+OBS_HOST = "127.0.0.1"
+OBS_PORT = 4455
+OBS_PASSWORD = ""
+OBS_SCENE_NAME = "celeste streaming"
+OBS_PEDAL_LEFT = "PEDAL_LEFT_ACTIVE.png"
+OBS_PEDAL_MIDDLE = "PEDAL_MIDDLE_ACTIVE.png"
+OBS_PEDAL_RIGHT = "PEDAL_RIGHT_ACTIVE.png"
 
 mod, ctx, ctx_game = Module(), Context(), Context()
 mod.apps.celeste = "os: windows\nand app.exe: /Celeste.exe/i"
@@ -100,13 +107,8 @@ def pause_jump_pause():
     actions.user.game_key("p") # second jump bound to "p"
     actions.user.game_key("escape")
 
-# def test():
-#     actions.user.game_key_hold("c", 200)
-#     cron.after("208ms", lambda: actions.user.game_key_hold("c", 200))
-
 default_config = {
     "sh:th_90":   ("jump 1", jump_primary),
-    # "sh:th_90":   ("jump 1", test),
     "sh_stop":    ("", lambda: None),
     "ss":         ("jump 2", lambda: actions.user.game_key_hold("p")),
     "ss_stop":    ("", lambda: actions.user.game_key_release("p")),
@@ -174,52 +176,74 @@ def stop_move_mode():
     pedal_center_up_job = None
     use_default_mode()
     actions.user.ui_elements_unhighlight("foot_center")
-    # actions.user.ui_elements_set_state("side_b", False)
+
+def safe_obs_action(action_func, *args, **kwargs):
+    if not USE_OBS_INTEGRATION:
+        return
+
+    try:
+        if hasattr(actions.user, 'obs_is_connected'):
+            return action_func(*args, **kwargs)
+    except Exception as e:
+        print(f"OBS action failed: {e}")
+
+def safe_obs_connected_action(action_func, *args, **kwargs):
+    if not USE_OBS_INTEGRATION:
+        return
+
+    try:
+        if hasattr(actions.user, 'obs_is_connected') and actions.user.obs_is_connected():
+            return action_func(*args, **kwargs)
+    except Exception as e:
+        print(f"OBS action failed: {e}")
 
 @ctx_game.action_class("user")
 class Actions:
     def on_game_mode_enabled():
-        # actions.user.ui_elements_set_state("parrot_config", parrot_config)
         show_ui()
         actions.user.pynput_pedal_enable()
+        safe_obs_action(actions.user.obs_connect, OBS_HOST, OBS_PORT, OBS_PASSWORD)
+        safe_obs_connected_action(actions.user.obs_set_current_scene, OBS_SCENE_NAME)
+        safe_obs_connected_action(actions.user.obs_scene_item_hide, OBS_SCENE_NAME, OBS_PEDAL_LEFT)
+        safe_obs_connected_action(actions.user.obs_scene_item_hide, OBS_SCENE_NAME, OBS_PEDAL_MIDDLE)
+        safe_obs_connected_action(actions.user.obs_scene_item_hide, OBS_SCENE_NAME, OBS_PEDAL_RIGHT)
 
     def on_game_mode_disabled():
         hide_ui()
         actions.user.pynput_pedal_disable()
+        safe_obs_action(actions.user.obs_disconnect)
 
     def parrot_config():
         return parrot_config
 
     def pynput_pedal_left_down():
         actions.user.game_key_hold("z", release_on_stop=False)
-        # append_history_log("pedal 1", "grab")
-        # actions.user.ui_elements_set_state("grab", True)
         actions.user.ui_elements_highlight("foot_left")
+        safe_obs_connected_action(actions.user.obs_scene_item_show, OBS_SCENE_NAME, OBS_PEDAL_LEFT)
 
     def pynput_pedal_left_up():
         actions.user.game_key_release("z")
-        # actions.user.ui_elements_set_state("grab", False)
         actions.user.ui_elements_unhighlight("foot_left")
+        safe_obs_connected_action(actions.user.obs_scene_item_hide, OBS_SCENE_NAME, OBS_PEDAL_LEFT)
 
     def pynput_pedal_middle_down():
         use_move_mode()
-        # append_history_log("pedal 2", "side b")
-        # actions.user.ui_elements_set_state("side_b", True)
         actions.user.ui_elements_highlight("foot_center")
+        safe_obs_connected_action(actions.user.obs_scene_item_show, OBS_SCENE_NAME, OBS_PEDAL_MIDDLE)
 
     def pynput_pedal_middle_up():
         stop_move_mode()
+        safe_obs_connected_action(actions.user.obs_scene_item_hide, OBS_SCENE_NAME, OBS_PEDAL_MIDDLE)
 
     def pynput_pedal_right_down():
         actions.user.game_key_hold("p", release_on_stop=False)
-        # append_history_log("pedal 3", "jump 3")
-        # actions.user.ui_elements_set_state("hold_jump", True)
         actions.user.ui_elements_highlight("foot_right")
+        safe_obs_connected_action(actions.user.obs_scene_item_show, OBS_SCENE_NAME, OBS_PEDAL_RIGHT)
 
     def pynput_pedal_right_up():
         actions.user.game_key_release("p")
-        # actions.user.ui_elements_set_state("hold_jump", False)
         actions.user.ui_elements_unhighlight("foot_right")
+        safe_obs_connected_action(actions.user.obs_scene_item_hide, OBS_SCENE_NAME, OBS_PEDAL_RIGHT)
 
     def pedal_left_down(): actions.skip()
     def pedal_left_up(): actions.skip()

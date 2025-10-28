@@ -6,6 +6,7 @@ This is an alternate way to define your parrot commands in a way that supports
 - debounce
 - switching out configs easily without needing to create new modes.
 - screen positions (WIP)
+- variable patterns with $variable syntax
 
 Combos have a timeout of `300ms`. If you define a combo, then the first sound will no longer fire immediately, but only after `300ms`.
 
@@ -79,6 +80,16 @@ actions.user.parrot_config_cycle_mode()
 actions.user.parrot_config_get_mode()
 ```
 
+## Variable Patterns
+Use `$` to capture any primitive parrot noise in your pattern:
+
+```py
+parrot_config = {
+    "tut $noise": ("hold modifier", lambda noise: actions.user.my_hold_command(noise)),
+    # Usage: "tut cluck", "tut hiss", "tut tut" etc.
+}
+```
+
 ## Throttling
 Throttling is useful when you have a continuous parrot noise, but you only want to trigger it once per 100ms for example:
 ```py
@@ -122,6 +133,7 @@ class Actions:
 | `"pop:th"` | Default throttle for the pop command. |
 | `"hiss:db_100"` | Debounces the hiss command to only trigger after 100ms of continuous popping. |
 | `"hiss:db"` | Default debounce for the hiss command. |
+| `"pop $noise"` | Variable pattern that captures any primitive parrot noise after "pop" and passes it to the lambda function. |
 
 ## Dependencies
 none

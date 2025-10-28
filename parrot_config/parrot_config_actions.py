@@ -64,6 +64,7 @@ class Actions:
         "noise:th"      - default throttle
         "noise:db_100"  - debounce of 100ms (triggered after 100ms of continuous noise)
         "noise:db"      - default debounce
+        "tut $noise"    - variable pattern passed to lambda as argument
         ```
         """
         return {}

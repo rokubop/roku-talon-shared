@@ -51,7 +51,9 @@ def extract_variables(noise_pattern: str) -> list[str]:
 
 def pattern_to_regex(noise_pattern: str) -> str:
     escaped = re.escape(noise_pattern)
-    pattern = re.sub(r'\\\$[a-zA-Z_][a-zA-Z0-9_]*', r'(\\w+)', escaped)
+    # Replace escaped variable placeholders with regex groups
+    # Use a lambda to avoid backslash interpretation issues
+    pattern = re.sub(r'\\\$[a-zA-Z_][a-zA-Z0-9_]*', lambda m: r'(\w+)', escaped)
     return pattern
 
 def validate_variable_action(noise_pattern: str, action: tuple) -> bool:
@@ -85,7 +87,8 @@ def match_variable_pattern(noise: str, pattern: str) -> dict[str, str] | None:
     if len(variables) != len(values):
         return None
 
-    return dict(zip(variables, values))
+    result = dict(zip(variables, values))
+    return result
 
 def execute_variable_action(action: tuple, variables: dict[str, str]):
     lambda_func = action[1]
@@ -128,12 +131,17 @@ def process_variable_categorization(noise_pattern, action, variable_commands, co
     base_pattern = get_base_noise(noise_pattern)[0]
 
     is_delayed = False
+
+    # Check if any other variable patterns could conflict with this one
+    # (i.e., this pattern is a prefix of another pattern)
     for other_pattern, _ in variable_commands:
         other_base = get_base_noise(other_pattern)[0]
-        if other_base.startswith(f"{base_pattern} ") and other_base != base_pattern:
+        if other_pattern != noise_pattern and other_base.startswith(f"{base_pattern} "):
             is_delayed = True
             break
 
+    # Check if any static combos could conflict with this pattern
+    # (i.e., this pattern is a prefix of a static combo)
     if not is_delayed:
         for static_combo in combo_noise_set:
             if static_combo.startswith(f"{base_pattern} ") and static_combo != base_pattern:
@@ -207,6 +215,14 @@ def categorize_commands(commands):
             combo_noise_set.add(base_combo)
             base_noise_map[noise] = base_combo
             active_commands.append((noise, action))
+
+    # Also add base noises from variable patterns
+    for noise_pattern, action in variable_commands:
+        base_combo, base_noises = get_base_noise(noise_pattern)
+        for base_noise in base_noises:
+            # Only add if it's not a variable placeholder
+            if not base_noise.startswith('$'):
+                base_noise_set.add(base_noise)
 
     for noise, action in active_commands:
         process_command_categorization(noise, action, base_noise_map, combo_noise_set, immediate_commands, delayed_commands)
@@ -308,6 +324,16 @@ class ParrotConfig():
         if self.combo_job:
             cron.cancel(self.combo_job)
             self.combo_job = None
+
+        # maybe needed for variable patterns
+        # if self.combo_chain and self.combo_chain in self.immediate_commands:
+        #     action = self.immediate_commands[self.combo_chain][1]
+        #     throttled = parrot_throttle_busy.get(self.combo_chain)
+        #     executeActionOrLocationAction(action)
+        #     if not throttled:
+        #         command = self.immediate_commands[self.combo_chain][0]
+        #         parrot_config_event_trigger(self.combo_chain, command)
+
         self.combo_chain = ""
         self.pending_combo = None
 
@@ -325,9 +351,22 @@ class ParrotConfig():
                 return True
         return False
 
-    def _execute_delayed_command(self):
+    def _prepare_delayed_command(self):
         self.pending_combo = self.combo_chain
         self.combo_job = cron.after(self.combo_window, self._delayed_combo_execute)
+
+    def _execute_delayed_variable_command(self):
+        self.pending_combo = self.combo_chain
+        self.combo_job = cron.after(self.combo_window, self._delayed_combo_execute_variable)
+
+    def _delayed_combo_execute_variable(self):
+        if self.combo_job:
+            cron.cancel(self.combo_job)
+            self.combo_job = None
+        # Try to match the pending combo against delayed variable patterns
+        matched = self._try_variable_patterns(self.pending_combo, self.delayed_variable_patterns)
+        self.combo_chain = ""
+        self.pending_combo = None
 
     def _execute_immediate_command(self, noise: str):
         action = self.immediate_commands[self.combo_chain][1]
@@ -366,11 +405,51 @@ class ParrotConfig():
         self.combo_chain = ""
         self.pending_combo = None
 
+    def _could_be_variable_pattern_start(self, combo_chain: str) -> bool:
+        """Check if the current combo chain could be the start of a variable pattern"""
+        if not self.has_variables:
+            return False
+
+        # Check immediate variable patterns
+        for pattern in self.immediate_variable_patterns.keys():
+            pattern_parts = pattern.split()
+            combo_parts = combo_chain.split()
+
+            # If we have fewer parts than the pattern and they match so far, it could be a start
+            if len(combo_parts) < len(pattern_parts):
+                matches_so_far = True
+                for i, combo_part in enumerate(combo_parts):
+                    pattern_part = pattern_parts[i]
+                    if not pattern_part.startswith('$') and pattern_part != combo_part:
+                        matches_so_far = False
+                        break
+                if matches_so_far:
+                    return True
+
+        # Check delayed variable patterns
+        for pattern in self.delayed_variable_patterns.keys():
+            pattern_parts = pattern.split()
+            combo_parts = combo_chain.split()
+
+            # If we have fewer parts than the pattern and they match so far, it could be a start
+            if len(combo_parts) < len(pattern_parts):
+                matches_so_far = True
+                for i, combo_part in enumerate(combo_parts):
+                    pattern_part = pattern_parts[i]
+                    if not pattern_part.startswith('$') and pattern_part != combo_part:
+                        matches_so_far = False
+                        break
+                if matches_so_far:
+                    return True
+
+        return False
+
     def _execute_potential_combo(self):
         self.combo_job = cron.after(self.combo_window, self._delayed_potential_combo)
 
     def execute(self, noise: str):
         global parrot_debounce_busy
+
         if noise not in self.base_noises:
             return
 
@@ -387,18 +466,23 @@ class ParrotConfig():
         self.combo_chain = self.combo_chain + f" {noise}" if self.combo_chain else noise
 
         if self.combo_chain in self.delayed_commands:
-            self._execute_delayed_command()
+            self._prepare_delayed_command()
         elif self.combo_chain in self.immediate_commands:
-            self._execute_immediate_command(noise)
-        elif self.has_variables and self._try_variable_patterns(self.combo_chain, self.delayed_variable_patterns):
-            self._execute_delayed_command()
+            if self._could_be_variable_pattern_start(self.combo_chain):
+                self._execute_potential_combo()
+            else:
+                self._execute_immediate_command(noise)
         elif self.has_variables and self._try_variable_patterns(self.combo_chain, self.immediate_variable_patterns):
             self._execute_immediate_variable_pattern()
+        elif self.has_variables and self._try_variable_patterns(self.combo_chain, self.delayed_variable_patterns):
+            self._execute_delayed_variable_command()
+        # Fallback to single noise commands
         elif noise in self.immediate_commands:
             self._execute_single_immediate_command(noise)
         else:
             self._execute_potential_combo()
 
+# todo: try using the user's direct reference instead
 parrot_config_saved = ParrotConfig()
 
 parrot_throttle_busy = {}

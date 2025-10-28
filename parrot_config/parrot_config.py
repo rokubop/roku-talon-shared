@@ -369,21 +369,24 @@ class ParrotConfig():
         self.pending_combo = None
 
     def _execute_immediate_command(self, noise: str):
-        action = self.immediate_commands[self.combo_chain][1]
-        throttled = parrot_throttle_busy.get(noise)
-        executeActionOrLocationAction(action)
-        if not throttled:
-            command = self.immediate_commands[self.combo_chain][0]
-            parrot_config_event_trigger(self.combo_chain, command)
+        try:
+            action = self.immediate_commands[self.combo_chain][1]
+            throttled = parrot_throttle_busy.get(noise)
+            executeActionOrLocationAction(action)
+            if not throttled:
+                command = self.immediate_commands[self.combo_chain][0]
+                parrot_config_event_trigger(self.combo_chain, command)
 
-        # if our combo ends in a continuous noise, we should force
-        # a throttle so there is clear separation between the combo
-        # and a followup noise.
-        if self.combo_chain in self.unique_combos:
-            last_noise = self.combo_chain.split(' ')[-1]
-            if last_noise in self.base_pairs:
-                parrot_throttle(90, last_noise, lambda: None)
-                parrot_throttle(90, f"{last_noise}_stop", lambda: None)
+            # if our combo ends in a continuous noise, we should force
+            # a throttle so there is clear separation between the combo
+            # and a followup noise.
+            if self.combo_chain in self.unique_combos:
+                last_noise = self.combo_chain.split(' ')[-1]
+                if last_noise in self.base_pairs:
+                    parrot_throttle(90, last_noise, lambda: None)
+                    parrot_throttle(90, f"{last_noise}_stop", lambda: None)
+        except:
+            pass
 
         self.combo_chain = ""
         self.pending_combo = None

@@ -1,5 +1,7 @@
 # roku-talon-shared
 
+Edit: Find more up-to-date packages at [https://github.com/rokubop/talon-hub-roku](https://github.com/rokubop/talon-hub-roku)
+
 This is shared set of Talon tools and scripts to help you play games, build UIs, move/drag the mouse, setup parrot combos or dynamic noises. Compatible alongside community. WIP. Each folder is considered a "package" with its own `manifest.json` telling you what it contributes and depends on.
 
 ## Requirements
